@@ -2,10 +2,11 @@
 
 from contextlib import AbstractAsyncContextManager
 from contextlib import nullcontext as dont_raise
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pytest import fixture
 
+from domain.entities.product import Product
 from domain.entities.user import UserBase
 
 # Roles
