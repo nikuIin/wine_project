@@ -11,6 +11,7 @@ from tests.unit.domain.entities.conftest import (
 
 
 class TestProduct:
+    @mark.product
     def test_product_field_types(self, product_base):
         assert isinstance(product_base.product_uuid, UUID)
         assert isinstance(product_base.name, str)
@@ -18,6 +19,7 @@ class TestProduct:
         assert isinstance(product_base.brand_id, int)
         assert isinstance(product_base.discount, float)
 
+    @mark.product
     def test_product_creation_data(self, product_base):
         assert product_base.product_uuid == TEST_PRODUCT_UUID
         assert product_base.name == TEST_PRODUCT_NAME
