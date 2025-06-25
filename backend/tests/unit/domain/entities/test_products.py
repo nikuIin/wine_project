@@ -1,13 +1,28 @@
 from uuid import UUID
 
-from pytest import mark
-from tests.unit.domain.entities.conftest import (
+from pytest import fixture, mark
+from tests.unit.constants import (
     TEST_PRODUCT_DISCOUNT,
     TEST_PRODUCT_NAME,
     TEST_PRODUCT_PRICE,
     TEST_PRODUCT_UUID,
     TEST_RPODUCT_BRAND_ID,
 )
+
+from domain.entities.products import Product
+
+
+# Fixtures
+# Base product (the base class of products)
+@fixture()
+def product_base():
+    return Product(
+        product_uuid=TEST_PRODUCT_UUID,
+        name=TEST_PRODUCT_NAME,
+        price=TEST_PRODUCT_PRICE,
+        brand_id=TEST_RPODUCT_BRAND_ID,
+        discount=TEST_PRODUCT_DISCOUNT,
+    )
 
 
 class TestProduct:
