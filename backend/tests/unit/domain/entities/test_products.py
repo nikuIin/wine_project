@@ -27,6 +27,7 @@ class TestProduct:
         assert product_base.brand_id == TEST_RPODUCT_BRAND_ID
         assert product_base.discount == TEST_PRODUCT_DISCOUNT
 
+    @mark.product
     def test_product_price_with_discount(self, product_base):
         assert (
             product_base.price_with_discount
