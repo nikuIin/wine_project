@@ -165,7 +165,7 @@ class Grape(Base, TimeStampMixin):
 class Product(Base):
     __tablename__ = "product"
     __table_args__ = (
-        CheckConstraint("price >= 0", name="check_price_positive"),
+        CheckConstraint("price::numeric >= 0", name="check_price_positive"),
         CheckConstraint("discount >= 0", name="check_discount_positive"),
         {"schema": "catalog"},
     )
@@ -318,7 +318,7 @@ class Wine(Base, TimeStampMixin):
         DATE,
         nullable=False,
     )
-    productin_method_description: Mapped[str] = mapped_column(
+    production_method_description: Mapped[str] = mapped_column(
         TEXT,
         nullable=True,
     )

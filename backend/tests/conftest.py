@@ -19,6 +19,8 @@ async def function_db_fixture():
     # purge database
     await postgres_helper.drop_database()
 
+    yield
+    await db_manager.clear_data()
 
 @fixture(scope="session")
 async def session_db_fixture():
