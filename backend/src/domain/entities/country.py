@@ -9,7 +9,7 @@ MAX_COUNTRY_ID = 999
 
 
 class Country(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
+    model_config = ConfigDict(str_strip_whitespace=True, from_attributes=True)
     country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
