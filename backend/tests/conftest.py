@@ -10,8 +10,9 @@ from db.dependencies.postgres_helper import DatabaseHelper
 async def db_helper():
     """Fixture to set up and tear down the test database."""
     assert app_settings.app_mode == ModeEnum.test
-    db_helper = DatabaseHelper(url=db_settings.db_url, echo=False)
     assert "test" in db_settings.db_name
+
+    db_helper = DatabaseHelper(url=db_settings.db_url, echo=False)
 
     # Create schemas and tables before tests
     await db_helper.create_schemas(SCHEMAS_LIST)
