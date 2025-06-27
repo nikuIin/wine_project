@@ -1,7 +1,9 @@
+from fastapi import Depends
 from sqlalchemy import delete, update
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from db.dependencies.postgres_helper import postgres_helper
 from db.models import Country as CountryModel
 from domain.entities.country import Country
 from domain.exceptions import (
@@ -31,11 +33,17 @@ class CountryRepository:
                 f"Couldn't create country: {country_model}"
             ) from error
 
-    async def get_country(self, country_id: int) -> CountryModel | None:
+    async def get_country(self, country_id: int) -> Country | None:
         try:
             async with self.__session as session:
-                result = await session.get(CountryModel, country_id)
-                return result
+                # get data from DB
+                country_model = await session.get(CountryModel, country_id)
+
+            # validate data
+            if country_model is None:
+                return None
+            country = Country.model_validate(country_model)
+            return country
 
         except DatabaseError as error:
             raise CountryRetrievalError(
@@ -45,21 +53,24 @@ class CountryRepository:
     async def update_country(
         self, new_country_data: Country
     ) -> Country | None:
-        # Determine update statement
-        stmt = update(CountryModel)
-
         try:
             async with self.__session as session:
-                await session.execute(stmt, new_country_data.model_dump())
+                result = await session.execute(
+                    update(CountryModel)
+                    .where(
+                        CountryModel.country_id == new_country_data.country_id
+                    )
+                    .values(**new_country_data.model_dump(exclude_unset=True))
+                )
+                if result.rowcount == 0:
+                    return None
                 await session.commit()
-
             return new_country_data
 
         except DatabaseError as error:
             raise CountryUpdateError(
-                "Could't update the country with id: "
-                f"{new_country_data.country_id} to the new data: "
-                f"{new_country_data}"
+                "Couldn't update country with id: "
+                + f"{new_country_data.country_id}"
             ) from error
 
     async def delete_country(self, country_id: int) -> bool:
@@ -78,3 +89,9 @@ class CountryRepository:
             raise CountryDeletionError(
                 f"Couldn't delete country with id: {country_id}"
             ) from error
+
+
+def country_repository_dependency(
+    session: AsyncSession = Depends(postgres_helper.session_dependency),
+):
+    return CountryRepository(session=session)
