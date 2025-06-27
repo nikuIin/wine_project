@@ -1,36 +1,32 @@
-"""The test configuration file of the all module"""
-
-from pytest import fixture
+from pytest_asyncio import fixture as async_fixture
 from tests.test_statements import TEST_STATEMENTS
 
-from db.dependencies.postgres_helper import postgres_helper
+from core.config import ModeEnum, app_settings, db_settings
+from db.dependencies.base_statements import SCHEMAS_LIST
+from db.dependencies.postgres_helper import DatabaseHelper
 
 
-@fixture(scope="function")
-async def function_db_fixture():
-    # init test database
-    await postgres_helper.drop_database()
-    await postgres_helper.create_tables()
-    await postgres_helper.insert_base_data(statements=TEST_STATEMENTS)
+@async_fixture(scope="function")
+async def db_helper():
+    """Fixture to set up and tear down the test database."""
+    assert app_settings.app_mode == ModeEnum.test
+    db_helper = DatabaseHelper(url=db_settings.db_url, echo=False)
+    assert "test" in db_settings.db_name
 
-    # run tests
-    yield
+    # Create schemas and tables before tests
+    await db_helper.create_schemas(SCHEMAS_LIST)
+    await db_helper.create_tables()
+    await db_helper.insert_base_data(TEST_STATEMENTS)
 
-    # purge database
-    await postgres_helper.drop_database()
+    yield db_helper
 
-    yield
-    await db_manager.clear_data()
+    # Clean up the database after each test
+    await db_helper.clear_data()
 
-@fixture(scope="session")
-async def session_db_fixture():
-    # init test database
-    await postgres_helper.drop_database()
-    await postgres_helper.create_tables()
-    await postgres_helper.insert_base_data(statements=TEST_STATEMENTS)
 
-    # run tests
-    yield
-
-    # purge database
-    await postgres_helper.drop_database()
+@async_fixture(scope="function")
+async def db_session(db_helper):
+    """Fixture to provide a database session for each test."""
+    async with db_helper.session_factory() as session:
+        yield session
+        await session.rollback()
