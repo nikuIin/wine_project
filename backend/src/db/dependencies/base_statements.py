@@ -3,6 +3,14 @@ from sqlalchemy import insert
 from db.models import Country
 from db.statement import Statement
 
+SCHEMAS_LIST = (
+    "ref",
+    "crm",
+    "auth",
+    "catalog",
+    "grape",
+)
+
 # Tuple of insert statements for initial data loading
 BASE_STATEMENTS: tuple[Statement, ...] = (
     Statement(

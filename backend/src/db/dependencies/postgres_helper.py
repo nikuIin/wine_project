@@ -3,6 +3,7 @@ from pathlib import Path
 
 # Import necessary components from SQLAlchemy for asynchronous operations
 from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,  # Represents an asynchronous database session
     async_sessionmaker,  # Factory to create async sessions
@@ -62,6 +63,14 @@ class DatabaseHelper:
             await conn.run_sync(Base.metadata.create_all)
             await conn.commit()
 
+    async def create_schemas(self, schemas_list: tuple[str, ...]) -> None:
+        async with self.engine.begin() as conn:
+            for schema in schemas_list:
+                await conn.execute(
+                    text(f"create schema if not exists {schema}"),
+                )
+            await conn.commit()
+
     async def insert_base_data(
         self, statements: tuple[Statement, ...]
     ) -> None:
@@ -70,15 +79,16 @@ class DatabaseHelper:
                 for stmt in statements:
                     await conn.execute(stmt.statement, stmt.data)
                 await conn.commit()
-                logger.info("Database initialization complete successfully")
+                logger.info("Database scheme insert omplete successfully")
 
             except DBAPIError:
                 await conn.rollback()
                 logger.error(
-                    "Error inserting base data in the database", exc_info=True
+                    "Error inserting base scheme in the database",
+                    exc_info=True,
                 )
 
-    async def drop_database(self) -> None:
+    async def clear_data(self) -> None:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.commit()
