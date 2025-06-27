@@ -26,7 +26,9 @@ class InvalidTokenDataError(Exception):
 
     def __init__(self, message="Invalid JWT-payload."):
         super().__init__(message)
-        logger.warning("The wrong jwt data was recieved to the server", exc_info=True)
+        logger.warning(
+            "The wrong jwt data was recieved to the server", exc_info=True
+        )
 
 
 class AccessTokenAbsenceError(Exception):
@@ -37,7 +39,10 @@ class AccessTokenAbsenceError(Exception):
 
 
 class RefreshTokenAbsenceError(Exception):
-    """The error occures, while the refresh token wasn't finds in the cookies"""
+    """The error occures, while the refresh token
+    wasn't finds in the cookies
+
+    """
 
     def __init__(self, message="The are no refresh token in the cookies."):
         super().__init__(message)
@@ -51,10 +56,13 @@ class RefreshTokenCreationError(Exception):
 
 
 class RefreshTokenIdAbsenceError(Exception):
-    """The error occures, while the refresh token payload doesn't have token_id"""
+    """The error occures, while the refresh token
+    payload doesn't have token_id
+
+    """
 
     def __init__(self, message="The refresh token id must have token_id."):
-        logger.warning("The attemt of creating the refresh token without id", exc_info=True)
+        logger.warning(message, exc_info=True)
         super().__init__(message)
 
 
@@ -62,4 +70,53 @@ class RefreshTokenBlackListError(Exception):
     """The error occures, while the refresh token is in the black list"""
 
     def __init__(self, message="The refresh token is in the black list."):
+        super().__init__(message)
+
+
+# ===============================
+#        Country errors         #
+# ===============================
+
+
+class CountryCreatingError(Exception):
+    """The error occures, while the country wasn't created in the DB"""
+
+    def __init__(
+        self,
+        message="The error while adding country to the database.",
+    ):
+        logger.warning(message, exc_info=True)
+        super().__init__(message)
+
+
+class CountryRetrievalError(Exception):
+    """The error occures, while the country wasn't
+    retrieved (searched) from the DB
+
+    """
+
+    def __init__(
+        self,
+        message=(
+            "The attemt of retrieval (searching)"
+            + "country from database failed"
+        ),
+    ):
+        logger.debug(message, exc_info=True)
+        super().__init__(message)
+
+
+class CountryUpdateError(Exception):
+    """The error occures, while the country wasn't updated in the DB"""
+
+    def __init__(self, message="The country wasn't updated in the DB."):
+        logger.debug(message, exc_info=True)
+        super().__init__(message)
+
+
+class CountryDeletionError(Exception):
+    """The error occures, while the country wasn't deleted from the DB"""
+
+    def __init__(self, message="The country wasn't deleted from the DB."):
+        logger.debug(message, exc_info=True)
         super().__init__(message)
