@@ -12,7 +12,10 @@
 logs/
 *.log
 .env
+.test.env
+.dev.env
 .env_tests
+.env_dev
 
 
 ### ================================ ###
