@@ -2,6 +2,7 @@
 from pathlib import Path
 
 # Import necessary components from SQLAlchemy for asynchronous operations
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import (
     AsyncSession,  # Represents an asynchronous database session
     async_sessionmaker,  # Factory to create async sessions
@@ -15,6 +16,7 @@ from core.logger.logger import get_configure_logger
 # import all models BEFORE initialization the Base class
 from db.models import *  # noqa
 from db.base_models import Base
+from db.statement import Statement
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -59,6 +61,22 @@ class DatabaseHelper:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
             await conn.commit()
+
+    async def insert_base_data(
+        self, statements: tuple[Statement, ...]
+    ) -> None:
+        async with self.engine.begin() as conn:
+            try:
+                for stmt in statements:
+                    await conn.execute(stmt.statement, stmt.data)
+                await conn.commit()
+                logger.info("Database initialization complete successfully")
+
+            except DBAPIError:
+                await conn.rollback()
+                logger.error(
+                    "Error inserting base data in the database", exc_info=True
+                )
 
     async def drop_database(self) -> None:
         async with self.engine.begin() as conn:
