@@ -28,18 +28,6 @@ def base_low_name_registry_country():
 
 class TestCountry:
     @mark.country
-    @mark.parametrize(
-        "country_id, name, expectation",
-        [
-            (1, "Россия", dont_raise()),
-            (-2, "Россия", raises(ValueError)),
-            ("123", "Россия", dont_raise()),
-        ],
-    )
-    def test_country_create():
-        pass
-
-    @mark.country
     def test_create_country_low_registry_name(
         self,
         base_low_name_registry_country: Country,
