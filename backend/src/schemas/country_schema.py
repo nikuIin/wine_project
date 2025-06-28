@@ -12,6 +12,9 @@ class CountrySchema(BaseModel):
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
     )
+    flag_url: str = Field(
+        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
+    )
 
 
 class CountryCreateSchema(BaseModel):
@@ -19,7 +22,11 @@ class CountryCreateSchema(BaseModel):
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
     )
+    flag_url: str | None = None
 
 
 class CountryUpdateSchema(BaseModel):
     name: str
+    flag_url: str = Field(
+        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
+    )

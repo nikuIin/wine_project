@@ -92,7 +92,6 @@ class BlackRefreshTokenList(Base):
 # Reference schema
 class PresentationType(Base):
     __tablename__ = "presentation_type"
-    __table_args__ = ({"schema": "ref"},)
 
     presentation_type_id: Mapped[int] = mapped_column(
         Integer, primary_key=True, autoincrement=True
@@ -105,17 +104,27 @@ class PresentationType(Base):
 # Grape schema
 class Country(Base):
     __tablename__ = "country"
-    __table_args__ = ({"schema": "grape"},)
 
-    country_id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    country_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+    flag_url: Mapped[str] = mapped_column(
+        String(256),
+        comment="The url to the country flag image",
+        nullable=True,
+    )
 
     regions = relationship("Region", back_populates="country")
 
 
 class Region(Base):
     __tablename__ = "region"
-    __table_args__ = ({"schema": "grape"},)
 
     region_id: Mapped[int] = mapped_column(
         Integer,
@@ -124,7 +133,7 @@ class Region(Base):
     )
     country_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("grape.country.country_id"),
+        ForeignKey("country.country_id"),
         nullable=False,
     )
     name: Mapped[str] = mapped_column(
@@ -139,7 +148,6 @@ class Region(Base):
 
 class Grape(Base, TimeStampMixin):
     __tablename__ = "grape"
-    __table_args__ = ({"schema": "grape"},)
 
     grape_id: Mapped[int] = mapped_column(
         Integer,
@@ -153,7 +161,7 @@ class Grape(Base, TimeStampMixin):
     )
     region_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("grape.region.region_id"),
+        ForeignKey("region.region_id"),
         nullable=False,
     )
 
@@ -167,7 +175,6 @@ class Product(Base):
     __table_args__ = (
         CheckConstraint("price::numeric >= 0", name="check_price_positive"),
         CheckConstraint("discount >= 0", name="check_discount_positive"),
-        {"schema": "catalog"},
     )
 
     product_id: Mapped[UUID] = mapped_column(
@@ -176,7 +183,7 @@ class Product(Base):
         default=uuid.uuid4,
     )
     name: Mapped[str] = mapped_column(
-        String(255),
+        String(256),
         nullable=False,
     )
     price: Mapped[float] = mapped_column(
@@ -198,7 +205,7 @@ class Product(Base):
     )
     presentation_type_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("ref.presentation_type.presentation_type_id"),
+        ForeignKey("presentation_type.presentation_type_id"),
         nullable=False,
     )
 
@@ -211,7 +218,6 @@ class Product(Base):
 
 class WineCategory(Base):
     __tablename__ = "wine_category"
-    __table_args__ = ({"schema": "catalog"},)
 
     wine_category_id: Mapped[int] = mapped_column(
         Integer,
@@ -227,7 +233,6 @@ class WineCategory(Base):
 
 class WineType(Base):
     __tablename__ = "wine_type"
-    __table_args__ = ({"schema": "catalog"},)
 
     wine_type_id: Mapped[int] = mapped_column(
         Integer,
@@ -243,7 +248,6 @@ class WineType(Base):
 
 class Aroma(Base):
     __tablename__ = "aroma"
-    __table_args__ = ({"schema": "catalog"},)
 
     aroma_id: Mapped[int] = mapped_column(
         Integer,
@@ -265,17 +269,16 @@ class Sort(Base):
         CheckConstraint(
             "percentage_content > 0", name="check_percentage_content_positive"
         ),
-        {"schema": "catalog"},
     )
 
     grape_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("grape.grape.grape_id"),
+        ForeignKey("grape.grape_id"),
         primary_key=True,
     )
     product_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("catalog.product.product_id"),
+        ForeignKey("product.product_id"),
         primary_key=True,
     )
     percentage_content: Mapped[decimal.Decimal] = mapped_column(
@@ -298,12 +301,11 @@ class Wine(Base, TimeStampMixin):
             "harvest_year >= '1900-01-01' AND harvest_year <= CURRENT_DATE",
             name="check_harvest_year",
         ),
-        {"schema": "catalog"},
     )
 
     product_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("catalog.product.product_id"),
+        ForeignKey("product.product_id"),
         primary_key=True,
     )
     volume: Mapped[decimal.Decimal] = mapped_column(
@@ -345,16 +347,15 @@ class Wine(Base, TimeStampMixin):
 
 class AromaWine(Base):
     __tablename__ = "aroma_wine"
-    __table_args__ = ({"schema": "catalog"},)
 
     product_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("catalog.wine.product_id"),
+        ForeignKey("wine.product_id"),
         primary_key=True,
     )
     aroma_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("catalog.aroma.aroma_id"),
+        ForeignKey("aroma.aroma_id"),
         primary_key=True,
     )
 

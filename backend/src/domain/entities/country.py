@@ -13,6 +13,7 @@ class Country(BaseModel):
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
     )
+    flag_url: str | None = None
 
     @field_validator("name", mode="before")
     @classmethod
