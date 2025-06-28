@@ -3,10 +3,8 @@ from fastapi import Depends
 from domain.entities.country import Country
 from domain.exceptions import (
     CountryAlreadyExistsError,
-    CountryCreatingError,
-    CountryDeletionError,
+    CountryDBError,
     CountryNotExistsError,
-    CountryUpdateError,
 )
 from repository.country_repository import (
     CountryRepository,
@@ -25,7 +23,7 @@ class CountryService:
             )
         except CountryAlreadyExistsError as error:
             raise error
-        except CountryCreatingError as error:
+        except CountryDBError as error:
             raise error
 
     async def get_country_by_id(self, country_id: int) -> Country | None:
@@ -38,16 +36,24 @@ class CountryService:
         self, new_country_data: Country
     ) -> Country | None:
         try:
+            if (
+                self.__country_repository.get_country(
+                    new_country_data.country_id
+                )
+                is None
+            ):
+                raise CountryNotExistsError
+
             return await self.__country_repository.update_country(
                 new_country_data=new_country_data
             )
-        except CountryUpdateError as error:
+        except CountryDBError as error:
             raise error
 
     async def delete_country(self, country_id: int) -> int:
         try:
             return await self.__country_repository.delete_country(country_id)
-        except CountryDeletionError as error:
+        except CountryDBError as error:
             raise error
 
 

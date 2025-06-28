@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.status import HTTP_409_CONFLICT
 
 from domain.entities.country import Country
-from domain.exceptions import CountryAlreadyExistsError
+from domain.exceptions import (
+    CountryAlreadyExistsError,
+    CountryDBError,
+    CountryNotExistsError,
+)
 from schemas.country_schema import (
     CountryCreateSchema,
     CountrySchema,
@@ -21,13 +25,19 @@ async def get_country(
     country_id: int,
     country_service: CountryService = Depends(country_service_dependency),
 ):
-    country = await country_service.get_country_by_id(country_id)
-    if country is None:
+    try:
+        country = await country_service.get_country_by_id(country_id)
+        if country is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Country not found",
+            )
+        return country
+    except CountryDBError as error:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Country not found",
-        )
-    return country
+            detail=str(error),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from error
 
 
 @router.post(
@@ -56,6 +66,11 @@ async def create_country(
             detail=str(error),
             status_code=HTTP_409_CONFLICT,
         ) from error
+    except CountryDBError as error:
+        raise HTTPException(
+            detail=str(error),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from error
 
 
 @router.put("/{country_id}", response_model=Country)
@@ -64,26 +79,33 @@ async def update_country(
     country_data: CountryUpdateSchema,
     country_service: CountryService = Depends(country_service_dependency),
 ):
-    country = await country_service.get_country_by_id(country_id)
-    if country is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Country not found"
+    try:
+        updated_country_data = Country(
+            country_id=country_id,
+            name=country_data.name,
+            flag_url=country_data.flag_url,
         )
 
-    updated_country = Country(
-        country_id=country_id,
-        name=country_data.name,
-        flag_url=country_data.flag_url,
-    )
-
-    updated_country_result = await country_service.update_country(
-        updated_country
-    )
-    if updated_country_result is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Country not found"
+        updated_country_result = await country_service.update_country(
+            updated_country_data
         )
-    return updated_country_result
+        if updated_country_result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Country not found",
+            )
+        return updated_country_result
+    except CountryNotExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Country with id {country_id} doesn't exists.",
+        ) from error
+
+    except CountryDBError as error:
+        raise HTTPException(
+            detail=str(error),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from error
 
 
 @router.delete("/{country_id}", status_code=status.HTTP_200_OK)
@@ -91,9 +113,16 @@ async def delete_country(
     country_id: int,
     country_service: CountryService = Depends(country_service_dependency),
 ):
-    deleted_count = await country_service.delete_country(country_id)
-    if not deleted_count:
+    try:
+        deleted_count = await country_service.delete_country(country_id)
+        if not deleted_count:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Country not found",
+            )
+        return {"rows_deleted": deleted_count}
+    except CountryDBError as error:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Country not found"
-        )
-    return {"rows_deleted": deleted_count}
+            detail=str(error),
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) from error

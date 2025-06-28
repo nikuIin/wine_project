@@ -11,10 +11,8 @@ from db.models import Country as CountryModel
 from domain.entities.country import Country
 from domain.exceptions import (
     CountryAlreadyExistsError,
-    CountryCreatingError,
-    CountryDeletionError,
+    CountryDBError,
     CountryNotExistsError,
-    CountryUpdateError,
 )
 
 logger = get_configure_logger(Path(__file__).stem)
@@ -44,7 +42,7 @@ class CountryRepository:
                 + "Try to change name or ID."
             ) from error
         except DatabaseError as error:
-            raise CountryCreatingError(
+            raise CountryDBError(
                 f"Couldn't create country: {country_model}"
             ) from error
 
@@ -61,8 +59,8 @@ class CountryRepository:
             return country
 
         except DatabaseError as error:
-            raise CountryNotExistsError(
-                f"Couldn't find country with id: {country_id}"
+            raise CountryDBError(
+                f"Database error. Couldn't find country with id: {country_id}"
             ) from error
 
     async def update_country(
@@ -77,13 +75,15 @@ class CountryRepository:
                     )
                     .values(**new_country_data.model_dump(exclude_unset=True))
                 )
+                # update request to the postgreSQL will
+                # return a quantity of updated rows
                 if result.rowcount == 0:
                     return None
                 await session.commit()
             return new_country_data
 
         except DatabaseError as error:
-            raise CountryUpdateError(
+            raise CountryDBError(
                 "Couldn't update country with id: "
                 + f"{new_country_data.country_id}"
             ) from error
@@ -101,7 +101,7 @@ class CountryRepository:
             return deleted_rows_quantity
 
         except DatabaseError as error:
-            raise CountryDeletionError(
+            raise CountryDBError(
                 f"Couldn't delete country with id: {country_id}"
             ) from error
 

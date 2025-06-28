@@ -78,8 +78,8 @@ class RefreshTokenBlackListError(Exception):
 # ===============================
 
 
-class CountryCreatingError(Exception):
-    """The error occures, while the country wasn't created in the DB"""
+class CountryDBError(Exception):
+    """The error ralated to the error with country data in the database."""
 
     def __init__(
         self,
@@ -111,22 +111,6 @@ class CountryNotExistsError(Exception):
         self,
         message=("Country doesn't exists."),
     ):
-        logger.debug(message, exc_info=True)
-        super().__init__(message)
-
-
-class CountryUpdateError(Exception):
-    """The error occures, while the country wasn't updated in the DB"""
-
-    def __init__(self, message="The country wasn't updated in the DB."):
-        logger.debug(message, exc_info=True)
-        super().__init__(message)
-
-
-class CountryDeletionError(Exception):
-    """The error occures, while the country wasn't deleted from the DB"""
-
-    def __init__(self, message="The country wasn't deleted from the DB."):
         logger.debug(message, exc_info=True)
         super().__init__(message)
 
