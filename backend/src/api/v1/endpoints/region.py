@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 from domain.entities.region import Region
 from domain.exceptions import (
-    CountryNotExistsError,
+    CountryDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
-    RegionNotExistsError,
+    RegionDoesNotExistsError,
 )
 from use_cases.region_service import (
     RegionService,
@@ -41,7 +41,7 @@ async def create_region(
     try:
         created_region = await region_service.create_region(region)
         return created_region
-    except CountryNotExistsError as error:
+    except CountryDoesNotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
@@ -108,12 +108,12 @@ async def update_region(
                 detail="Region not found",
             )
         return updated_region_result
-    except CountryNotExistsError as error:
+    except CountryDoesNotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         ) from error
-    except RegionNotExistsError as error:
+    except RegionDoesNotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),

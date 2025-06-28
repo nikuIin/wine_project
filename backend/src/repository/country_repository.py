@@ -12,7 +12,7 @@ from domain.entities.country import Country
 from domain.exceptions import (
     CountryAlreadyExistsError,
     CountryDBError,
-    CountryNotExistsError,
+    CountryDoesNotExistsError,
 )
 
 logger = get_configure_logger(Path(__file__).stem)

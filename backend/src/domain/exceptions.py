@@ -101,7 +101,7 @@ class CountryAlreadyExistsError(Exception):
         super().__init__(message)
 
 
-class CountryNotExistsError(Exception):
+class CountryDoesNotExistsError(Exception):
     """
     The error occures, while the country wasn't
     exists in the DB
@@ -139,7 +139,7 @@ class RegionAlreadyExistsError(Exception):
         logger.warning(message, exc_info=True)
 
 
-class RegionNotExistsError(Exception):
+class RegionDoesNotExistsError(Exception):
     """The error occurs when there's a problem updating a region in the database."""
 
     def __init__(self, message="Failed to update the region in the database."):

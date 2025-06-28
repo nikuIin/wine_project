@@ -2,10 +2,10 @@ from fastapi import Depends
 
 from domain.entities.region import Region
 from domain.exceptions import (
-    CountryNotExistsError,
+    CountryDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
-    RegionNotExistsError,
+    RegionDoesNotExistsError,
 )
 from repository.country_repository import (
     CountryRepository,
@@ -36,7 +36,7 @@ class RegionService:
             ):
                 return await self.__region_repository.create_region(region)
             else:
-                raise CountryNotExistsError
+                raise CountryDoesNotExistsError
         except RegionAlreadyExistsError as error:
             # reraise or handle exception
             raise error
@@ -61,7 +61,7 @@ class RegionService:
             ):
                 return await self.__region_repository.update_region(region)
             else:
-                raise CountryNotExistsError
+                raise CountryDoesNotExistsError
         except RegionDatabaseError as error:
             # reraise or handle exception
             raise error

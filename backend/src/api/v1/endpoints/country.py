@@ -5,7 +5,7 @@ from domain.entities.country import Country
 from domain.exceptions import (
     CountryAlreadyExistsError,
     CountryDBError,
-    CountryNotExistsError,
+    CountryDoesNotExistsError,
 )
 from schemas.country_schema import (
     CountryCreateSchema,
@@ -95,7 +95,7 @@ async def update_country(
                 detail="Country not found",
             )
         return updated_country_result
-    except CountryNotExistsError as error:
+    except CountryDoesNotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Country with id {country_id} doesn't exists.",

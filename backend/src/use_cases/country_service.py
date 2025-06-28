@@ -4,7 +4,7 @@ from domain.entities.country import Country
 from domain.exceptions import (
     CountryAlreadyExistsError,
     CountryDBError,
-    CountryNotExistsError,
+    CountryDoesNotExistsError,
 )
 from repository.country_repository import (
     CountryRepository,
@@ -29,7 +29,7 @@ class CountryService:
     async def get_country_by_id(self, country_id: int) -> Country | None:
         try:
             return await self.__country_repository.get_country(country_id)
-        except CountryNotExistsError as error:
+        except CountryDoesNotExistsError as error:
             raise error
 
     async def update_country(
@@ -42,7 +42,7 @@ class CountryService:
                 )
                 is None
             ):
-                raise CountryNotExistsError
+                raise CountryDoesNotExistsError
 
             return await self.__country_repository.update_country(
                 new_country_data=new_country_data
