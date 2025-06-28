@@ -4,12 +4,12 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from core.config import db_settings  # type: ignore # noqa
+from core.config import db_settings
 
 # import all models BEFORE Base model
 # if you don't do this, the alembic will create the empty database
 from db import models  # type: ignore # noqa
-from db.base_models import Base  # type: ignore # noqa
+from db.base_models import Base
 
 config = context.config
 
