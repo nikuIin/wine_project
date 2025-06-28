@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from starlette.status import HTTP_409_CONFLICT
 
 from domain.entities.country import Country
+from domain.exceptions import CountryAlreadyExistsError
 from schemas.country_schema import (
     CountryCreateSchema,
     CountrySchema,
@@ -22,21 +24,38 @@ async def get_country(
     country = await country_service.get_country_by_id(country_id)
     if country is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Country not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Country not found",
         )
     return country
 
 
-@router.post("/", response_model=Country, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=Country,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        201: {"description": "Country created successfully"},
+        409: {"description": "Country with this ID/Name already exists"},
+    },
+)
 async def create_country(
     country_data: CountryCreateSchema,
     country_service: CountryService = Depends(country_service_dependency),
 ):
-    country = Country(
-        country_id=country_data.country_id, name=country_data.name
-    )
-    created_country = await country_service.create_country(country)
-    return created_country
+    try:
+        country = Country(
+            country_id=country_data.country_id,
+            name=country_data.name,
+            flag_url=country_data.flag_url,
+        )
+        created_country = await country_service.create_country(country)
+        return created_country
+    except CountryAlreadyExistsError as error:
+        raise HTTPException(
+            detail=str(error),
+            status_code=HTTP_409_CONFLICT,
+        ) from error
 
 
 @router.put("/{country_id}", response_model=Country)
@@ -51,7 +70,11 @@ async def update_country(
             status_code=status.HTTP_404_NOT_FOUND, detail="Country not found"
         )
 
-    updated_country = Country(country_id=country_id, name=country_data.name)
+    updated_country = Country(
+        country_id=country_id,
+        name=country_data.name,
+        flag_url=country_data.flag_url,
+    )
 
     updated_country_result = await country_service.update_country(
         updated_country

@@ -89,6 +89,9 @@ class CountryCreatingError(Exception):
         super().__init__(message)
 
 
+class CountryAlreadyExistsError(Exception): ...
+
+
 class CountryRetrievalError(Exception):
     """The error occures, while the country wasn't
     retrieved (searched) from the DB
