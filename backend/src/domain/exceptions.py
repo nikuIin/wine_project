@@ -101,18 +101,15 @@ class CountryAlreadyExistsError(Exception):
         super().__init__(message)
 
 
-class CountryRetrievalError(Exception):
-    """The error occures, while the country wasn't
-    retrieved (searched) from the DB
-
+class CountryNotExistsError(Exception):
+    """
+    The error occures, while the country wasn't
+    exists in the DB
     """
 
     def __init__(
         self,
-        message=(
-            "The attemt of retrieval (searching)"
-            + "country from database failed"
-        ),
+        message=("Country doesn't exists."),
     ):
         logger.debug(message, exc_info=True)
         super().__init__(message)
@@ -132,3 +129,35 @@ class CountryDeletionError(Exception):
     def __init__(self, message="The country wasn't deleted from the DB."):
         logger.debug(message, exc_info=True)
         super().__init__(message)
+
+
+# ===============================
+#         Region erros          #
+# ===============================
+#
+
+
+class RegionDatabaseError(Exception):
+    """The error occurs with database errors relating the region table"""
+
+    def __init__(self, message="Database region error."):
+        super().__init__(message)
+        logger.error(message, exc_info=True)
+
+
+class RegionAlreadyExistsError(Exception):
+    """The error occurs when trying to create a region that already exists."""
+
+    def __init__(
+        self, message="A region with this name or ID already exists."
+    ):
+        super().__init__(message)
+        logger.warning(message, exc_info=True)
+
+
+class RegionNotExistsError(Exception):
+    """The error occurs when there's a problem updating a region in the database."""
+
+    def __init__(self, message="Failed to update the region in the database."):
+        super().__init__(message)
+        logger.debug(message, exc_info=True)

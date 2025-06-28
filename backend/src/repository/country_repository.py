@@ -13,7 +13,7 @@ from domain.exceptions import (
     CountryAlreadyExistsError,
     CountryCreatingError,
     CountryDeletionError,
-    CountryRetrievalError,
+    CountryNotExistsError,
     CountryUpdateError,
 )
 
@@ -61,7 +61,7 @@ class CountryRepository:
             return country
 
         except DatabaseError as error:
-            raise CountryRetrievalError(
+            raise CountryNotExistsError(
                 f"Couldn't find country with id: {country_id}"
             ) from error
 
