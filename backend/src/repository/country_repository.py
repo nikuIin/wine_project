@@ -1,8 +1,11 @@
+from pathlib import Path
+
 from fastapi import Depends
-from sqlalchemy import delete, update
+from sqlalchemy import delete, text, update
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Country as CountryModel
 from domain.entities.country import Country
@@ -12,6 +15,8 @@ from domain.exceptions import (
     CountryRetrievalError,
     CountryUpdateError,
 )
+
+logger = get_configure_logger(Path(__file__).stem)
 
 
 class CountryRepository:
@@ -73,17 +78,17 @@ class CountryRepository:
                 + f"{new_country_data.country_id}"
             ) from error
 
-    async def delete_country(self, country_id: int) -> bool:
+    async def delete_country(self, country_id: int) -> int:
         stmt = delete(CountryModel).where(
             CountryModel.country_id == country_id
         )
 
         try:
             async with self.__session as session:
-                await session.execute(stmt)
+                res = await session.execute(stmt)
                 await session.commit()
-
-            return True
+            deleted_rows_quantity = res.rowcount
+            return deleted_rows_quantity
 
         except DatabaseError as error:
             raise CountryDeletionError(
