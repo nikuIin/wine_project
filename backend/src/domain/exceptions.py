@@ -89,7 +89,16 @@ class CountryCreatingError(Exception):
         super().__init__(message)
 
 
-class CountryAlreadyExistsError(Exception): ...
+class CountryAlreadyExistsError(Exception):
+    """
+    The error occures with attempt to adding
+    the country_id or country_name that already exists in the database
+    """
+
+    def __init__(
+        self, message="The country with this name or id already exists"
+    ):
+        super().__init__(message)
 
 
 class CountryRetrievalError(Exception):
