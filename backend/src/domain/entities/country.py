@@ -3,9 +3,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from core.general_constants import (
     BASE_MAX_STR_LENGTH,
     BASE_MIN_STR_LENGTH,
+    MAX_COUNTRY_ID,
 )
-
-MAX_COUNTRY_ID = 999
 
 
 class Country(BaseModel):
