@@ -10,9 +10,7 @@ from tests.unit.constants import BELARUS_ID, NO_EXISTING_COUNTRY_ID, RUSSIA_ID
 from db.models import Country as CountryModel
 from domain.entities.country import Country
 from domain.exceptions import (
-    CountryCreatingError,
-    CountryDeletionError,
-    CountryUpdateError,
+    CountryAlreadyExistsError,
 )
 from repository.country_repository import (
     CountryRepository,
@@ -39,7 +37,7 @@ async def test_create_country(
 
         # Check that total quantity is 3 (Russia + Belarus + Test country)
         countries_quantity = await session.execute(
-            text("select count(*) from grape.country")
+            text("select count(*) from country")
         )
         countries_quantity = countries_quantity.scalar_one_or_none()
         assert countries_quantity == 3
@@ -54,7 +52,7 @@ async def test_create_country_duplicate_id(
         country_id=RUSSIA_ID, name="Duplicate Country"
     )  # Russia already exists
 
-    with raises(CountryCreatingError):
+    with raises(CountryAlreadyExistsError):
         await country_repository.create_country(duplicate_country)
 
 
@@ -94,18 +92,20 @@ async def test_update_country(
         assert country_model.name == "Updated russia"
 
 
-@mark.skip("Has't implemented yet")
 @mark.asyncio
 async def test_update_nonexistent_country(
     country_repository: CountryRepository,
 ):
-    """Test updating a nonexistent country."""
-    nonexistent_country = Country(
+    """Test updating a nonexistent country. The method should return None"""
+    updated_country_data = Country(
         country_id=NO_EXISTING_COUNTRY_ID, name="Nonexistent Country"
     )
 
-    with raises(CountryUpdateError):
-        await country_repository.update_country(nonexistent_country)
+    updated_rows = await country_repository.update_country(
+        updated_country_data
+    )
+
+    assert updated_rows is None
 
 
 @mark.asyncio
@@ -115,12 +115,19 @@ async def test_delete_country(
     """Test deleting a country."""
     result = await country_repository.delete_country(RUSSIA_ID)  # Russia
 
-    assert result is True
+    assert isinstance(result, int)
 
     # Verify the country was deleted
     async with db_session as session:
         country_model = await session.get(CountryModel, RUSSIA_ID)
         assert country_model is None
+
+        # check rows quantity (should be only 1: Belarus country)
+        country_quantity = await session.execute(
+            text("select count(*) from country")
+        )
+        country_quantity = country_quantity.scalar_one()
+        assert country_quantity == 1
 
 
 @mark.asyncio
@@ -135,7 +142,7 @@ async def test_delete_nonexistent_country(
 async def test_initial_data_loaded(db_session: AsyncSession):
     """Test that initial data is loaded correctly."""
     result = await db_session.execute(
-        text("SELECT * FROM grape.country WHERE country_id = :country_id"),
+        text("SELECT name FROM country WHERE country_id = :country_id"),
         {"country_id": RUSSIA_ID},
     )
     country = result.fetchone()
@@ -144,7 +151,7 @@ async def test_initial_data_loaded(db_session: AsyncSession):
     assert country.name == "Russia"
 
     result = await db_session.execute(
-        text("SELECT * FROM grape.country WHERE country_id = :country_id"),
+        text("SELECT name FROM country WHERE country_id = :country_id"),
         {"country_id": BELARUS_ID},
     )
     country = result.fetchone()
