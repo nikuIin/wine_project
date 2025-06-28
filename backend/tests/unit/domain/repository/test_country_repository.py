@@ -5,7 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
 )
-from tests.unit.constants import BELARUS_ID
+from tests.unit.constants import BELARUS_ID, NO_EXISTING_COUNTRY_ID, RUSSIA_ID
 
 from db.models import Country as CountryModel
 from domain.entities.country import Country
@@ -51,7 +51,7 @@ async def test_create_country_duplicate_id(
 ):
     """Test creating a country with a duplicate ID raises an error."""
     duplicate_country = Country(
-        country_id=643, name="Duplicate Country"
+        country_id=RUSSIA_ID, name="Duplicate Country"
     )  # Russia already exists
 
     with raises(CountryCreatingError):
@@ -61,17 +61,17 @@ async def test_create_country_duplicate_id(
 @mark.asyncio
 async def test_get_country(country_repository: CountryRepository):
     """Test retrieving a country by ID."""
-    country = await country_repository.get_country(643)  # Russia
+    country = await country_repository.get_country(RUSSIA_ID)
 
     assert country is not None
-    assert country.country_id == 643
+    assert country.country_id == RUSSIA_ID
     assert country.name == "Russia"
 
 
 @mark.asyncio
 async def test_get_nonexistent_country(country_repository: CountryRepository):
     """Test retrieving a nonexistent country returns None."""
-    country = await country_repository.get_country(999)
+    country = await country_repository.get_country(NO_EXISTING_COUNTRY_ID)
 
     assert country is None
 
@@ -81,7 +81,7 @@ async def test_update_country(
     country_repository: CountryRepository, db_session: AsyncSession
 ):
     """Test updating a country."""
-    updated_country = Country(country_id=643, name="Updated Russia")
+    updated_country = Country(country_id=RUSSIA_ID, name="Updated Russia")
 
     result = await country_repository.update_country(updated_country)
 
@@ -89,7 +89,7 @@ async def test_update_country(
 
     # Verify the update in the database
     async with db_session as session:
-        country_model = await session.get(CountryModel, 643)
+        country_model = await session.get(CountryModel, RUSSIA_ID)
         assert country_model is not None
         assert country_model.name == "Updated russia"
 
@@ -100,7 +100,9 @@ async def test_update_nonexistent_country(
     country_repository: CountryRepository,
 ):
     """Test updating a nonexistent country."""
-    nonexistent_country = Country(country_id=999, name="Nonexistent Country")
+    nonexistent_country = Country(
+        country_id=NO_EXISTING_COUNTRY_ID, name="Nonexistent Country"
+    )
 
     with raises(CountryUpdateError):
         await country_repository.update_country(nonexistent_country)
@@ -111,13 +113,13 @@ async def test_delete_country(
     country_repository: CountryRepository, db_session: AsyncSession
 ):
     """Test deleting a country."""
-    result = await country_repository.delete_country(643)  # Russia
+    result = await country_repository.delete_country(RUSSIA_ID)  # Russia
 
     assert result is True
 
     # Verify the country was deleted
     async with db_session as session:
-        country_model = await session.get(CountryModel, 643)
+        country_model = await session.get(CountryModel, RUSSIA_ID)
         assert country_model is None
 
 
@@ -126,7 +128,7 @@ async def test_delete_nonexistent_country(
     country_repository: CountryRepository,
 ):
     """Test deleting a nonexistent dont raise the error"""
-    await country_repository.delete_country(999)
+    await country_repository.delete_country(NO_EXISTING_COUNTRY_ID)
 
 
 @mark.asyncio
@@ -134,7 +136,7 @@ async def test_initial_data_loaded(db_session: AsyncSession):
     """Test that initial data is loaded correctly."""
     result = await db_session.execute(
         text("SELECT * FROM grape.country WHERE country_id = :country_id"),
-        {"country_id": 643},
+        {"country_id": RUSSIA_ID},
     )
     country = result.fetchone()
 
