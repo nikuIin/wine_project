@@ -28,7 +28,7 @@ services:
     volumes:
       - ./logs/:/app/logs/
     env_file:
-      - .env
+      - .prod.env
     depends_on:
       - db
     ports:
