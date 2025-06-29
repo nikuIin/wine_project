@@ -19,6 +19,24 @@ TEST_COUNTRY_ID = 1
 TEST_COUNTRY_NAME = "Cool country"
 TEST_COUNTRY_NAME_LOW_REGISTRY = "low registry country name"
 
+# country prepared data
 RUSSIA_ID = 643
 BELARUS_ID = 112
 NO_EXISTING_COUNTRY_ID = 999
+
+# New region (for creating, updating tests)
+NEW_REGION_ID = 1
+NEW_REGION_NAME = "New region"
+NEW_REGION_COUNTRY_ID = RUSSIA_ID
+
+# region prepared data
+SAMARA_REGION_ID = 63
+SAMARA_REGION_NAME = "Samara"
+SAMARA_REGION_COUNTRY_ID = RUSSIA_ID
+
+MOSCOW_REGION_ID = 77
+MOSCOW_REGION_NAME = "Moscow"
+MOSCOW_REGION_COUNTRY_ID = RUSSIA_ID
+
+# no existing region
+NO_EXISTING_REGION_ID = 9999

@@ -25,6 +25,8 @@ async def country_repository(db_session: AsyncSession):
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_create_country(
     country_repository: CountryRepository, db_session: AsyncSession
 ):
@@ -51,6 +53,8 @@ async def test_create_country(
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_create_country_duplicate_id(
     country_repository: CountryRepository,
 ):
@@ -64,6 +68,8 @@ async def test_create_country_duplicate_id(
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_get_country(country_repository: CountryRepository):
     """Test retrieving a country by ID."""
     country = await country_repository.get_country(RUSSIA_ID)
@@ -74,6 +80,8 @@ async def test_get_country(country_repository: CountryRepository):
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_get_nonexistent_country(country_repository: CountryRepository):
     """Test retrieving a nonexistent country returns None."""
     country = await country_repository.get_country(NO_EXISTING_COUNTRY_ID)
@@ -82,6 +90,8 @@ async def test_get_nonexistent_country(country_repository: CountryRepository):
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_update_country(
     country_repository: CountryRepository, db_session: AsyncSession
 ):
@@ -100,6 +110,8 @@ async def test_update_country(
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_update_nonexistent_country(
     country_repository: CountryRepository,
 ):
@@ -116,6 +128,8 @@ async def test_update_nonexistent_country(
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_delete_country(
     country_repository: CountryRepository, db_session: AsyncSession
 ):
@@ -138,6 +152,8 @@ async def test_delete_country(
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_delete_nonexistent_country(
     country_repository: CountryRepository,
 ):
@@ -146,6 +162,8 @@ async def test_delete_nonexistent_country(
 
 
 @mark.asyncio
+@mark.repository
+@mark.country
 async def test_initial_data_loaded(db_session: AsyncSession):
     """Test that initial data is loaded correctly."""
     result = await db_session.execute(
