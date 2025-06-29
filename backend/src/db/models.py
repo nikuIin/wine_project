@@ -129,7 +129,6 @@ class Region(Base):
     region_id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
-        autoincrement=True,
     )
     country_id: Mapped[int] = mapped_column(
         Integer,
@@ -142,7 +141,11 @@ class Region(Base):
         unique=True,
     )
 
-    country = relationship("Country", back_populates="regions")
+    country = relationship(
+        "Country",
+        back_populates="regions",
+        cascade="all, delete",
+    )
     grapes = relationship("Grape", back_populates="region")
 
 
