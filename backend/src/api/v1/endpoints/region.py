@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from domain.entities.region import Region
 from domain.exceptions import (
     CountryDoesNotExistsError,
-    RegionAlreadyExistsError,
+    RegionConflictError,
     RegionDatabaseError,
     RegionDoesNotExistsError,
 )
@@ -19,11 +19,13 @@ router = APIRouter(prefix="/region", tags=["region"])
 
 
 class RegionCreate(BaseModel):
+    region_id: int
     country_id: int
     name: str
 
 
 class RegionUpdate(BaseModel):
+    region_id: int
     country_id: int
     name: str
 
@@ -46,7 +48,7 @@ async def create_region(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         ) from error
-    except RegionAlreadyExistsError as error:
+    except RegionConflictError as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Region already exists: {error}",

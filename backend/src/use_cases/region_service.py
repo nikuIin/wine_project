@@ -3,7 +3,7 @@ from fastapi import Depends
 from domain.entities.region import Region
 from domain.exceptions import (
     CountryDoesNotExistsError,
-    RegionAlreadyExistsError,
+    RegionConflictError,
     RegionDatabaseError,
     RegionDoesNotExistsError,
 )
@@ -37,7 +37,7 @@ class RegionService:
                 return await self.__region_repository.create_region(region)
             else:
                 raise CountryDoesNotExistsError
-        except RegionAlreadyExistsError as error:
+        except RegionConflictError as error:
             # reraise or handle exception
             raise error
         except RegionDatabaseError as error:
@@ -50,16 +50,23 @@ class RegionService:
             # reraise or handle exception
             raise error
 
-    async def update_region(self, region: Region) -> Region | None:
+    async def update_region(
+        self,
+        region_id,
+        new_region_data: Region,
+    ) -> Region | None:
         try:
             # check is country exists in the region create model
             if (
                 await self.__country_repository.get_country(
-                    country_id=region.country_id
+                    country_id=new_region_data.country_id
                 )
                 is not None
             ):
-                return await self.__region_repository.update_region(region)
+                return await self.__region_repository.update_region(
+                    region_id=region_id,
+                    new_region_data=new_region_data,
+                )
             else:
                 raise CountryDoesNotExistsError
         except RegionDatabaseError as error:

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from asyncpg.exceptions import ForeignKeyViolationError
 from fastapi import Depends
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import DatabaseError, IntegrityError
@@ -10,7 +11,8 @@ from db.dependencies.postgres_helper import postgres_helper
 from db.models import Region as RegionModel  # Assuming this import is correct
 from domain.entities.region import Region  # Assuming this import is correct
 from domain.exceptions import (
-    RegionAlreadyExistsError,
+    CountryDoesNotExistsError,
+    RegionConflictError,
     RegionDatabaseError,
     RegionDoesNotExistsError,
 )
@@ -24,6 +26,7 @@ class RegionRepository:
 
     async def create_region(self, region: Region) -> Region:
         region_model = RegionModel(
+            region_id=region.region_id,
             country_id=region.country_id,
             name=region.name,
         )
@@ -31,15 +34,15 @@ class RegionRepository:
             async with self.__session as session:
                 session.add(region_model)
                 await session.commit()
-                await session.refresh(
-                    region_model
-                )  # Refresh to get autoincremented ID
                 region = Region.model_validate(region_model)
             return region
+        # TODO: разобраться как разограничивать ошибки IntegrityError на:
+        # - ошибка внешнего ключа
+        # - ошибка существующего значения
         except IntegrityError as error:
-            logger.debug(f"IntegrityError creating region: {error}")
-            raise RegionAlreadyExistsError(
-                f"Region with name '{region.name}' already exists."
+            logger.debug("Region IntegrityError: %s", str(error))
+            raise RegionConflictError(
+                "Conflict on the one of the region fields"
             ) from error
         except DatabaseError as error:
             logger.error(f"DatabaseError creating region: {error}")
@@ -56,23 +59,32 @@ class RegionRepository:
             logger.error(f"DatabaseError getting region: {error}")
             raise RegionDatabaseError from error
 
-    async def update_region(self, region: Region) -> Region | None:
+    async def update_region(
+        self,
+        region_id: int,
+        new_region_data: Region,
+    ) -> Region | None:
         try:
             async with self.__session as session:
                 result = await session.execute(
                     update(RegionModel)
-                    .where(RegionModel.region_id == region.region_id)
-                    .values(name=region.name, country_id=region.country_id)
+                    .where(RegionModel.region_id == region_id)
+                    .values(
+                        region_id=new_region_data.region_id,
+                        name=new_region_data.name,
+                        country_id=new_region_data.country_id,
+                    )
                 )
                 if result.rowcount == 0:
                     return None
                 await session.commit()
-            return region
-        # except IntegrityError as error:
-        #     logger.debug(f"IntegrityError updating region: {error}")
-        #     raise RegionNotExistsError(
-        #         f"Failed to update region with id {region.region_id}."
-        #     ) from error
+            return new_region_data
+        except IntegrityError as error:
+            logger.debug(f"IntegrityError updating region: {error}")
+            raise RegionConflictError(
+                f"""Conflict error with updating the region
+                 with id {region_id}. Try to change some data."""
+            ) from error
         except DatabaseError as error:
             logger.error(f"DatabaseError updating region: {error}")
             raise RegionDatabaseError from error

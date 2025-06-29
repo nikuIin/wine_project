@@ -129,7 +129,7 @@ class RegionDatabaseError(Exception):
         logger.error(message, exc_info=True)
 
 
-class RegionAlreadyExistsError(Exception):
+class RegionConflictError(Exception):
     """The error occurs when trying to create a region that already exists."""
 
     def __init__(

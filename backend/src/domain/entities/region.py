@@ -20,7 +20,7 @@ class Region(BaseModel):
     )
     country_id: int = Field(
         gt=0,
-        lt=MAX_COUNTRY_ID,
+        le=MAX_COUNTRY_ID,
         description="The ID of the country this region belongs to.",
     )
     name: str = Field(
