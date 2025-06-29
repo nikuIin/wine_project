@@ -32,9 +32,3 @@ class TestWine:
     @mark.wine
     def test_wine_instance(self, wine_base):
         isinstance(wine_base, Wine)
-
-    @mark.skip(reason="The test has't implemented yet")
-    def test_wine_creation(self, wine_base): ...
-
-    @mark.skip(reason="The test has't implemented yet")
-    def test_wine_deletion(self, wine_base): ...
