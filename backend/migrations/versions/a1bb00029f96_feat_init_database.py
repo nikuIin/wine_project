@@ -1,8 +1,8 @@
-"""empty message
+"""feat: init database
 
-Revision ID: 321e74f1a5d7
+Revision ID: a1bb00029f96
 Revises: 
-Create Date: 2025-06-28 10:04:32.217303
+Create Date: 2025-06-29 14:49:13.576038
 
 """
 from collections.abc import Sequence
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '321e74f1a5d7'
+revision: str = 'a1bb00029f96'
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -62,7 +62,7 @@ def upgrade() -> None:
     )
     op.create_table('product',
     sa.Column('product_id', sa.UUID(), nullable=False),
-    sa.Column('name', sa.String(length=255), nullable=False),
+    sa.Column('name', sa.String(length=256), nullable=False),
     sa.Column('price', postgresql.MONEY(), nullable=False),
     sa.Column('discount', sa.NUMERIC(precision=3, scale=2), nullable=False),
     sa.Column('main_image_link', sa.String(length=255), nullable=True),
@@ -74,7 +74,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('product_id')
     )
     op.create_table('region',
-    sa.Column('region_id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('region_id', sa.Integer(), nullable=False),
     sa.Column('country_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.ForeignKeyConstraint(['country_id'], ['country.country_id'], ),
