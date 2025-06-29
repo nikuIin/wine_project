@@ -132,7 +132,7 @@ class Region(Base):
     )
     country_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("country.country_id"),
+        ForeignKey("country.country_id", ondelete="cascade"),
         nullable=False,
     )
     name: Mapped[str] = mapped_column(
@@ -144,7 +144,6 @@ class Region(Base):
     country = relationship(
         "Country",
         back_populates="regions",
-        cascade="all, delete",
     )
     grapes = relationship("Grape", back_populates="region")
 
