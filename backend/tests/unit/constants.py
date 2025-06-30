@@ -21,7 +21,11 @@ TEST_COUNTRY_NAME_LOW_REGISTRY = "low registry country name"
 
 # country prepared data
 RUSSIA_ID = 643
+RUSSIA_NAME = "Russian Federation"
+
 BELARUS_ID = 112
+BELARUS_NAME = "Belaruss"
+
 NO_EXISTING_COUNTRY_ID = 999
 
 # New region (for creating, updating tests)
