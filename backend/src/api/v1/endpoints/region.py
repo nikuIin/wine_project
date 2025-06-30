@@ -1,8 +1,14 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from core.general_constants import (
+    BASE_MAX_STR_LENGTH,
+    BASE_MIN_STR_LENGTH,
+    MAX_COUNTRY_ID,
+    MAX_DB_INT,
+)
 from domain.entities.region import Region
 from domain.exceptions import (
     CountryDoesNotExistsError,
@@ -19,15 +25,21 @@ router = APIRouter(prefix="/region", tags=["region"])
 
 
 class RegionCreate(BaseModel):
-    region_id: int
-    country_id: int
-    name: str
+    region_id: int = Field(gt=0, lt=MAX_DB_INT)
+    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
+    name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["Moscow area", "Москвоская область"],
+    )
 
 
 class RegionUpdate(BaseModel):
-    region_id: int
-    country_id: int
-    name: str
+    region_id: int = Field(gt=0, lt=MAX_DB_INT)
+    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
+    name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
+    )
 
 
 @router.post("/", response_model=Region, status_code=status.HTTP_201_CREATED)
@@ -95,13 +107,13 @@ async def update_region(
             )
 
         updated_region = Region(
-            region_id=region_id,
+            region_id=region_update.region_id,
             country_id=region_update.country_id,
             name=region_update.name,
         )
 
         updated_region_result = await region_service.update_region(
-            updated_region
+            region_id=region_id, new_region_data=updated_region
         )
 
         if updated_region_result is None:
