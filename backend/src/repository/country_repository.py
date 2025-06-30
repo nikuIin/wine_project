@@ -58,21 +58,23 @@ class CountryRepository:
             country = Country.model_validate(country_model)
             return country
 
+        # TODO: handle databaseError to the CountryDBError, and
+        # IntegrityError as CountryDoesnotExistsError
         except DatabaseError as error:
             raise CountryDBError(
                 f"Database error. Couldn't find country with id: {country_id}"
             ) from error
 
     async def update_country(
-        self, new_country_data: Country
+        self,
+        country_id: int,
+        new_country_data: Country,
     ) -> Country | None:
         try:
             async with self.__session as session:
                 result = await session.execute(
                     update(CountryModel)
-                    .where(
-                        CountryModel.country_id == new_country_data.country_id
-                    )
+                    .where(CountryModel.country_id == country_id)
                     .values(**new_country_data.model_dump(exclude_unset=True))
                 )
                 # update request to the postgreSQL will
@@ -81,7 +83,11 @@ class CountryRepository:
                     return None
                 await session.commit()
             return new_country_data
-
+        except IntegrityError as error:
+            logger.debug("Country integrity error: %s", error)
+            raise CountryAlreadyExistsError(
+                "Country with this data already exists"
+            ) from error
         except DatabaseError as error:
             raise CountryDBError(
                 "Couldn't update country with id: "

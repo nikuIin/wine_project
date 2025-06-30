@@ -12,7 +12,7 @@ from schemas.country_schema import (
     CountrySchema,
     CountryUpdateSchema,
 )
-from use_cases.country_service import (
+from services.country_service import (
     CountryService,
     country_service_dependency,
 )
@@ -81,13 +81,14 @@ async def update_country(
 ):
     try:
         updated_country_data = Country(
-            country_id=country_id,
+            country_id=country_data.country_id,
             name=country_data.name,
             flag_url=country_data.flag_url,
         )
 
         updated_country_result = await country_service.update_country(
-            updated_country_data
+            country_id=country_id,
+            new_country_data=updated_country_data,
         )
         if updated_country_result is None:
             raise HTTPException(
@@ -95,6 +96,14 @@ async def update_country(
                 detail="Country not found",
             )
         return updated_country_result
+    except CountryAlreadyExistsError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Country with id {country_data.country_id}"
+                f" or name {country_data.name} already exists"
+            ),
+        ) from error
     except CountryDoesNotExistsError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -33,7 +33,7 @@ class CountryService:
             raise error
 
     async def update_country(
-        self, new_country_data: Country
+        self, country_id: int, new_country_data: Country
     ) -> Country | None:
         try:
             if (
@@ -45,7 +45,8 @@ class CountryService:
                 raise CountryDoesNotExistsError
 
             return await self.__country_repository.update_country(
-                new_country_data=new_country_data
+                country_id=country_id,
+                new_country_data=new_country_data,
             )
         except CountryDBError as error:
             raise error

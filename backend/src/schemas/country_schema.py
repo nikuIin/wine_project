@@ -26,7 +26,14 @@ class CountryCreateSchema(BaseModel):
 
 
 class CountryUpdateSchema(BaseModel):
-    name: str
+    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID, examples=[643, 112])
+    name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["Russia", "Belarus"],
+    )
     flag_url: str = Field(
-        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["/img/russian_flag.jpeg"],
     )
