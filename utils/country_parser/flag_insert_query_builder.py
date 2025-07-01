@@ -38,7 +38,7 @@ def generate_sql_inserts(csv_file_path, html_file_path):
     # Get flag URLs from HTML file
     flag_urls = get_flag_urls(html_file_path)
 
-    sql = "INSERT INTO country (country_id, name, flag_url)\nVALUES\n"
+    sql = "INSERT INTO flag (flag_id, flag_url)\nVALUES\n"
     values = []
 
     with open(csv_file_path, newline="", encoding="utf-8") as csvfile:
@@ -49,7 +49,7 @@ def generate_sql_inserts(csv_file_path, html_file_path):
             # Get flag URL or empty string if not found
             flag_url = flag_urls.get(country_id, "")
             if country_id and name:  # Check for non-empty values
-                values.append(f"({country_id}, '{name}', '{flag_url}')")
+                values.append(f"({country_id}, '{flag_url}')")
 
     sql += ",\n".join(values) + ";"
     return sql
