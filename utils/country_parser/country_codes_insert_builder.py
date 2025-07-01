@@ -49,7 +49,7 @@ def generate_sql_inserts(csv_file_path, html_file_path):
             # Get flag URL or empty string if not found
             flag_url = flag_urls.get(country_id, "")
             if country_id and name:  # Check for non-empty values
-                values.append(f"({country_id}, '{name}', '{country_id}')")
+                values.append(f"({country_id}, '{name}', {country_id})")
 
     sql += ",\n".join(values) + ";"
     return sql
