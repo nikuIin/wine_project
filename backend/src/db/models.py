@@ -2,7 +2,13 @@ import decimal
 import uuid
 from datetime import date, datetime, timedelta
 
-from sqlalchemy import UUID, CheckConstraint, ForeignKey, Integer, String
+from sqlalchemy import (
+    UUID,
+    CheckConstraint,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import DATE, SMALLINT, TEXT
@@ -232,6 +238,8 @@ class WineCategory(Base):
         unique=True,
     )
 
+    wine = relationship("Wine", back_populates="wine_category")
+
 
 class WineType(Base):
     __tablename__ = "wine_type"
@@ -246,6 +254,8 @@ class WineType(Base):
         nullable=False,
         unique=True,
     )
+
+    wine = relationship("Wine", back_populates="wine_type")
 
 
 class Aroma(Base):
@@ -322,6 +332,16 @@ class Wine(Base, TimeStampMixin):
         DATE,
         nullable=False,
     )
+    wine_type_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("wine_type.wine_type_id"),
+        nullable=False,
+    )
+    wine_category_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("wine_category.wine_category_id"),
+        nullable=False,
+    )
     production_method_description: Mapped[str] = mapped_column(
         TEXT,
         nullable=True,
@@ -344,6 +364,8 @@ class Wine(Base, TimeStampMixin):
     )
 
     product = relationship("Product", back_populates="wine")
+    wine_type = relationship("WineType", back_populates="wine")
+    wine_category = relationship("WineCategory", back_populates="wine")
     aromas = relationship("AromaWine", back_populates="wine")
 
 

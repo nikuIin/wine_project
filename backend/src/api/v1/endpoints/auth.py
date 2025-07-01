@@ -21,7 +21,7 @@ from domain.exceptions import (
 )
 from schemas.token_schema import TokensResponse
 from schemas.user_schema import UserCreateRequest, UserCredsRequest
-from use_cases.user_service import UserService
+from services.user_service import UserService
 
 logger = get_configure_logger(Path(__file__).stem)
 

@@ -18,7 +18,7 @@ from domain.exceptions import (
     RefreshTokenBlackListError,
     TokenSessionExpiredError,
 )
-from use_cases.token_service import TokenService
+from services.token_service import TokenService
 
 logger = get_configure_logger(Path(__file__).stem)
 

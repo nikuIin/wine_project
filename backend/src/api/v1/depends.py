@@ -22,8 +22,8 @@ from repository.user_repository import (
     UserRepository,
     user_repository_dependency,
 )
-from use_cases.token_service import TokenService
-from use_cases.user_service import UserService
+from services.token_service import TokenService
+from services.user_service import UserService
 
 
 def token_service_dependency(

@@ -8,12 +8,11 @@ from domain.exceptions import (
     RegionDoesNotExistsError,
 )
 from schemas.region_schema import RegionCreate, RegionUpdate
-from use_cases.region_service import (
+from services.region_service import (
     RegionService,
     region_service_dependency,
 )
 
-e
 router = APIRouter(prefix="/region", tags=["region"])
 
 
