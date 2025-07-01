@@ -98,7 +98,9 @@ async def test_update_country(
     """Test updating a country."""
     updated_country = Country(country_id=RUSSIA_ID, name="Updated Russia")
 
-    result = await country_repository.update_country(updated_country)
+    result = await country_repository.update_country(
+        country_id=RUSSIA_ID, new_country_data=updated_country
+    )
 
     assert result == updated_country
 
@@ -121,7 +123,8 @@ async def test_update_nonexistent_country(
     )
 
     updated_rows = await country_repository.update_country(
-        updated_country_data
+        country_id=NO_EXISTING_COUNTRY_ID,
+        new_country_data=updated_country_data,
     )
 
     assert updated_rows is None
