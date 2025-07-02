@@ -83,21 +83,19 @@ class CountryDBError(Exception):
 
     def __init__(
         self,
-        message="The error while adding country to the database.",
+        message="The error of adding country to the database.",
     ):
-        logger.warning(message, exc_info=True)
         super().__init__(message)
 
 
-class CountryAlreadyExistsError(Exception):
-    """
-    The error occures with attempt to adding
-    the country_id or country_name that already exists in the database
+class CountryIntegrityError(Exception):
+    """The error occures with attempt to adding
+    the country_data or country_translate_dataa wich
+    already exists in the database or trying adding the
+    depends-data those doesn't exists.
     """
 
-    def __init__(
-        self, message="The country with this name or id already exists"
-    ):
+    def __init__(self, message="The integrity error of country data."):
         super().__init__(message)
 
 
@@ -109,9 +107,8 @@ class CountryDoesNotExistsError(Exception):
 
     def __init__(
         self,
-        message=("Country doesn't exists."),
+        message=("Country with this data doesn't exists."),
     ):
-        logger.debug(message, exc_info=True)
         super().__init__(message)
 
 
@@ -126,7 +123,6 @@ class RegionDatabaseError(Exception):
 
     def __init__(self, message="Database region error."):
         super().__init__(message)
-        logger.error(message, exc_info=True)
 
 
 class RegionConflictError(Exception):
@@ -136,7 +132,6 @@ class RegionConflictError(Exception):
         self, message="A region with this name or ID already exists."
     ):
         super().__init__(message)
-        logger.warning(message, exc_info=True)
 
 
 class RegionDoesNotExistsError(Exception):
@@ -144,4 +139,3 @@ class RegionDoesNotExistsError(Exception):
 
     def __init__(self, message="Failed to update the region in the database."):
         super().__init__(message)
-        logger.debug(message, exc_info=True)

@@ -5,35 +5,44 @@ from core.general_constants import (
     BASE_MIN_STR_LENGTH,
     MAX_COUNTRY_ID,
 )
-
-
-class CountrySchema(BaseModel):
-    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
-    name: str = Field(
-        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
-    )
-    flag_url: str = Field(
-        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
-    )
+from domain.enums import LanguageEnum
 
 
 class CountryCreateSchema(BaseModel):
-    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
-    name: str = Field(
-        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
-    )
-    flag_url: str | None = None
-
-
-class CountryUpdateSchema(BaseModel):
-    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID, examples=[643, 112])
-    name: str = Field(
+    country_id: int = Field(ge=1, le=MAX_COUNTRY_ID)
+    country_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
-        examples=["Russia", "Belarus"],
+        examples=["Россия"],
     )
-    flag_url: str = Field(
+    data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
+    flag_id: int | None = Field(default=None, ge=1)
+
+
+class CountryCreateTranslateSchema(BaseModel):
+    country_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
-        examples=["/img/russian_flag.jpeg"],
+        examples=["Россия"],
     )
+    data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
+
+
+class CountryResponseTranslateSchema(BaseModel):
+    country_name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["Россия"],
+    )
+    data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
+
+
+class CountryResponseSchema(BaseModel):
+    country_id: int = Field(ge=1, le=MAX_COUNTRY_ID)
+    country_name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["Россия"],
+    )
+    data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
+    flag_id: int | None = Field(default=None, ge=1)

@@ -5,15 +5,29 @@ from core.general_constants import (
     BASE_MIN_STR_LENGTH,
     MAX_COUNTRY_ID,
 )
+from domain.enums import LanguageEnum
 
 
 class Country(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, from_attributes=True)
     country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
+    flag_id: int | None = None
+
+
+class CountryTranslateData(BaseModel):
+    """The country data, those depends of the language. In the other words,
+    the data, thats appears in the different ways in every language.
+
+    :country_id — the id of country
+    :language_id — the id of language
+    :name — the name of country
+    """
+
+    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
+    language_id: LanguageEnum = LanguageEnum.ENGLISH
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
     )
-    flag_url: str | None = None
 
     @field_validator("name", mode="before")
     @classmethod
