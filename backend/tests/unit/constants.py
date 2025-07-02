@@ -44,3 +44,6 @@ MOSCOW_REGION_COUNTRY_ID = RUSSIA_ID
 
 # no existing region
 NO_EXISTING_REGION_ID = 9999
+
+# no existing language
+NO_EXISTING_LANGUAGE = "no_existing_language"

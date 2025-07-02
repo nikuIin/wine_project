@@ -1,0 +1,133 @@
+from contextlib import nullcontext as dont_raise
+
+from pytest import fixture, mark, raises
+from tests.unit.constants import (
+    NO_EXISTING_COUNTRY_ID,
+    RUSSIA_ID,
+    RUSSIA_NAME,
+)
+
+from domain.entities.country import Country, CountryTranslateData
+from domain.enums import LanguageEnum
+from domain.exceptions import CountryIntegrityError
+from repository.country_repository import CountryRepository
+
+
+@fixture(scope="function")
+def country_repository(async_session):
+    return CountryRepository(session=async_session)
+
+
+@mark.country
+@mark.repository
+@mark.asyncio
+class TestCountryRepository:
+    @mark.parametrize(
+        "country, country_translate, expectation",
+        [
+            (
+                Country(country_id=888),
+                CountryTranslateData(
+                    country_id=888,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                dont_raise(),
+            ),
+            (
+                Country(country_id=888),
+                CountryTranslateData(
+                    country_id=NO_EXISTING_COUNTRY_ID,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                raises(CountryIntegrityError),
+            ),
+            (
+                Country(country_id=RUSSIA_ID),
+                CountryTranslateData(
+                    country_id=RUSSIA_ID,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                raises(CountryIntegrityError),
+            ),
+            (
+                Country(country_id=888),
+                CountryTranslateData(
+                    country_id=RUSSIA_ID,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                raises(CountryIntegrityError),
+            ),
+        ],
+        ids=(
+            "create_country_with_existing_id",
+            "create_translate_country_data_with_non_exists_country",
+            "create_already_exists_country",
+            "create_data_as_already_exists",
+        ),
+    )
+    async def test_create_country(
+        self,
+        country_repository: CountryRepository,
+        country: Country,
+        country_translate: CountryTranslateData,
+        expectation,
+    ):
+        with expectation:
+            result = await country_repository.create_country(
+                country=country, country_translate_data=country_translate
+            )
+
+            assert (country, country_translate) == result
+
+    @mark.parametrize(
+        "country_translate_data, expectation",
+        [
+            (
+                CountryTranslateData(
+                    country_id=RUSSIA_ID,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.GERMAN,
+                ),
+                dont_raise(),
+            ),
+            (
+                CountryTranslateData(
+                    country_id=RUSSIA_ID,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                raises(CountryIntegrityError),
+            ),
+            (
+                CountryTranslateData(
+                    country_id=NO_EXISTING_COUNTRY_ID,
+                    name=RUSSIA_NAME,
+                    language_id=LanguageEnum.GERMAN,
+                ),
+                raises(CountryIntegrityError),
+            ),
+        ],
+        ids=(
+            "success_create_country_translate_data",
+            "translate_data_already_exists_error",
+            "country_for_translate_data_doest_exists",
+        ),
+    )
+    async def test_create_translate_country_data(
+        self,
+        country_repository: CountryRepository,
+        country_translate_data: CountryTranslateData,
+        expectation,
+        async_session,
+    ):
+        with expectation:
+            assert (
+                country_translate_data
+                == await country_repository.create_translate_country_data(
+                    country_translate_data=country_translate_data
+                )
+            )
