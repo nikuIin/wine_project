@@ -3,12 +3,15 @@ The file of the dependecies, that are using by these endpoints
 """
 
 from http import HTTPStatus
+from pathlib import Path
 
 from fastapi import Depends, HTTPException, Request
 
 # project configuration file
 from core.config import auth_settings
+from core.logger.logger import get_configure_logger
 from domain.entities.auth_master import AuthMaster
+from domain.enums import LanguageEnum
 from domain.exceptions import (
     AccessTokenAbsenceError,
     InvalidTokenDataError,
@@ -24,6 +27,8 @@ from repository.user_repository import (
 )
 from services.token_service import TokenService
 from services.user_service import UserService
+
+logger = get_configure_logger(Path(__file__).stem)
 
 
 def token_service_dependency(
@@ -78,3 +83,26 @@ def auth_dependency(
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED, detail=str(error)
         ) from error
+
+
+# TODO: change return types
+def language_dependency(
+    request: Request, prefered_language: str | None = None
+) -> LanguageEnum | str | None:
+    if not prefered_language:
+        request_language = request.headers.get("Accept-Language", "")
+
+        # parse Accept-Language header
+        prefered_language = request_language.split(";")[0].split(",")[0]
+
+        # TODO: create a cycle of getting prefered languages and checking
+        #  that language is in the LanguageEnum (supports in our application).
+        #  Else set language to the default language
+
+    logger.debug("Prefered accept-language header: %s.", prefered_language)
+
+    return (
+        prefered_language
+        if prefered_language in LanguageEnum
+        else LanguageEnum.DEFAULT_LANGUAGE
+    )

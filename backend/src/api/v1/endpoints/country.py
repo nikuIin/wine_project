@@ -1,16 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from starlette.status import HTTP_409_CONFLICT
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from starlette.status import (
+    HTTP_201_CREATED,
+    HTTP_404_NOT_FOUND,
+    HTTP_409_CONFLICT,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
 
-from domain.entities.country import Country
+from api.v1.depends import language_dependency
+from domain.entities.country import Country, CountryTranslateData
+from domain.enums import LanguageEnum
 from domain.exceptions import (
-    CountryAlreadyExistsError,
     CountryDBError,
     CountryDoesNotExistsError,
+    CountryIntegrityError,
 )
 from schemas.country_schema import (
     CountryCreateSchema,
-    CountrySchema,
-    CountryUpdateSchema,
+    CountryCreateTranslateSchema,
+    CountryResponseSchema,
+    CountryResponseTranslateSchema,
 )
 from services.country_service import (
     CountryService,
@@ -20,118 +28,151 @@ from services.country_service import (
 router = APIRouter(prefix="/country", tags=["country"])
 
 
-@router.get("/{country_id}", response_model=CountrySchema)
-async def get_country(
-    country_id: int,
+@router.post(
+    "/",
+    response_model=CountryResponseSchema,
+    status_code=201,
+    responses={
+        HTTP_201_CREATED: {
+            "detail": "Country create successfully.",
+        },
+        HTTP_409_CONFLICT: {
+            "detail": "The country integrity error.",
+        },
+    },
+)
+async def create_country(
+    country: CountryCreateSchema,
     country_service: CountryService = Depends(country_service_dependency),
 ):
+    country_data = Country(
+        country_id=country.country_id, flag_id=country.flag_id
+    )
+    country_translate_data = CountryTranslateData(
+        country_id=country.country_id,
+        name=country.country_name,
+        language_id=country.data_language,
+    )
+
     try:
-        country = await country_service.get_country_by_id(country_id)
-        if country is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Country not found",
-            )
+        (
+            country_data,
+            country_translate_data,
+        ) = await country_service.create_country(
+            country=country_data,
+            country_translate_data=country_translate_data,
+        )
+
         return country
+    # TODO: обработать ошибки FlagNotExistsError, LanguageNotExistsError
+    except CountryIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
     except CountryDBError as error:
         raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(error),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         ) from error
 
 
 @router.post(
-    "/",
-    response_model=Country,
-    status_code=status.HTTP_201_CREATED,
+    "/translate/{country_id}",
+    response_model=CountryResponseTranslateSchema,
     responses={
-        201: {"description": "Country created successfully"},
-        409: {"description": "Country with this ID/Name already exists"},
+        HTTP_201_CREATED: {
+            "detail": "Country translate data create successfully.",
+        },
+        HTTP_404_NOT_FOUND: {
+            "detail": (
+                "The country which you need to create a translation"
+                + " into another language does't exist."
+            )
+        },
+        HTTP_409_CONFLICT: {
+            "detail": "The country translate data integrity error.",
+        },
     },
 )
-async def create_country(
-    country_data: CountryCreateSchema,
+async def create_translate_country_data(
+    country_translate_schema: CountryCreateTranslateSchema,
+    country_id,
     country_service: CountryService = Depends(country_service_dependency),
 ):
+    country_translate_data = CountryTranslateData(
+        country_id=country_id,
+        name=country_translate_schema.country_name,
+        language_id=country_translate_schema.data_language,
+    )
+
     try:
-        country = Country(
-            country_id=country_data.country_id,
-            name=country_data.name,
-            flag_url=country_data.flag_url,
-        )
-        created_country = await country_service.create_country(country)
-        return created_country
-    except CountryAlreadyExistsError as error:
-        raise HTTPException(
-            detail=str(error),
-            status_code=HTTP_409_CONFLICT,
-        ) from error
-    except CountryDBError as error:
-        raise HTTPException(
-            detail=str(error),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        ) from error
-
-
-@router.put("/{country_id}", response_model=Country)
-async def update_country(
-    country_id: int,
-    country_data: CountryUpdateSchema,
-    country_service: CountryService = Depends(country_service_dependency),
-):
-    try:
-        updated_country_data = Country(
-            country_id=country_data.country_id,
-            name=country_data.name,
-            flag_url=country_data.flag_url,
-        )
-
-        updated_country_result = await country_service.update_country(
-            country_id=country_id,
-            new_country_data=updated_country_data,
-        )
-        if updated_country_result is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Country not found",
+        country_translate_data = (
+            await country_service.create_country_translate_data(
+                country_tranlate_data=country_translate_data,
             )
-        return updated_country_result
-    except CountryAlreadyExistsError as error:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=(
-                f"Country with id {country_data.country_id}"
-                f" or name {country_data.name} already exists"
-            ),
-        ) from error
+        )
+
+        return CountryResponseTranslateSchema(
+            country_name=country_translate_data.name,
+            data_language=country_translate_data.language_id,
+        )
+
+    # TODO: обработать ошибку LanguageNotExistsError
     except CountryDoesNotExistsError as error:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Country with id {country_id} doesn't exists.",
+            status_code=HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except CountryIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
         ) from error
 
     except CountryDBError as error:
         raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(error),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         ) from error
 
 
-@router.delete("/{country_id}", status_code=status.HTTP_200_OK)
-async def delete_country(
+@router.get("/{country_id}", response_model=CountryResponseSchema)
+async def get_country(
     country_id: int,
     country_service: CountryService = Depends(country_service_dependency),
+    language_id: LanguageEnum = Depends(language_dependency),
 ):
     try:
-        deleted_count = await country_service.delete_country(country_id)
-        if not deleted_count:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Country not found",
-            )
-        return {"rows_deleted": deleted_count}
+        (
+            country_data,
+            country_translate_data,
+        ) = await country_service.get_country_data(
+            country_id=country_id, language_id=language_id
+        )
+
+        return CountryResponseSchema(
+            country_id=country_data.country_id,
+            country_name=country_translate_data.name,
+            data_language=country_translate_data.language_id,
+            flag_id=country_data.flag_id,
+        )
+
+    except CountryDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+
+    except CountryIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+
     except CountryDBError as error:
         raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(error),
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         ) from error
