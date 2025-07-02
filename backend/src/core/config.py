@@ -14,9 +14,9 @@ THIRTY_DAYS_IN_MINUTES = 42000
 
 
 class ModeEnum(StrEnum):
-    test = auto()
-    dev = auto()
-    prod = auto()
+    TEST = auto()
+    DEV = auto()
+    PROD = auto()
 
 
 # Base config class
@@ -32,7 +32,7 @@ class ModelConfig(BaseSettings):
 
 class AppSettings(ModelConfig):
     app_mode: ModeEnum = Field(
-        default=ModeEnum.prod, validation_alias="APP_MODE"
+        default=ModeEnum.PROD, validation_alias="APP_MODE"
     )
 
 
@@ -106,7 +106,7 @@ class LoggingSettings(ModelConfig):
         validation_alias="LOG_FORMAT",
     )
     log_roating: str = Field(
-        default="midnight", validation_alias="LOG_ROATING"
+        default="midnight", validation_alias="LOG_ROTATING"
     )
     backup_count: int = Field(
         default=30,
