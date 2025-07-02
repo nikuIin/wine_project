@@ -1,3 +1,4 @@
+# models.py
 import decimal
 import uuid
 from datetime import date, datetime, timedelta
@@ -11,10 +12,69 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.types import DATE, SMALLINT, TEXT
+from sqlalchemy.types import DATE, SMALLINT, TEXT, VARCHAR
 
 from core.config import auth_settings
 from db.base_models import Base, TimeStampMixin
+
+
+class Language(Base):
+    __tablename__ = "language"
+
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    flag_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("flag.flag_id"),
+        nullable=True,
+    )
+
+    flag = relationship("Flag", back_populates="languages")
+    country_translates = relationship(
+        "CountryTranslate", back_populates="language"
+    )
+    region_translates = relationship(
+        "RegionTranslate", back_populates="language"
+    )
+    grape_translates = relationship(
+        "GrapeTranslate", back_populates="language"
+    )
+    product_translates = relationship(
+        "ProductTranslate", back_populates="language"
+    )
+    wine_category_translates = relationship(
+        "WineCategoryTranslate", back_populates="language"
+    )
+    wine_type_translates = relationship(
+        "WineTypeTranslate", back_populates="language"
+    )
+    aroma_translates = relationship(
+        "AromaTranslate", back_populates="language"
+    )
+    wine_translates = relationship("WineTranslate", back_populates="language")
+
+
+class Flag(Base):
+    __tablename__ = "flag"
+
+    flag_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    flag_url: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    languages = relationship("Language", back_populates="flag")
+    countries = relationship("Country", back_populates="flag")
 
 
 class Role(Base):
@@ -26,7 +86,7 @@ class Role(Base):
         autoincrement=True,
     )
     name: Mapped[str] = mapped_column(
-        String(256),
+        String(255),
         nullable=False,
         unique=True,
     )
@@ -34,6 +94,8 @@ class Role(Base):
     __table_args__ = (
         CheckConstraint("length(name) > 0", name="role_name_check"),
     )
+
+    users = relationship("User", back_populates="role")
 
 
 class User(Base, TimeStampMixin):
@@ -46,17 +108,27 @@ class User(Base, TimeStampMixin):
         nullable=False,
     )
     login: Mapped[str] = mapped_column(
-        String(255), nullable=False, unique=True
+        String(255),
+        nullable=False,
+        unique=True,
     )
-    password: Mapped[str] = mapped_column(String(255), nullable=False)
+    password: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
     role_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("role.role_id"), nullable=False
+        Integer,
+        ForeignKey("role.role_id"),
+        nullable=False,
     )
 
     __table_args__ = (
         CheckConstraint("length(login) > 0", name="user_login_check"),
         CheckConstraint("length(password) > 0", name="user_password_check"),
     )
+
+    role = relationship("Role", back_populates="users")
+    refresh_tokens = relationship("RefreshToken", back_populates="user")
 
 
 class RefreshToken(Base, TimeStampMixin):
@@ -69,7 +141,9 @@ class RefreshToken(Base, TimeStampMixin):
         nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("user.user_id"), nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id"),
+        nullable=False,
     )
     expire_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
@@ -78,6 +152,13 @@ class RefreshToken(Base, TimeStampMixin):
             datetime.now()
             + timedelta(minutes=auth_settings.refresh_token_expire_minutes)
         ),
+    )
+
+    user = relationship("User", back_populates="refresh_tokens")
+    blacklisted = relationship(
+        "BlackRefreshTokenList",
+        back_populates="refresh_token",
+        uselist=False,
     )
 
 
@@ -91,42 +172,72 @@ class BlackRefreshTokenList(Base):
         nullable=False,
     )
     ban_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), nullable=False, default=datetime.now
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
     )
 
+    refresh_token = relationship("RefreshToken", back_populates="blacklisted")
 
-# Reference schema
+
 class PresentationType(Base):
     __tablename__ = "presentation_type"
 
     presentation_type_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-
-    products = relationship("Product", back_populates="presentation_type")
-
-
-# Grape schema
-class Country(Base):
-    __tablename__ = "country"
-
-    country_id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
+        autoincrement=True,
     )
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
         unique=True,
     )
-    flag_url: Mapped[str] = mapped_column(
-        String(256),
-        comment="The url to the country flag image",
+
+    products = relationship("Product", back_populates="presentation_type")
+
+
+class Country(Base):
+    __tablename__ = "country"
+
+    country_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    flag_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("flag.flag_id"),
         nullable=True,
     )
 
+    flag = relationship("Flag", back_populates="countries")
     regions = relationship("Region", back_populates="country")
+    country_translates = relationship(
+        "CountryTranslate", back_populates="country"
+    )
+
+
+class CountryTranslate(Base):
+    __tablename__ = "country_translate"
+
+    country_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("country.country_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    country = relationship("Country", back_populates="country_translates")
+    language = relationship("Language", back_populates="country_translates")
 
 
 class Region(Base):
@@ -135,11 +246,33 @@ class Region(Base):
     region_id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
+        autoincrement=True,
     )
     country_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("country.country_id", ondelete="cascade"),
+        ForeignKey("country.country_id", ondelete="CASCADE"),
         nullable=False,
+    )
+
+    country = relationship("Country", back_populates="regions")
+    grapes = relationship("Grape", back_populates="region")
+    region_translates = relationship(
+        "RegionTranslate", back_populates="region"
+    )
+
+
+class RegionTranslate(Base):
+    __tablename__ = "region_translate"
+
+    region_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("region.region_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
     )
     name: Mapped[str] = mapped_column(
         String(255),
@@ -147,11 +280,8 @@ class Region(Base):
         unique=True,
     )
 
-    country = relationship(
-        "Country",
-        back_populates="regions",
-    )
-    grapes = relationship("Grape", back_populates="region")
+    region = relationship("Region", back_populates="region_translates")
+    language = relationship("Language", back_populates="region_translates")
 
 
 class Grape(Base, TimeStampMixin):
@@ -162,11 +292,6 @@ class Grape(Base, TimeStampMixin):
         primary_key=True,
         autoincrement=True,
     )
-    name: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-        unique=True,
-    )
     region_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("region.region_id"),
@@ -175,9 +300,32 @@ class Grape(Base, TimeStampMixin):
 
     region = relationship("Region", back_populates="grapes")
     sorts = relationship("Sort", back_populates="grape")
+    grape_translates = relationship("GrapeTranslate", back_populates="grape")
 
 
-# Catalog schema
+class GrapeTranslate(Base):
+    __tablename__ = "grape_translate"
+
+    grape_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("grape.grape_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+
+    grape = relationship("Grape", back_populates="grape_translates")
+    language = relationship("Language", back_populates="grape_translates")
+
+
 class Product(Base):
     __tablename__ = "product"
     __table_args__ = (
@@ -185,29 +333,25 @@ class Product(Base):
         CheckConstraint("discount >= 0", name="check_discount_positive"),
     )
 
-    product_id: Mapped[UUID] = mapped_column(
+    product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
-    name: Mapped[str] = mapped_column(
-        String(256),
-        nullable=False,
-    )
-    price: Mapped[float] = mapped_column(
+    price: Mapped[decimal.Decimal] = mapped_column(
         MONEY,
         nullable=False,
     )
-    discount: Mapped[float] = mapped_column(
+    discount: Mapped[decimal.Decimal] = mapped_column(
         NUMERIC(3, 2),
         default=0,
         nullable=False,
     )
-    main_image_link: Mapped[str] = mapped_column(
+    main_image_link: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )
-    video_link: Mapped[str] = mapped_column(
+    video_link: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
     )
@@ -221,7 +365,32 @@ class Product(Base):
         "PresentationType", back_populates="products"
     )
     wine = relationship("Wine", back_populates="product", uselist=False)
-    sorts = relationship("Sort", back_populates="product")
+    product_translates = relationship(
+        "ProductTranslate", back_populates="product"
+    )
+
+
+class ProductTranslate(Base):
+    __tablename__ = "product_translate"
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("product.product_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+
+    product = relationship("Product", back_populates="product_translates")
+    language = relationship("Language", back_populates="product_translates")
 
 
 class WineCategory(Base):
@@ -232,13 +401,38 @@ class WineCategory(Base):
         primary_key=True,
         autoincrement=True,
     )
+
+    wine = relationship("Wine", back_populates="wine_category")
+    wine_category_translates = relationship(
+        "WineCategoryTranslate", back_populates="wine_category"
+    )
+
+
+class WineCategoryTranslate(Base):
+    __tablename__ = "wine_category_translate"
+
+    wine_category_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("wine_category.wine_category_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
         unique=True,
     )
 
-    wine = relationship("Wine", back_populates="wine_category")
+    wine_category = relationship(
+        "WineCategory", back_populates="wine_category_translates"
+    )
+    language = relationship(
+        "Language", back_populates="wine_category_translates"
+    )
 
 
 class WineType(Base):
@@ -249,13 +443,34 @@ class WineType(Base):
         primary_key=True,
         autoincrement=True,
     )
+
+    wine = relationship("Wine", back_populates="wine_type")
+    wine_type_translates = relationship(
+        "WineTypeTranslate", back_populates="wine_type"
+    )
+
+
+class WineTypeTranslate(Base):
+    __tablename__ = "wine_type_translate"
+
+    wine_type_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("wine_type.wine_type_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
         unique=True,
     )
 
-    wine = relationship("Wine", back_populates="wine_type")
+    wine_type = relationship("WineType", back_populates="wine_type_translates")
+    language = relationship("Language", back_populates="wine_type_translates")
 
 
 class Aroma(Base):
@@ -266,13 +481,32 @@ class Aroma(Base):
         primary_key=True,
         autoincrement=True,
     )
+
+    aroma_wines = relationship("AromaWine", back_populates="aroma")
+    aroma_translates = relationship("AromaTranslate", back_populates="aroma")
+
+
+class AromaTranslate(Base):
+    __tablename__ = "aroma_translate"
+
+    aroma_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("aroma.aroma_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
         unique=True,
     )
 
-    wines = relationship("AromaWine", back_populates="aroma")
+    aroma = relationship("Aroma", back_populates="aroma_translates")
+    language = relationship("Language", back_populates="aroma_translates")
 
 
 class Sort(Base):
@@ -288,9 +522,9 @@ class Sort(Base):
         ForeignKey("grape.grape_id"),
         primary_key=True,
     )
-    product_id: Mapped[UUID] = mapped_column(
+    product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("product.product_id"),
+        ForeignKey("wine.product_id"),
         primary_key=True,
     )
     percentage_content: Mapped[decimal.Decimal] = mapped_column(
@@ -299,7 +533,7 @@ class Sort(Base):
     )
 
     grape = relationship("Grape", back_populates="sorts")
-    product = relationship("Product", back_populates="sorts")
+    wine = relationship("Wine", back_populates="sorts")
 
 
 class Wine(Base, TimeStampMixin):
@@ -315,7 +549,7 @@ class Wine(Base, TimeStampMixin):
         ),
     )
 
-    product_id: Mapped[UUID] = mapped_column(
+    product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("product.product_id"),
         primary_key=True,
@@ -324,7 +558,7 @@ class Wine(Base, TimeStampMixin):
         NUMERIC(4, 2),
         nullable=False,
     )
-    wine_strength: Mapped[decimal.Decimal] = mapped_column(
+    wine_strength: Mapped[decimal.Decimal | None] = mapped_column(
         NUMERIC(5, 2),
         nullable=True,
     )
@@ -342,23 +576,11 @@ class Wine(Base, TimeStampMixin):
         ForeignKey("wine_category.wine_category_id"),
         nullable=False,
     )
-    production_method_description: Mapped[str] = mapped_column(
-        TEXT,
-        nullable=True,
-    )
-    taste_description: Mapped[str] = mapped_column(
-        TEXT,
-        nullable=True,
-    )
-    description: Mapped[str] = mapped_column(
-        TEXT,
-        nullable=True,
-    )
-    min_serving_temperature: Mapped[int] = mapped_column(
+    min_serving_temperature: Mapped[int | None] = mapped_column(
         SMALLINT,
         nullable=True,
     )
-    max_serving_temperature: Mapped[int] = mapped_column(
+    max_serving_temperature: Mapped[int | None] = mapped_column(
         SMALLINT,
         nullable=True,
     )
@@ -366,13 +588,41 @@ class Wine(Base, TimeStampMixin):
     product = relationship("Product", back_populates="wine")
     wine_type = relationship("WineType", back_populates="wine")
     wine_category = relationship("WineCategory", back_populates="wine")
-    aromas = relationship("AromaWine", back_populates="wine")
+    aroma_wines = relationship("AromaWine", back_populates="wine")
+    sorts = relationship("Sort", back_populates="wine")
+    wine_translates = relationship("WineTranslate", back_populates="wine")
+
+
+class WineTranslate(Base):
+    __tablename__ = "wine_translate"
+
+    wine_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("wine.product_id"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id"),
+        primary_key=True,
+    )
+    production_method_description: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    description: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+
+    wine = relationship("Wine", back_populates="wine_translates")
+    language = relationship("Language", back_populates="wine_translates")
 
 
 class AromaWine(Base):
     __tablename__ = "aroma_wine"
 
-    product_id: Mapped[UUID] = mapped_column(
+    product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("wine.product_id"),
         primary_key=True,
@@ -383,5 +633,5 @@ class AromaWine(Base):
         primary_key=True,
     )
 
-    wine = relationship("Wine", back_populates="aromas")
-    aroma = relationship("Aroma", back_populates="wines")
+    wine = relationship("Wine", back_populates="aroma_wines")
+    aroma = relationship("Aroma", back_populates="aroma_wines")
