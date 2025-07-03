@@ -1,8 +1,9 @@
+from pytest import fixture
 from pytest_asyncio import fixture as async_fixture
+from sqlalchemy import text
 from tests.test_statements import TEST_STATEMENTS
 
 from core.config import ModeEnum, app_settings, db_settings
-from db.dependencies.base_statements import SCHEMAS_LIST
 from db.dependencies.postgres_helper import DatabaseHelper
 
 
@@ -15,7 +16,6 @@ async def db_helper():
     db_helper = DatabaseHelper(url=db_settings.db_url, echo=False)
 
     # Create schemas and tables before tests
-    await db_helper.create_schemas(SCHEMAS_LIST)
     await db_helper.create_tables()
     await db_helper.insert_base_data(TEST_STATEMENTS)
 
@@ -29,5 +29,15 @@ async def db_helper():
 async def async_session(db_helper):
     """Fixture to provide a database session for each test."""
     async with db_helper.session_factory() as session:
+        # add unique constraint manually
+        # await session.execute(
+        #     text(
+        #         """
+        #         alter table region_translate
+        #         add constraint unique_language_name
+        #         unique(name, language_id)
+        #         """
+        #     )
+        # )
         yield session
         await session.rollback()

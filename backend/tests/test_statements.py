@@ -15,7 +15,13 @@ from tests.unit.constants import (
     SAMARA_REGION_NAME,
 )
 
-from db.models import Country, CountryTranslate, Language, Region
+from db.models import (
+    Country,
+    CountryTranslate,
+    Language,
+    Region,
+    RegionTranslate,
+)
 from db.statement import Statement
 from domain.enums import LanguageEnum
 
@@ -75,6 +81,46 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         },
         check_query=lambda session: session.query(CountryTranslate)
         .filter_by(country_id=BELARUS_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert region 'Samara'",
+        statement=insert(Region),
+        data={"country_id": RUSSIA_ID, "region_id": SAMARA_REGION_ID},
+        check_query=lambda session: session.query(Region)
+        .filter_by(region_id=SAMARA_REGION_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert region 'Moscow'",
+        statement=insert(Region),
+        data={"country_id": RUSSIA_ID, "region_id": MOSCOW_REGION_ID},
+        check_query=lambda session: session.query(Region)
+        .filter_by(region_id=MOSCOW_REGION_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert region transalate data 'Samara'",
+        statement=insert(RegionTranslate),
+        data={
+            "name": SAMARA_REGION_NAME,
+            "region_id": SAMARA_REGION_ID,
+            "language_id": LanguageEnum.RUSSIAN,
+        },
+        check_query=lambda session: session.query(RegionTranslate)
+        .filter_by(region_id=SAMARA_REGION_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert region transalate data 'Moscow'",
+        statement=insert(RegionTranslate),
+        data={
+            "name": MOSCOW_REGION_NAME,
+            "region_id": MOSCOW_REGION_ID,
+            "language_id": LanguageEnum.RUSSIAN,
+        },
+        check_query=lambda session: session.query(RegionTranslate)
+        .filter_by(region_id=MOSCOW_REGION_ID)
         .first(),
     ),
 )
