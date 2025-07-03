@@ -183,3 +183,21 @@ class TestCountryRepository:
             await country_repository.is_country_exists(country_id=country_id)
             == expectation
         )
+
+    @mark.parametrize(
+        "language_id, expectation_country_quantity",
+        [
+            (LanguageEnum.RUSSIAN, 2),
+            (LanguageEnum.RUSSIAN_MAT, 0),
+        ],
+    )
+    async def test_get_all_countries(
+        self,
+        country_repository: CountryRepository,
+        language_id: LanguageEnum,
+        expectation_country_quantity,
+    ):
+        result = await country_repository.get_all_countries(
+            language_id=language_id
+        )
+        assert len(result) == expectation_country_quantity
