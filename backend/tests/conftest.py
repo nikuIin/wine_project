@@ -27,15 +27,5 @@ async def db_helper():
 async def async_session(db_helper):
     """Fixture to provide a database session for each test."""
     async with db_helper.session_factory() as session:
-        # add unique constraint manually
-        # await session.execute(
-        #     text(
-        #         """
-        #         alter table region_translate
-        #         add constraint unique_language_name
-        #         unique(name, language_id)
-        #         """
-        #     )
-        # )
         yield session
         await session.rollback()
