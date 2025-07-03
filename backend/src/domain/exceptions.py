@@ -125,17 +125,21 @@ class RegionDatabaseError(Exception):
         super().__init__(message)
 
 
-class RegionConflictError(Exception):
-    """The error occurs when trying to create a region that already exists."""
+class RegionIntegrityError(Exception):
+    """The error occures with attempt to adding
+    the region_data or region_translate_data wich
+    already exists in the database or trying adding the
+    depends-data those doesn't exists.
+    """
 
-    def __init__(
-        self, message="A region with this name or ID already exists."
-    ):
+    def __init__(self, message="The integrity error of region data."):
         super().__init__(message)
 
 
-class RegionDoesNotExistsError(Exception):
-    """The error occurs when there's a problem updating a region in the database."""
+class RegionAlreadyExistsError(RegionIntegrityError):
+    """The region with this id already exists in the database"""
 
-    def __init__(self, message="Failed to update the region in the database."):
+    def __init__(
+        self, message="The region with this id already exists in the database"
+    ):
         super().__init__(message)
