@@ -9,12 +9,12 @@ from tests.unit.constants import (
 
 from domain.entities.country import Country, CountryTranslateData
 from domain.enums import LanguageEnum
-from domain.exceptions import CountryIntegrityError
+from domain.exceptions import CountryDoesNotExistsError, CountryIntegrityError
 from repository.country_repository import CountryRepository
 
 
 @fixture(scope="function")
-def country_repository(async_session):
+def country_repository(async_session) -> CountryRepository:
     return CountryRepository(session=async_session)
 
 
@@ -131,3 +131,55 @@ class TestCountryRepository:
                     country_translate_data=country_translate_data
                 )
             )
+
+    @mark.parametrize(
+        "country_id, language_id, expectation",
+        [
+            (
+                RUSSIA_ID,
+                LanguageEnum.RUSSIAN,
+                dont_raise(),
+            ),
+            (
+                NO_EXISTING_COUNTRY_ID,
+                LanguageEnum.RUSSIAN,
+                raises(CountryDoesNotExistsError),
+            ),
+        ],
+        ids=(
+            "get_country_data",
+            "get_country_with_no_exists_country_id",
+        ),
+    )
+    async def test_get_country_data(
+        self,
+        country_repository: CountryRepository,
+        country_id: int,
+        language_id: LanguageEnum,
+        expectation,
+    ):
+        with expectation:
+            (
+                country,
+                country_translate,
+            ) = await country_repository.get_country_data(
+                country_id=country_id,
+                language_id=language_id,
+            )
+            assert isinstance(country, Country)
+            assert isinstance(country_translate, CountryTranslateData)
+
+    @mark.parametrize(
+        "country_id, expectation",
+        [(RUSSIA_ID, True), (NO_EXISTING_COUNTRY_ID, False)],
+    )
+    async def test_is_country_exists(
+        self,
+        country_repository: CountryRepository,
+        country_id: int,
+        expectation,
+    ):
+        assert (
+            await country_repository.is_country_exists(country_id=country_id)
+            == expectation
+        )
