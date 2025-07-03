@@ -30,7 +30,7 @@ class RegionRepository:
 
     async def create_region(
         self, region: Region, region_translate: RegionTranslateData
-    ):
+    ) -> tuple[Region, RegionTranslateData]:
         # === models prepararion ===
         region_model = RegionModel(**region.model_dump())
         region_translate_model = RegionTranslateModel(
@@ -99,18 +99,22 @@ class RegionRepository:
             )
 
             if isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore
-                if "region_id" in str(error):
-                    raise RegionAlreadyExistsError from error
+                if "region_pkey" in str(error):
+                    raise RegionAlreadyExistsError(
+                        f"Region with id {region.region_id} aleready exists."
+                    ) from error
+                elif "region_translate_language_id_name_key" in str(error):
+                    raise RegionAlreadyExistsError(
+                        "Region_translate with this data already exists."
+                    ) from error
 
             elif isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore
                 if "country_id" in str(error):
                     raise CountryDoesNotExistsError(
                         f"Country with id {region.country_id} does't exists"
                     ) from error
-                elif "language_id" in str(error):
-                    raise RegionIntegrityError(
-                        f"Country with id {region.country_id} does't exists"
-                    ) from error
+                else:
+                    pass
 
             raise RegionIntegrityError from error
 
@@ -121,7 +125,7 @@ class RegionRepository:
                 region_translate,
                 exc_info=error,
             )
-            raise error
+            raise RegionDatabaseError from error
 
 
 def region_repository_dependency(

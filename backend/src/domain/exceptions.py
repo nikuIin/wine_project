@@ -136,7 +136,7 @@ class RegionIntegrityError(Exception):
         super().__init__(message)
 
 
-class RegionAlreadyExistsError(RegionIntegrityError):
+class RegionAlreadyExistsError(Exception):
     """The region with this id already exists in the database"""
 
     def __init__(

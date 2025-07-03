@@ -1,11 +1,11 @@
 from fastapi import Depends
 
-from domain.entities.region import Region
+from domain.entities.region import Region, RegionTranslateData
 from domain.exceptions import (
     CountryDoesNotExistsError,
-    RegionConflictError,
+    RegionAlreadyExistsError,
     RegionDatabaseError,
-    RegionDoesNotExistsError,
+    RegionIntegrityError,
 )
 from repository.country_repository import (
     CountryRepository,
@@ -26,58 +26,21 @@ class RegionService:
         self.__region_repository = region_repository
         self.__country_repository = country_repository
 
-    async def create_region(self, region: Region) -> Region:
+    async def create_region(
+        self, region: Region, region_translate: RegionTranslateData
+    ) -> tuple[Region, RegionTranslateData]:
         try:
-            if (
-                await self.__country_repository.get_country(
-                    country_id=region.country_id
-                )
-                is not None
-            ):
-                return await self.__region_repository.create_region(region)
-            else:
-                raise CountryDoesNotExistsError
-        except RegionConflictError as error:
-            # reraise or handle exception
-            raise error
-        except RegionDatabaseError as error:
-            raise error
+            return await self.__region_repository.create_region(
+                region=region, region_translate=region_translate
+            )
 
-    async def get_region_by_id(self, region_id: int) -> Region | None:
-        try:
-            return await self.__region_repository.get_region(region_id)
-        except RegionDatabaseError as error:
-            # reraise or handle exception
+        except RegionIntegrityError as error:
             raise error
-
-    async def update_region(
-        self,
-        region_id,
-        new_region_data: Region,
-    ) -> Region | None:
-        try:
-            # check is country exists in the region create model
-            if (
-                await self.__country_repository.get_country(
-                    country_id=new_region_data.country_id
-                )
-                is not None
-            ):
-                return await self.__region_repository.update_region(
-                    region_id=region_id,
-                    new_region_data=new_region_data,
-                )
-            else:
-                raise CountryDoesNotExistsError
-        except RegionDatabaseError as error:
-            # reraise or handle exception
+        except RegionAlreadyExistsError as error:
             raise error
-
-    async def delete_region(self, region_id: int) -> int:
-        try:
-            return await self.__region_repository.delete_region(region_id)
+        except CountryDoesNotExistsError as error:
+            raise error
         except RegionDatabaseError as error:
-            # reraise or handle exception
             raise error
 
 

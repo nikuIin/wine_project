@@ -31,7 +31,7 @@ router = APIRouter(prefix="/country", tags=["country"])
 @router.post(
     "/",
     response_model=CountryResponseSchema,
-    status_code=201,
+    status_code=HTTP_201_CREATED,
     responses={
         HTTP_201_CREATED: {
             "detail": "Country create successfully.",

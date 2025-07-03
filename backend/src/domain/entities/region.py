@@ -4,6 +4,7 @@ from core.general_constants import (
     BASE_MAX_STR_LENGTH,
     BASE_MIN_STR_LENGTH,
     MAX_COUNTRY_ID,
+    MAX_DB_INT,
 )
 from domain.enums import LanguageEnum
 
@@ -18,6 +19,7 @@ class Region(BaseModel):
     region_id: int | None = Field(
         default=None,
         ge=1,
+        le=MAX_DB_INT,
         description="The unique identifier for the region.",
     )
     country_id: int = Field(
@@ -32,6 +34,7 @@ class RegionTranslateData(BaseModel):
     region_id: int | None = Field(
         default=None,
         ge=1,
+        le=MAX_DB_INT,
         description="The unique identifier for the region.",
     )
     name: str = Field(

@@ -23,7 +23,7 @@ class ModeEnum(StrEnum):
 class ModelConfig(BaseSettings):
     model_config = SettingsConfigDict(
         case_sensitive=True,
-        env_file=(".env", "../.env", ".prod.env", "../.prod.env"),
+        env_file=(".prod.env", "../.prod.env", ".env", "../.env"),
         env_file_encoding="utf-8",
         # ignore extra vars in the env file
         extra="ignore",

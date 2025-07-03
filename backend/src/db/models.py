@@ -12,6 +12,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy.types import DATE, SMALLINT, TEXT, VARCHAR
 
 from core.config import auth_settings
@@ -277,9 +278,14 @@ class RegionTranslate(Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=True,
     )
 
+    __table_args__ = (
+        UniqueConstraint(
+            "language_id",
+            "name",
+        ),
+    )
     region = relationship("Region", back_populates="region_translates")
     language = relationship("Language", back_populates="region_translates")
 

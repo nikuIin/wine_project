@@ -6,23 +6,49 @@ from core.general_constants import (
     MAX_COUNTRY_ID,
     MAX_DB_INT,
 )
+from domain.enums import LanguageEnum
 
 
-class RegionCreate(BaseModel):
-    region_id: int = Field(gt=0, lt=MAX_DB_INT)
-    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
-    name: str = Field(
+class RegionCreateSchema(BaseModel):
+    region_id: int | None = Field(
+        default=None,
+        ge=1,
+        le=MAX_DB_INT,
+    )
+    region_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
-        examples=["Moscow area", "Москвоская область"],
+        description="The name of a region",
+        examples=["Москва", "Самара"],
+    )
+    country_id: int = Field(
+        ge=1,
+        le=MAX_COUNTRY_ID,
+    )
+    language_id: LanguageEnum = Field(
+        default=LanguageEnum.DEFAULT_LANGUAGE,
+        description="The display language.",
+        examples=list(LanguageEnum),
     )
 
 
-class RegionUpdate(BaseModel):
-    region_id: int = Field(gt=0, lt=MAX_DB_INT)
-    country_id: int = Field(gt=0, le=MAX_COUNTRY_ID)
-    name: str = Field(
+class RegionResponseSchema(BaseModel):
+    region_id: int = Field(
+        ge=1,
+        le=MAX_DB_INT,
+    )
+    region_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
-        examples=["Moscow area", "Москвоская область"],
+        description="The name of a region",
+        examples=["Москва", "Самара"],
+    )
+    country_id: int = Field(
+        ge=1,
+        le=MAX_COUNTRY_ID,
+    )
+    language_id: LanguageEnum = Field(
+        default=LanguageEnum.DEFAULT_LANGUAGE,
+        description="The display language.",
+        examples=list(LanguageEnum),
     )
