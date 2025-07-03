@@ -76,7 +76,6 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pyjwt" },
     { name = "pytest" },
-    { name = "pytest-async-sqlalchemy" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-dotenv" },
@@ -98,7 +97,6 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.9.1" },
     { name = "pyjwt", specifier = ">=2.10.1" },
     { name = "pytest", specifier = ">=8.4.0" },
-    { name = "pytest-async-sqlalchemy", specifier = ">=0.2.0" },
     { name = "pytest-asyncio", specifier = ">=1.0.0" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-dotenv", specifier = ">=0.5.2" },
@@ -529,19 +527,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fb/aa/405082ce2749be5398045152251ac69c0f3578c7077efc53431303af97ce/pytest-8.4.0.tar.gz", hash = "sha256:14d920b48472ea0dbf68e45b96cd1ffda4705f33307dcc86c676c1b5104838a6", size = 1515232 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2f/de/afa024cbe022b1b318a3d224125aa24939e99b4ff6f22e0ba639a2eaee47/pytest-8.4.0-py3-none-any.whl", hash = "sha256:f40f825768ad76c0977cbacdf1fd37c6f7a468e460ea6a0636078f8972d4517e", size = 363797 },
-]
-
-[[package]]
-name = "pytest-async-sqlalchemy"
-version = "0.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pytest" },
-    { name = "sqlalchemy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/88/aa/264687cab98d67b73e680fe9299daf81edfe9b6bac016c4978f2380321cc/pytest-async-sqlalchemy-0.2.0.tar.gz", hash = "sha256:0dcf80fdff1ea0046834cff2bc100c82d159e45a7ae21545a6ba9119a962b9d7", size = 5257 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/65/14/d1abbf8dcb11097a7108be8eb4b598c958fc49eb91c5f62449ca9dda489a/pytest_async_sqlalchemy-0.2.0-py3-none-any.whl", hash = "sha256:60d7159f43d21e79d7051841fd2d6e094b7267ddc8d7192daea597afca938b12", size = 5693 },
 ]
 
 [[package]]

@@ -4,7 +4,6 @@ The main configuration file of the backend project part.
 
 from enum import StrEnum, auto
 from logging import INFO
-from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings

@@ -6,7 +6,9 @@ from core.config import log_settings
 from core.logger.filters import SensitiveWordsFilter
 
 
-def get_configure_logger(filename: str, log_level: int = log_settings.log_level) -> Logger:
+def get_configure_logger(
+    filename: str, log_level: int = log_settings.log_level
+) -> Logger:
     """
     Configure logger with the given filename.
 
@@ -30,10 +32,14 @@ def get_configure_logger(filename: str, log_level: int = log_settings.log_level)
             mkdir(log_settings.log_directory)
     except OSError as error:
         logger.error(
-            "Error with creating the log directory %r: %s", log_settings.log_directory, error
+            "Error with creating the log directory %r: %s",
+            log_settings.log_directory,
+            error,
         )
 
-    log_formatter = Formatter(fmt=log_settings.log_format, datefmt=log_settings.date_format)
+    log_formatter = Formatter(
+        fmt=log_settings.log_format, datefmt=log_settings.date_format
+    )
 
     safe_filename = filename.replace(".", "_") + ".log"
     log_file_path = path.join(log_settings.log_directory, safe_filename)

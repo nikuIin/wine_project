@@ -2,7 +2,7 @@
 from pathlib import Path
 
 # Import necessary components from SQLAlchemy for asynchronous operations
-from sqlalchemy.exc import DBAPIError, IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,  # Represents an asynchronous database session

@@ -4,7 +4,6 @@ from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from fastapi import Depends
 from sqlalchemy import text
 from sqlalchemy.exc import (
-    DatabaseError,
     DBAPIError,
     IntegrityError,
     NoResultFound,
@@ -14,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Country as CountryModel
-from db.models import CountryTranslate
 from db.models import CountryTranslate as CountryTranslateModel
 from domain.entities.country import Country, CountryTranslateData
 from domain.enums import LanguageEnum

@@ -1,6 +1,4 @@
-from pytest import fixture
 from pytest_asyncio import fixture as async_fixture
-from sqlalchemy import text
 from tests.test_statements import TEST_STATEMENTS
 
 from core.config import ModeEnum, app_settings, db_settings

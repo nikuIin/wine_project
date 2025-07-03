@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import (
     HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,

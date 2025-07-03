@@ -8,7 +8,6 @@ from tests.unit.constants import (
     NO_EXISTING_COUNTRY_ID,
     RUSSIA_ID,
     SAMARA_REGION_ID,
-    SAMARA_REGION_NAME,
 )
 
 from domain.entities.region import Region, RegionTranslateData
