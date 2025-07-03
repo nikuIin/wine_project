@@ -231,6 +231,61 @@ class CountryRepository:
             )
             raise CountryDBError from error
 
+    async def get_all_countries(
+        self, language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
+    ) -> list[tuple[Country, CountryTranslateData]]:
+        stmt = text(
+            """
+            select
+              c.country_id,
+              ct.name,
+              l.language_id,
+              f.flag_url
+            from country c
+            join country_translate ct using(country_id)
+            join language l using(language_id)
+            left join flag f on l.flag_id = l.flag_id
+            where l.language_id = :language_id;
+            """
+        )
+
+        try:
+            # === main logic ===
+            async with self.__session as session:
+                result = await session.execute(
+                    stmt, params={"language_id": language_id}
+                )
+            countries_data = result.mappings().all()
+            logger.error(countries_data)
+            country_list = [
+                (Country(**country_data), CountryTranslateData(**country_data))
+                for country_data in countries_data
+            ]
+
+            return country_list
+
+        # === exceptions handling ===
+        except IntegrityError as error:
+            logger.info(
+                "DBError while getting all country_data with language_id: %s",
+                language_id,
+                exc_info=error,
+            )
+            raise CountryIntegrityError(
+                f"Can't get country data with language {language_id}."
+                + " Try to change it."
+            ) from error
+
+        except DBAPIError as error:
+            logger.error(
+                "DBError while getting all country_data with language_id: %s",
+                language_id,
+                exc_info=error,
+            )
+            raise CountryDBError(
+                "DBError while getting all country_data"
+            ) from error
+
 
 def country_repository_dependency(
     session: AsyncSession = Depends(postgres_helper.session_dependency),

@@ -46,3 +46,23 @@ class CountryResponseSchema(BaseModel):
     )
     data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
     flag_id: int | None = Field(default=None, ge=1)
+
+
+class CountryResponseWithoutDataLanguage(BaseModel):
+    country_id: int = Field(ge=1, le=MAX_COUNTRY_ID)
+    country_name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["Россия"],
+    )
+    flag_url: str | None = Field(
+        default=None,
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MIN_STR_LENGTH,
+        examples=["/img/russian_flag.svg"],
+    )
+
+
+class CountryAllResponseSchema(BaseModel):
+    country_list: list[CountryResponseWithoutDataLanguage]
+    data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE

@@ -237,6 +237,12 @@ class CountryTranslate(Base):
         nullable=False,
     )
 
+    __table_args__ = (
+        UniqueConstraint(
+            "language_id",
+            "name",
+        ),
+    )
     country = relationship("Country", back_populates="country_translates")
     language = relationship("Language", back_populates="country_translates")
 

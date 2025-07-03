@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import (
     HTTP_201_CREATED,
@@ -7,6 +9,7 @@ from starlette.status import (
 )
 
 from api.v1.depends import language_dependency
+from core.logger.logger import get_configure_logger
 from domain.entities.country import Country, CountryTranslateData
 from domain.enums import LanguageEnum
 from domain.exceptions import (
@@ -15,10 +18,12 @@ from domain.exceptions import (
     CountryIntegrityError,
 )
 from schemas.country_schema import (
+    CountryAllResponseSchema,
     CountryCreateSchema,
     CountryCreateTranslateSchema,
     CountryResponseSchema,
     CountryResponseTranslateSchema,
+    CountryResponseWithoutDataLanguage,
 )
 from services.country_service import (
     CountryService,
@@ -26,6 +31,8 @@ from services.country_service import (
 )
 
 router = APIRouter(prefix="/country", tags=["country"])
+
+logger = get_configure_logger(Path(__file__).stem)
 
 
 @router.post(
@@ -135,6 +142,39 @@ async def create_translate_country_data(
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(error),
+        ) from error
+
+
+@router.get("/all", response_model=CountryAllResponseSchema)
+async def gel_all_countries(
+    country_service: CountryService = Depends(country_service_dependency),
+    language_id: LanguageEnum = Depends(language_dependency),
+):
+    try:
+        country_list = await country_service.get_all_countries(
+            language_id=language_id
+        )
+        logger.info(country_list)
+        country_list = [
+            CountryResponseWithoutDataLanguage(
+                country_id=country_data.country_id,
+                country_name=country_translate.name,
+                flag_url=country_data.flag_url,
+            )
+            for country_data, country_translate in country_list
+        ]
+
+        return CountryAllResponseSchema(
+            country_list=country_list,
+            data_language=language_id,
+        )
+    except CountryIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+    except CountryDBError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
         ) from error
 
 

@@ -84,6 +84,19 @@ class CountryService:
         except CountryDBError as error:
             raise error
 
+    async def get_all_countries(
+        self,
+        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
+    ) -> list[tuple[Country, CountryTranslateData]]:
+        try:
+            return await self.__country_repository.get_all_countries(
+                language_id=language_id
+            )
+        except CountryIntegrityError as error:
+            raise error
+        except CountryDBError as error:
+            raise error
+
 
 def country_service_dependency(
     country_repository: CountryRepository = Depends(
