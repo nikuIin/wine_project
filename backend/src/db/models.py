@@ -331,7 +331,6 @@ class GrapeTranslate(Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=True,
     )
 
     grape = relationship("Grape", back_populates="grape_translates")
@@ -398,7 +397,6 @@ class ProductTranslate(Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=True,
     )
 
     product = relationship("Product", back_populates="product_translates")
@@ -436,7 +434,6 @@ class WineCategoryTranslate(Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=True,
     )
 
     wine_category = relationship(
@@ -478,7 +475,6 @@ class WineTypeTranslate(Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=True,
     )
 
     wine_type = relationship("WineType", back_populates="wine_type_translates")
@@ -514,7 +510,6 @@ class AromaTranslate(Base):
     name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        unique=True,
     )
 
     aroma = relationship("Aroma", back_populates="aroma_translates")
