@@ -115,7 +115,6 @@ class CountryDoesNotExistsError(Exception):
 # ===============================
 #         Region erros          #
 # ===============================
-#
 
 
 class RegionDatabaseError(Exception):
@@ -150,5 +149,20 @@ class RegionDoesNotExistsError(Exception):
 
     def __init__(
         self, message="The region with this id doesn't exists in the database"
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#       Language erros          #
+# ===============================
+
+
+class LanguageDoesNotExistsError(Exception):
+    """The language doesn't exists in the database."""
+
+    def __init__(
+        self,
+        message="The language with this id doesn't exists in the database",
     ):
         super().__init__(message)

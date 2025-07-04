@@ -17,6 +17,7 @@ from domain.entities.region import (
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
+    LanguageDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
     RegionDoesNotExistsError,
@@ -188,6 +189,53 @@ class RegionRepository:
             raise RegionDatabaseError(
                 f"DBError when getting region with id {region_id}"
             ) from error
+
+    async def create_region_translate(
+        self, region_translate: RegionTranslateData
+    ) -> RegionTranslateData:
+        ### === prepared data ===
+        region_translate_model = RegionTranslateModel(
+            **region_translate.model_dump(exclude_none=True)
+        )
+
+        try:
+            async with self.__session as session:
+                session.add(region_translate_model)
+                await session.commit()
+
+            return region_translate
+
+        # === errors handling ===
+        except IntegrityError as error:
+            if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore
+                if "region_translate_region_id_fkey" in str(error):
+                    raise RegionDoesNotExistsError(
+                        f"Region with id {region_translate.region_id}"
+                        + " doesn't exists"
+                    ) from error
+                elif "region_translate_language_id_fkey" in str(error):
+                    raise LanguageDoesNotExistsError(
+                        f"Language {region_translate.language_id}"
+                        + " doesn't exists"
+                    ) from error
+            elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore  # noqa: SIM102
+                if "region_translate_pkey" in str(error):
+                    raise RegionAlreadyExistsError(
+                        f"Region translate id {region_translate.region_id}"
+                        + f" and language {region_translate.language_id}"
+                        + " already exists."
+                    ) from error
+
+            raise RegionIntegrityError(str(error)) from error
+
+        except DBAPIError as error:
+            logger.info(
+                "DBerror when created region translate %s",
+                region_translate,
+                exc_info=error,
+            )
+
+            raise RegionDatabaseError() from error
 
 
 def region_repository_dependency(
