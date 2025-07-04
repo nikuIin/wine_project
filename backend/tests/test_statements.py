@@ -32,15 +32,15 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         statement=insert(Language),
         data={"language_id": LanguageEnum.RUSSIAN, "name": "Russian"},
         check_query=lambda session: session.query(Language)
-        .filter_by(country_id=LanguageEnum.RUSSIAN)
+        .filter_by(language_id=LanguageEnum.RUSSIAN)
         .first(),
     ),
     Statement(
-        description="Insert language 'ru'",
+        description="Insert language 'ge'",
         statement=insert(Language),
         data={"language_id": LanguageEnum.GERMAN, "name": "German"},
         check_query=lambda session: session.query(Language)
-        .filter_by(country_id=LanguageEnum.GERMAN)
+        .filter_by(language_id=LanguageEnum.GERMAN)
         .first(),
     ),
     Statement(

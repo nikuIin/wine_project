@@ -16,6 +16,7 @@ from domain.entities.region import Region, RegionTranslateData
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
+    LanguageDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDoesNotExistsError,
     RegionIntegrityError,
@@ -119,11 +120,7 @@ class TestRegionRepository:
                 region=region,
                 region_translate=region_translate,
             )
-        async with async_session:
-            result = await async_session.execute(
-                text("table region_translate")
-            )
-        print(result.fetchall())
+
         # dont_raises tests
         if expectation != dont_raise():
             return
@@ -192,3 +189,66 @@ class TestRegionRepository:
             assert region.region_id == SAMARA_REGION_ID
             assert region_translate.language_id == LanguageEnum.RUSSIAN
             assert region_translate.name == SAMARA_REGION_NAME
+
+    @mark.parametrize(
+        "region_translate, expectation",
+        [
+            (
+                RegionTranslateData(
+                    region_id=SAMARA_REGION_ID,
+                    name="Новый регион",
+                    language_id=LanguageEnum.GERMAN,
+                ),
+                dont_raise(),
+            ),
+            (
+                RegionTranslateData(
+                    region_id=SAMARA_REGION_ID,
+                    name="Новый регион",
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                raises(RegionAlreadyExistsError),
+            ),
+            (
+                RegionTranslateData(
+                    region_id=NO_EXISTING_REGION_ID,
+                    name="Новый регион",
+                    language_id=LanguageEnum.RUSSIAN,
+                ),
+                raises(RegionDoesNotExistsError),
+            ),
+            (
+                RegionTranslateData(
+                    region_id=SAMARA_REGION_ID,
+                    name="Новый регион",
+                    language_id=LanguageEnum.RUSSIAN_MAT,
+                ),
+                raises(LanguageDoesNotExistsError),
+            ),
+            (
+                RegionTranslateData(
+                    region_id=SAMARA_REGION_ID,
+                    name=SAMARA_REGION_NAME,
+                    language_id=LanguageEnum.GERMAN,
+                ),
+                dont_raise(),
+            ),
+        ],
+        ids=(
+            "create_new_translate_for_region",
+            "create_already_exists_translate",
+            "create_translate_for_no_exists_region",
+            "create_translate_with_no_exists_language",
+            "create_the_already_exists_translate_with_another_language",
+        ),
+    )
+    async def test_create_translate_region(
+        self,
+        region_translate: RegionTranslateData,
+        region_repository: RegionRepository,
+        expectation,
+    ):
+        with expectation:
+            await region_repository.create_region_translate(
+                region_translate=region_translate
+            )
