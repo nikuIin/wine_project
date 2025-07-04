@@ -6,8 +6,10 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from tests.unit.constants import (
     MOSCOW_REGION_NAME,
     NO_EXISTING_COUNTRY_ID,
+    NO_EXISTING_REGION_ID,
     RUSSIA_ID,
     SAMARA_REGION_ID,
+    SAMARA_REGION_NAME,
 )
 
 from domain.entities.region import Region, RegionTranslateData
@@ -15,6 +17,7 @@ from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
     RegionAlreadyExistsError,
+    RegionDoesNotExistsError,
     RegionIntegrityError,
 )
 from repository.region_repository import RegionRepository
@@ -157,3 +160,35 @@ class TestRegionRepository:
         assert region_result.country_id == region.country_id
         assert region_translate_result.name == region_translate.name
         assert region_translate_result.region_id == region_result.region_id
+
+    @mark.parametrize(
+        "region_id, language_id, expectation",
+        [
+            (
+                SAMARA_REGION_ID,
+                LanguageEnum.RUSSIAN,
+                dont_raise(),
+            ),
+            (
+                NO_EXISTING_REGION_ID,
+                LanguageEnum.RUSSIAN,
+                raises(RegionDoesNotExistsError),
+            ),
+        ],
+    )
+    async def test_get_region(
+        self,
+        region_id: int,
+        language_id: LanguageEnum,
+        region_repository: RegionRepository,
+        expectation,
+    ):
+        with expectation:
+            region, region_translate = await region_repository.get_region(
+                region_id=region_id, language_id=language_id
+            )
+
+            assert region.country_id == RUSSIA_ID
+            assert region.region_id == SAMARA_REGION_ID
+            assert region_translate.language_id == LanguageEnum.RUSSIAN
+            assert region_translate.name == SAMARA_REGION_NAME

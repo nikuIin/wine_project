@@ -26,7 +26,7 @@ class TestCountryRepository:
         "country, country_translate, expectation",
         [
             (
-                Country(country_id=888),
+                Country(country_id=888, flag_url=None),
                 CountryTranslateData(
                     country_id=888,
                     name=RUSSIA_NAME,
