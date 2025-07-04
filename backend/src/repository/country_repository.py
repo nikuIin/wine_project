@@ -244,7 +244,7 @@ class CountryRepository:
             from country c
             join country_translate ct using(country_id)
             join language l using(language_id)
-            left join flag f on l.flag_id = l.flag_id
+            left join flag f on f.flag_id = c.flag_id
             where l.language_id = :language_id;
             """
         )
