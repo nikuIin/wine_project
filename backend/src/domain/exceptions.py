@@ -143,3 +143,12 @@ class RegionAlreadyExistsError(Exception):
         self, message="The region with this id already exists in the database"
     ):
         super().__init__(message)
+
+
+class RegionDoesNotExistsError(Exception):
+    """The region doesn't exists in the database."""
+
+    def __init__(
+        self, message="The region with this id doesn't exists in the database"
+    ):
+        super().__init__(message)

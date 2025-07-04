@@ -6,11 +6,14 @@ from starlette.status import (
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
+from api.v1.depends import language_dependency
 from domain.entities.region import Region, RegionTranslateData
+from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
+    RegionDoesNotExistsError,
     RegionIntegrityError,
 )
 from schemas.region_schema import RegionCreateSchema, RegionResponseSchema
@@ -75,6 +78,40 @@ async def create_region(
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND, detail=str(error)
         ) from error
+    except RegionDatabaseError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
+        ) from error
+
+
+@router.get("/{region_id}", response_model=RegionResponseSchema)
+async def get_region(
+    region_id: int,
+    region_service: RegionService = Depends(region_service_dependency),
+    language_id: LanguageEnum = Depends(language_dependency),
+):
+    try:
+        region, region_translate = await region_service.get_region(
+            region_id=region_id, language_id=language_id
+        )
+
+        return RegionResponseSchema(
+            region_id=region.region_id,  # type: ignore
+            region_name=region_translate.name,
+            country_id=region.country_id,
+            language_id=region_translate.language_id,
+        )
+
+    except RegionDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail=str(error)
+        ) from error
+
+    except RegionIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+
     except RegionDatabaseError as error:
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)

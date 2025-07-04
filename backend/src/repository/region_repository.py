@@ -14,10 +14,12 @@ from domain.entities.region import (
     Region,
     RegionTranslateData,
 )
+from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
+    RegionDoesNotExistsError,
     RegionIntegrityError,
 )
 
@@ -126,6 +128,66 @@ class RegionRepository:
                 exc_info=error,
             )
             raise RegionDatabaseError from error
+
+    async def get_region(
+        self,
+        region_id: int,
+        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
+    ) -> tuple[Region, RegionTranslateData]:
+        stmt = text(
+            """
+            select
+              r.region_id,
+              r.country_id,
+              rt.name,
+              rt.language_id
+            from region r
+            join region_translate rt using(region_id)
+            where r.region_id = :region_id
+                  and rt.language_id = :language_id;
+            """
+        )
+
+        try:
+            # === main logic ===
+            async with self.__session as session:
+                result = await session.execute(
+                    stmt,
+                    params={
+                        "region_id": region_id,
+                        "language_id": language_id,
+                    },
+                )
+
+            region = result.mappings().one_or_none()
+
+            if region is None:
+                raise RegionDoesNotExistsError(
+                    f"Region with id {region_id} in the"
+                    + f" language {language_id} doesn't exists."
+                )
+
+            return (Region(**region), RegionTranslateData(**region))
+
+        # === errors handling ===
+        except IntegrityError as error:
+            logger.info(
+                "Integrity error when getting region with id %s",
+                region_id,
+                exc_info=error,
+            )
+            raise RegionIntegrityError(
+                f"Integrity error when getting region with id {region_id}"
+            ) from error
+        except DBAPIError as error:
+            logger.info(
+                "DBError error when getting region with id %s",
+                region_id,
+                exc_info=error,
+            )
+            raise RegionDatabaseError(
+                f"DBError when getting region with id {region_id}"
+            ) from error
 
 
 def region_repository_dependency(

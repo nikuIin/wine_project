@@ -1,10 +1,12 @@
 from fastapi import Depends
 
 from domain.entities.region import Region, RegionTranslateData
+from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
+    RegionDoesNotExistsError,
     RegionIntegrityError,
 )
 from repository.country_repository import (
@@ -39,6 +41,22 @@ class RegionService:
         except RegionAlreadyExistsError as error:
             raise error
         except CountryDoesNotExistsError as error:
+            raise error
+        except RegionDatabaseError as error:
+            raise error
+
+    async def get_region(
+        self,
+        region_id: int,
+        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
+    ) -> tuple[Region, RegionTranslateData]:
+        try:
+            return await self.__region_repository.get_region(
+                region_id=region_id, language_id=language_id
+            )
+        except RegionDoesNotExistsError as error:
+            raise error
+        except RegionIntegrityError as error:
             raise error
         except RegionDatabaseError as error:
             raise error

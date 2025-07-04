@@ -42,9 +42,9 @@ class CountryRepository:
         (the country data thats doesn't depends of lagnuage)
         """
 
-        country_model = CountryModel(**country.model_dump())
+        country_model = CountryModel(**country.model_dump(exclude_none=True))
         country_translate_model = CountryTranslateModel(
-            **country_translate_data.model_dump()
+            **country_translate_data.model_dump(exclude_none=True)
         )
 
         # === main logic ===
