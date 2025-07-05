@@ -71,9 +71,7 @@ class DatabaseHelper:
                 )
             await conn.commit()
 
-    async def insert_base_data(
-        self, statements: tuple[Statement, ...]
-    ) -> None:
+    async def insert_data(self, statements: tuple[Statement, ...]) -> None:
         async with self.engine.begin() as conn:
             try:
                 for stmt in statements:
