@@ -38,9 +38,9 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
     Statement(
         description="Insert language 'ge'",
         statement=insert(Language),
-        data={"language_id": LanguageEnum.GERMAN, "name": "German"},
+        data={"language_id": LanguageEnum.ENGLISH, "name": "German"},
         check_query=lambda session: session.query(Language)
-        .filter_by(language_id=LanguageEnum.GERMAN)
+        .filter_by(language_id=LanguageEnum.ENGLISH)
         .first(),
     ),
     Statement(
@@ -100,7 +100,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert region transalate data 'Samara'",
+        description="Insert region transalate data 'Samara' ru",
         statement=insert(RegionTranslate),
         data={
             "name": SAMARA_REGION_NAME,
@@ -112,7 +112,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert region transalate data 'Moscow'",
+        description="Insert region transalate data 'Moscow' ru",
         statement=insert(RegionTranslate),
         data={
             "name": MOSCOW_REGION_NAME,

@@ -90,7 +90,7 @@ class TestCountryRepository:
                 CountryTranslateData(
                     country_id=RUSSIA_ID,
                     name=RUSSIA_NAME,
-                    language_id=LanguageEnum.GERMAN,
+                    language_id=LanguageEnum.ENGLISH,
                 ),
                 dont_raise(),
             ),
@@ -106,7 +106,7 @@ class TestCountryRepository:
                 CountryTranslateData(
                     country_id=NO_EXISTING_COUNTRY_ID,
                     name=RUSSIA_NAME,
-                    language_id=LanguageEnum.GERMAN,
+                    language_id=LanguageEnum.ENGLISH,
                 ),
                 raises(CountryIntegrityError),
             ),
@@ -188,7 +188,7 @@ class TestCountryRepository:
         "language_id, expectation_country_quantity",
         [
             (LanguageEnum.RUSSIAN, 2),
-            (LanguageEnum.RUSSIAN_MAT, 0),
+            (LanguageEnum.KAZAKHSTAN, 0),
         ],
     )
     async def test_get_all_countries(
