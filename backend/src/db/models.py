@@ -301,9 +301,8 @@ class Grape(Base, TimeStampMixin):
     __tablename__ = "grape"
 
     grape_id: Mapped[int] = mapped_column(
-        Integer,
+        UUID,
         primary_key=True,
-        autoincrement=True,
     )
     region_id: Mapped[int] = mapped_column(
         Integer,
@@ -319,8 +318,8 @@ class Grape(Base, TimeStampMixin):
 class GrapeTranslate(Base):
     __tablename__ = "grape_translate"
 
-    grape_id: Mapped[int] = mapped_column(
-        Integer,
+    grape_id: Mapped[UUID] = mapped_column(
+        UUID,
         ForeignKey("grape.grape_id"),
         primary_key=True,
     )
@@ -525,8 +524,8 @@ class Sort(Base):
         ),
     )
 
-    grape_id: Mapped[int] = mapped_column(
-        Integer,
+    grape_id: Mapped[UUID] = mapped_column(
+        UUID,
         ForeignKey("grape.grape_id"),
         primary_key=True,
     )
