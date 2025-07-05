@@ -2,9 +2,7 @@ from enum import StrEnum
 
 
 class LanguageEnum(StrEnum):
-    # TODO: configure enum for really supported languages
-    DEFAULT_LANGUAGE = "ru"
-    ENGLISH = "en-US"
+    DEFAULT_LANGUAGE = "ru-RU"
     RUSSIAN = "ru"
-    RUSSIAN_MAT = "ru-mt"
-    GERMAN = "de"
+    KAZAKHSTAN = "kz"
+    ENGLISH = "en-US"
