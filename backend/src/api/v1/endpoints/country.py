@@ -117,7 +117,7 @@ async def create_translate_country_data(
     try:
         country_translate_data = (
             await country_service.create_country_translate_data(
-                country_tranlate_data=country_translate_data,
+                country_translate_data=country_translate_data,
             )
         )
 

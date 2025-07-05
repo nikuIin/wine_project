@@ -35,22 +35,22 @@ class CountryService:
             raise error
 
     async def create_country_translate_data(
-        self, country_tranlate_data: CountryTranslateData
+        self, country_translate_data: CountryTranslateData
     ) -> CountryTranslateData:
         """Check is country exists and create a translate data."""
         try:
             # === main logic ===
             if not await self.__country_repository.is_country_exists(
-                country_id=country_tranlate_data.country_id
+                country_id=country_translate_data.country_id
             ):
                 raise CountryDoesNotExistsError(
                     "Can't create translate data for no exists country"
-                    + f" with id {country_tranlate_data.country_id}"
+                    + f" with id {country_translate_data.country_id}"
                 )
 
             return (
                 await self.__country_repository.create_translate_country_data(
-                    country_translate_data=country_tranlate_data
+                    country_translate_data=country_translate_data
                 )
             )
 

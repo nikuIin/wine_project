@@ -1,11 +1,12 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import time
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import Request, Response
 from jwt import encode as jwt_encode
 from passlib.context import CryptContext
+from uuid_extensions import uuid7
 
 from core.config import auth_settings
 from core.logger.logger import get_configure_logger
@@ -108,7 +109,7 @@ class AuthMaster:
         jwt_refresh_payload = RefreshTokenPayload(
             user_id=str(user.user_id),
             login=user.login,
-            token_id=str(uuid4()),
+            token_id=str(uuid7()),
             role_id=user.role_id,
             exp=refresh_expire.timestamp(),
         )

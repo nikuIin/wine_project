@@ -14,6 +14,7 @@ from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy.types import DATE, SMALLINT, TEXT, VARCHAR
+from uuid_extensions import uuid7
 
 from core.config import auth_settings
 from db.base_models import Base, TimeStampMixin
@@ -105,7 +106,7 @@ class User(Base, TimeStampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
+        default=uuid7,
         nullable=False,
     )
     login: Mapped[str] = mapped_column(
@@ -138,7 +139,7 @@ class RefreshToken(Base, TimeStampMixin):
     refresh_token_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
+        default=uuid7,
         nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -347,7 +348,7 @@ class Product(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
+        default=uuid7,
     )
     price: Mapped[decimal.Decimal] = mapped_column(
         MONEY,

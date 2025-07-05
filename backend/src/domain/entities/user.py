@@ -1,6 +1,7 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pydantic import BaseModel, Field
+from uuid_extensions import uuid7
 
 from core.general_constants import BASE_MAX_STR_LENGTH, BASE_MIN_STR_LENGTH
 
@@ -21,7 +22,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(BaseModel):
-    user_id: UUID = Field(default_factory=uuid4)
+    user_id: UUID = Field(default_factory=uuid7)
     role_id: int = 1  # TODO: create enum of user roles
     login: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
