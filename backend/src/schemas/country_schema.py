@@ -48,7 +48,7 @@ class CountryResponseSchema(BaseModel):
     flag_id: int | None = Field(default=None, ge=1)
 
 
-class CountryResponseWithoutDataLanguage(BaseModel):
+class CountryListElement(BaseModel):
     country_id: int = Field(ge=1, le=MAX_COUNTRY_ID)
     country_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
@@ -63,6 +63,6 @@ class CountryResponseWithoutDataLanguage(BaseModel):
     )
 
 
-class CountryAllResponseSchema(BaseModel):
-    country_list: list[CountryResponseWithoutDataLanguage]
+class CountryListResponseSchema(BaseModel):
+    country_list: list[CountryListElement]
     data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE

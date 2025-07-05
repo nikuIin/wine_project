@@ -18,12 +18,12 @@ from domain.exceptions import (
     CountryIntegrityError,
 )
 from schemas.country_schema import (
-    CountryAllResponseSchema,
     CountryCreateSchema,
     CountryCreateTranslateSchema,
+    CountryListElement,
+    CountryListResponseSchema,
     CountryResponseSchema,
     CountryResponseTranslateSchema,
-    CountryResponseWithoutDataLanguage,
 )
 from services.country_service import (
     CountryService,
@@ -145,7 +145,7 @@ async def create_translate_country_data(
         ) from error
 
 
-@router.get("/all", response_model=CountryAllResponseSchema)
+@router.get("/all", response_model=CountryListResponseSchema)
 async def gel_all_countries(
     country_service: CountryService = Depends(country_service_dependency),
     language_id: LanguageEnum = Depends(language_dependency),
@@ -156,7 +156,7 @@ async def gel_all_countries(
         )
         logger.info(country_list)
         country_list = [
-            CountryResponseWithoutDataLanguage(
+            CountryListElement(
                 country_id=country_data.country_id,
                 country_name=country_translate.name,
                 flag_url=country_data.flag_url,
@@ -164,7 +164,7 @@ async def gel_all_countries(
             for country_data, country_translate in country_list
         ]
 
-        return CountryAllResponseSchema(
+        return CountryListResponseSchema(
             country_list=country_list,
             data_language=language_id,
         )
