@@ -197,7 +197,7 @@ class TestRegionRepository:
                 RegionTranslateData(
                     region_id=SAMARA_REGION_ID,
                     name="Новый регион",
-                    language_id=LanguageEnum.GERMAN,
+                    language_id=LanguageEnum.ENGLISH,
                 ),
                 dont_raise(),
             ),
@@ -221,7 +221,7 @@ class TestRegionRepository:
                 RegionTranslateData(
                     region_id=SAMARA_REGION_ID,
                     name="Новый регион",
-                    language_id=LanguageEnum.RUSSIAN_MAT,
+                    language_id=LanguageEnum.KAZAKHSTAN,
                 ),
                 raises(LanguageDoesNotExistsError),
             ),
@@ -229,7 +229,7 @@ class TestRegionRepository:
                 RegionTranslateData(
                     region_id=SAMARA_REGION_ID,
                     name=SAMARA_REGION_NAME,
-                    language_id=LanguageEnum.GERMAN,
+                    language_id=LanguageEnum.ENGLISH,
                 ),
                 dont_raise(),
             ),
@@ -252,3 +252,23 @@ class TestRegionRepository:
             await region_repository.create_region_translate(
                 region_translate=region_translate
             )
+
+    @mark.parametrize(
+        "country_id, language_id, expectaton_region_quantity",
+        [
+            (RUSSIA_ID, LanguageEnum.RUSSIAN, 2),
+            (RUSSIA_ID, LanguageEnum.ENGLISH, 0),
+            (NO_EXISTING_COUNTRY_ID, LanguageEnum.ENGLISH, 0),
+        ],
+    )
+    async def test_get_region_list(
+        self,
+        country_id: int,
+        language_id: LanguageEnum,
+        region_repository: RegionRepository,
+        expectaton_region_quantity: int,
+    ):
+        region_list = await region_repository.get_region_list(
+            country_id=country_id, language_id=language_id
+        )
+        assert len(region_list) == expectaton_region_quantity

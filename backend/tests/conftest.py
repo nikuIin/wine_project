@@ -15,7 +15,7 @@ async def db_helper():
 
     # Create schemas and tables before tests
     await db_helper.create_tables()
-    await db_helper.insert_base_data(TEST_STATEMENTS)
+    await db_helper.insert_data(TEST_STATEMENTS)
 
     yield db_helper
 
