@@ -10,6 +10,7 @@ from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Region as RegionModel
 from db.models import RegionTranslate as RegionTranslateModel
+from domain.entities import region
 from domain.entities.region import (
     Region,
     RegionTranslateData,
@@ -236,6 +237,54 @@ class RegionRepository:
             )
 
             raise RegionDatabaseError() from error
+
+    async def get_region_list(
+        self,
+        country_id: int,
+        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
+    ) -> tuple[tuple[Region, RegionTranslateData], ...]:
+        stmt = text(
+            """
+            select
+              r.region_id,
+              r.country_id,
+              rt.name,
+              rt.language_id
+            from region r
+            join region_translate rt using(region_id)
+            where r.country_id = :country_id and rt.language_id = :language_id;
+            """
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(
+                    stmt,
+                    params={
+                        "country_id": country_id,
+                        "language_id": language_id,
+                    },
+                )
+
+            region_list = result.mappings().all()
+            region_list = tuple(
+                (Region(**region), RegionTranslateData(**region))
+                for region in region_list
+            )
+
+            return region_list
+
+        except DBAPIError as error:
+            logger.error(
+                "DBError when geting region list with"
+                + " country_id = %s and language_id = %s",
+                country_id,
+                language_id,
+                exc_info=error,
+            )
+            raise RegionDatabaseError(
+                "Internal error when geting region list."
+            ) from error
 
 
 def region_repository_dependency(
