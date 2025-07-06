@@ -7,9 +7,14 @@ from tests.unit.constants import (
     RUSSIA_NAME,
 )
 
-from domain.entities.country import Country, CountryTranslateData
+from domain.entities.country import Country
 from domain.enums import LanguageEnum
-from domain.exceptions import CountryDoesNotExistsError, CountryIntegrityError
+from domain.exceptions import (
+    CountryAlreadyExistsError,
+    CountryDoesNotExistsError,
+    CountryIntegrityError,
+    LanguageDoesNotExistsError,
+)
 from repository.country_repository import CountryRepository
 
 
@@ -23,92 +28,79 @@ def country_repository(async_session) -> CountryRepository:
 @mark.asyncio
 class TestCountryRepository:
     @mark.parametrize(
-        "country, country_translate, expectation",
+        "country, language_id, expectation",
         [
             (
-                Country(country_id=888, flag_url=None),
-                CountryTranslateData(
-                    country_id=888,
-                    name=RUSSIA_NAME,
-                    language_id=LanguageEnum.RUSSIAN,
-                ),
+                Country(country_id=888, name=RUSSIA_NAME, flag_url=None),
+                LanguageEnum.RUSSIAN,
                 dont_raise(),
             ),
             (
-                Country(country_id=888),
-                CountryTranslateData(
-                    country_id=NO_EXISTING_COUNTRY_ID,
-                    name=RUSSIA_NAME,
-                    language_id=LanguageEnum.RUSSIAN,
-                ),
+                Country(country_id=RUSSIA_ID, name=RUSSIA_NAME, flag_url=None),
+                LanguageEnum.RUSSIAN,
+                raises(CountryAlreadyExistsError),
+            ),
+            # TODO: move flag_id to constant
+            (
+                Country(country_id=888, name=RUSSIA_NAME, flag_id=999),
+                LanguageEnum.ENGLISH,
+                # TODO: change to FlagDoesNotExistsError
                 raises(CountryIntegrityError),
             ),
+            # TODO: move flag_id to constant
             (
-                Country(country_id=RUSSIA_ID),
-                CountryTranslateData(
-                    country_id=RUSSIA_ID,
-                    name=RUSSIA_NAME,
-                    language_id=LanguageEnum.RUSSIAN,
-                ),
-                raises(CountryIntegrityError),
-            ),
-            (
-                Country(country_id=888),
-                CountryTranslateData(
-                    country_id=RUSSIA_ID,
-                    name=RUSSIA_NAME,
-                    language_id=LanguageEnum.RUSSIAN,
-                ),
-                raises(CountryIntegrityError),
+                Country(country_id=888, name=RUSSIA_NAME),
+                LanguageEnum.KAZAKHSTAN,
+                raises(LanguageDoesNotExistsError),
             ),
         ],
         ids=(
             "create_country_with_existing_id",
-            "create_translate_country_data_with_non_exists_country",
-            "create_already_exists_country",
             "create_data_as_already_exists",
+            "create_with_no_exists_flag_id",
+            "create_with_no_exists_language_id",
         ),
     )
     async def test_create_country(
         self,
         country_repository: CountryRepository,
         country: Country,
-        country_translate: CountryTranslateData,
+        language_id: LanguageEnum,
         expectation,
     ):
         with expectation:
-            result = await country_repository.create_country(
-                country=country, country_translate_data=country_translate
+            is_country_created = await country_repository.create_country(
+                country=country, language_id=language_id
             )
 
-            assert (country, country_translate) == result
+            assert is_country_created
 
     @mark.parametrize(
-        "country_translate_data, expectation",
+        "country, language_id, expectation",
         [
             (
-                CountryTranslateData(
+                Country(
                     country_id=RUSSIA_ID,
                     name=RUSSIA_NAME,
-                    language_id=LanguageEnum.ENGLISH,
                 ),
+                LanguageEnum.ENGLISH,
                 dont_raise(),
             ),
             (
-                CountryTranslateData(
+                Country(
                     country_id=RUSSIA_ID,
                     name=RUSSIA_NAME,
-                    language_id=LanguageEnum.RUSSIAN,
                 ),
-                raises(CountryIntegrityError),
+                LanguageEnum.RUSSIAN,
+                raises(CountryAlreadyExistsError),
             ),
             (
-                CountryTranslateData(
+                Country(
                     country_id=NO_EXISTING_COUNTRY_ID,
                     name=RUSSIA_NAME,
-                    language_id=LanguageEnum.ENGLISH,
                 ),
-                raises(CountryIntegrityError),
+                LanguageEnum.ENGLISH,
+                raises(CountryDoesNotExistsError),
             ),
         ],
         ids=(
@@ -120,16 +112,13 @@ class TestCountryRepository:
     async def test_create_translate_country_data(
         self,
         country_repository: CountryRepository,
-        country_translate_data: CountryTranslateData,
+        country: Country,
+        language_id: LanguageEnum,
         expectation,
-        async_session,
     ):
         with expectation:
-            assert (
-                country_translate_data
-                == await country_repository.create_translate_country_data(
-                    country_translate_data=country_translate_data
-                )
+            assert await country_repository.create_translate_country_data(
+                country=country, language_id=language_id
             )
 
     @mark.parametrize(
@@ -159,15 +148,11 @@ class TestCountryRepository:
         expectation,
     ):
         with expectation:
-            (
-                country,
-                country_translate,
-            ) = await country_repository.get_country_data(
+            country = await country_repository.get_country_data(
                 country_id=country_id,
                 language_id=language_id,
             )
             assert isinstance(country, Country)
-            assert isinstance(country_translate, CountryTranslateData)
 
     @mark.parametrize(
         "country_id, expectation",

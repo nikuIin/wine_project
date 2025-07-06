@@ -9,6 +9,8 @@ from tests.unit.constants import (
     BELARUS_NAME,
     MOSCOW_REGION_ID,
     MOSCOW_REGION_NAME,
+    PINOT_GRAPE_ID,
+    PINOT_GRAPE_NAME,
     RUSSIA_ID,
     RUSSIA_NAME,
     SAMARA_REGION_ID,
@@ -18,6 +20,8 @@ from tests.unit.constants import (
 from db.models import (
     Country,
     CountryTranslate,
+    Grape,
+    GrapeTranslate,
     Language,
     Region,
     RegionTranslate,
@@ -121,6 +125,29 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         },
         check_query=lambda session: session.query(RegionTranslate)
         .filter_by(region_id=MOSCOW_REGION_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert grape data 'Pinot noir'",
+        statement=insert(Grape),
+        data={
+            "grape_id": PINOT_GRAPE_ID,
+            "region_id": MOSCOW_REGION_ID,
+        },
+        check_query=lambda session: session.query(Grape)
+        .filter_by(grape_id=PINOT_GRAPE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert grape translate data 'Pinot noir' ru",
+        statement=insert(GrapeTranslate),
+        data={
+            "grape_id": PINOT_GRAPE_ID,
+            "name": PINOT_GRAPE_NAME,
+            "language_id": LanguageEnum.ENGLISH,
+        },
+        check_query=lambda session: session.query(GrapeTranslate)
+        .filter_by(grape_id=PINOT_GRAPE_ID)
         .first(),
     ),
 )
