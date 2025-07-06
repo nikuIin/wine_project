@@ -23,9 +23,9 @@ from schemas.country_schema import (
     CountryCreateSchema,
     CountryCreateTranslateSchema,
     CountryIDQuery,
-    CountryListElement,
     CountryListResponseSchema,
     CountryResponseSchema,
+    CountrySchema,
 )
 from services.country_service import (
     CountryService,
@@ -169,7 +169,7 @@ async def gel_all_countries(
         )
         logger.info(country_list)
         country_list = [
-            CountryListElement(
+            CountrySchema(
                 country_id=country_data.country_id,
                 country_name=country_data.name,
                 flag_url=country_data.flag_url,
@@ -178,8 +178,8 @@ async def gel_all_countries(
         ]
 
         return CountryListResponseSchema(
-            country_list=country_list,
-            data_language=language_id,
+            countries=country_list,
+            language_model=language_id,
         )
     except CountryIntegrityError as error:
         raise HTTPException(
@@ -205,7 +205,7 @@ async def get_country(
         return CountryResponseSchema(
             country_id=country_data.country_id,
             country_name=country_data.name,
-            data_language=language_id,
+            language_model=language_id,
             flag_id=country_data.flag_id,
         )
 
