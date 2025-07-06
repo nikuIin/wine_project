@@ -1,9 +1,12 @@
 from fastapi import Depends
 
+from domain.entities.country import Country
 from domain.entities.region import Region
 from domain.enums import LanguageEnum
 from domain.exceptions import (
+    CountryDBError,
     CountryDoesNotExistsError,
+    CountryIntegrityError,
     LanguageDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
@@ -31,6 +34,7 @@ class RegionService:
         country_repository: CountryRepository,
     ):
         self.__region_repository = region_repository
+        self.__country_repository = country_repository
 
     async def create_region(self, region: RegionCreateSchema) -> bool:
         try:
@@ -66,11 +70,11 @@ class RegionService:
             raise error
 
     async def create_region_translate(
-        self, region_translate: RegionTranslateCreateSchema
+        self, region_translate: RegionTranslateCreateSchema, region_id: int
     ) -> bool:
         try:
             return await self.__region_repository.create_region_translate(
-                region_translate=region_translate
+                region_translate=region_translate, region_id=region_id
             )
         except RegionDoesNotExistsError as error:
             raise error
@@ -87,8 +91,11 @@ class RegionService:
         self,
         country_id: int,
         language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ) -> tuple[Region, ...]:
+    ) -> tuple[Country, tuple[Region, ...]]:
         try:
+            country = await self.__country_repository.get_country_data(
+                country_id=country_id, language_id=language_id
+            )
             region_list = await self.__region_repository.get_region_list(
                 country_id=country_id, language_id=language_id
             )
@@ -99,8 +106,14 @@ class RegionService:
                     f" and language {language_id}"
                 )
 
-            return region_list
+            return country, region_list
 
+        except CountryDoesNotExistsError as error:
+            raise error
+        except CountryIntegrityError as error:
+            raise error
+        except CountryDBError as error:
+            raise error
         except RegionDatabaseError as error:
             raise error
 

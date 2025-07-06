@@ -53,7 +53,3 @@ class CountryTranslateSchema(BaseModel):
 
 class CountryCreateTranslateSchema(CountryTranslateSchema, LanguageSchema):
     pass
-
-
-class CountryResponseTranslateSchema(LanguageSchema):
-    pass

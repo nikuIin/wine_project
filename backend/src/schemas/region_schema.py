@@ -7,9 +7,26 @@ from core.general_constants import (
     MAX_DB_INT,
 )
 from domain.enums import LanguageEnum
+from schemas.country_schema import CountryResponseSchema, CountrySchema
+from schemas.language_schema import LanguageSchema
 
 
-class RegionCreateSchema(BaseModel):
+class RegionSchema(BaseModel):
+    region_id: int | None = Field(
+        default=None,
+        ge=1,
+        le=MAX_DB_INT,
+    )
+    region_name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        description="The name of a region",
+        examples=["Москва", "Самара"],
+    )
+    country: CountrySchema
+
+
+class RegionCreateSchema(LanguageSchema):
     region_id: int | None = Field(
         default=None,
         ge=1,
@@ -25,77 +42,43 @@ class RegionCreateSchema(BaseModel):
         ge=1,
         le=MAX_COUNTRY_ID,
     )
-    language_model: LanguageEnum = Field(
-        default=LanguageEnum.DEFAULT_LANGUAGE,
-        description="The display language.",
-        examples=list(LanguageEnum),
-    )
 
 
-class RegionTranslateCreateSchema(BaseModel):
-    region_id: int | None = Field(
-        default=None,
-        ge=1,
-        le=MAX_DB_INT,
-    )
+class RegionResponseSchema(RegionSchema, LanguageSchema):
+    pass
+
+
+class RegionTranslateSchema(BaseModel):
     region_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
         description="The name of a region",
         examples=["Москва", "Самара"],
     )
-    language_model: LanguageEnum = Field(
-        default=LanguageEnum.DEFAULT_LANGUAGE,
-        description="The display language.",
-        examples=list(LanguageEnum),
-    )
 
 
-class RegionResponseSchema(BaseModel):
-    region_id: int = Field(
-        ge=1,
-        le=MAX_DB_INT,
-    )
-    region_name: str = Field(
-        min_length=BASE_MIN_STR_LENGTH,
-        max_length=BASE_MAX_STR_LENGTH,
-        description="The name of a region",
-        examples=["Москва", "Самара"],
-    )
+class RegionTranslateCreateSchema(RegionTranslateSchema, LanguageSchema):
+    pass
+
+
+class RegionCountryIDQuery(BaseModel):
     country_id: int = Field(
         ge=1,
         le=MAX_COUNTRY_ID,
     )
-    language_model: LanguageEnum = Field(
-        default=LanguageEnum.DEFAULT_LANGUAGE,
-        description="The display language.",
-        examples=list(LanguageEnum),
-    )
+
+    def __int__(self):
+        return self.country_id
 
 
-class RegionTranslateResponse(BaseModel):
+class RegionIDQuery(BaseModel):
     region_id: int = Field(
-        ge=1,
-        le=MAX_DB_INT,
-    )
-    region_name: str = Field(
-        min_length=BASE_MIN_STR_LENGTH,
-        max_length=BASE_MAX_STR_LENGTH,
-        description="The name of a region",
-        examples=["Москва", "Самара"],
-    )
-    language_model: LanguageEnum = Field(
-        default=LanguageEnum.DEFAULT_LANGUAGE,
-        description="The display language.",
-        examples=list(LanguageEnum),
-    )
-
-
-class RegionListRequest(BaseModel):
-    country_id: int = Field(
         ge=1,
         le=MAX_COUNTRY_ID,
     )
+
+    def __int__(self):
+        return self.region_id
 
 
 class RegionListElement(BaseModel):
@@ -111,11 +94,6 @@ class RegionListElement(BaseModel):
     )
 
 
-class RegionListResponse(BaseModel):
-    country_id: int = Field(ge=1, le=MAX_COUNTRY_ID)
-    language_model: LanguageEnum = Field(
-        default=LanguageEnum.DEFAULT_LANGUAGE,
-        description="The display language.",
-        examples=list(LanguageEnum),
-    )
+class RegionListResponse(LanguageSchema):
+    country: CountrySchema
     region_list: list[RegionListElement]

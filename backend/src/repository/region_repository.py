@@ -185,11 +185,11 @@ class RegionRepository:
             ) from error
 
     async def create_region_translate(
-        self, region_translate: RegionTranslateCreateSchema
+        self, region_translate: RegionTranslateCreateSchema, region_id: int
     ) -> bool:
         ### === prepared data ===
         region_translate_model = RegionTranslateModel(
-            region_id=region_translate.region_id,
+            region_id=region_id,
             language_id=region_translate.language_model,
             name=region_translate.region_name,
         )
@@ -206,8 +206,7 @@ class RegionRepository:
             if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore
                 if "region_translate_region_id_fkey" in str(error):
                     raise RegionDoesNotExistsError(
-                        f"Region with id {region_translate.region_id}"
-                        + " doesn't exists"
+                        f"Region with id {region_id}" + " doesn't exists"
                     ) from error
                 elif "region_translate_language_id_fkey" in str(error):
                     raise LanguageDoesNotExistsError(
@@ -217,7 +216,7 @@ class RegionRepository:
             elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore  # noqa: SIM102
                 if "region_translate_pkey" in str(error):
                     raise RegionAlreadyExistsError(
-                        f"Region translate id {region_translate.region_id}"
+                        f"Region translate id {region_id}"
                         + f" and language {region_translate.language_model}"
                         + " already exists."
                     ) from error

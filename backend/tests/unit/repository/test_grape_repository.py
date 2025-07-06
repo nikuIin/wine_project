@@ -17,16 +17,15 @@ from tests.unit.constants import (
     SAMARA_REGION_ID,
 )
 
-from domain.entities.grape import Grape, GrapeTranslate
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     GrapeAlreadyExistsError,
     GrapeDoesNotExistsError,
-    GrapeIntegrityError,
     LanguageDoesNotExistsError,
     RegionDoesNotExistsError,
 )
 from repository.grape_repository import GrapeRepository
+from schemas.grape_schema import GrapeCreateSchema
 
 
 @fixture
@@ -39,69 +38,44 @@ def grape_repository(async_session: AsyncSession):
 @mark.asyncio
 class TestGrapeRepository:
     @mark.parametrize(
-        "grape, grape_translate, expectation, additional_tests",
+        "grape, expectation, additional_tests",
         [
             (
-                Grape(
+                GrapeCreateSchema(
                     grape_id=BASE_GRAPE_UUID,
                     region_id=BASE_GRAPE_REGION_ID,
-                ),
-                GrapeTranslate(
-                    grape_id=BASE_GRAPE_UUID,
-                    name=BASE_GRAPE_NAME_RU,
-                    language_id=LanguageEnum.RUSSIAN,
+                    grape_name=BASE_GRAPE_NAME_RU,
+                    language_model=LanguageEnum.RUSSIAN,
                 ),
                 dont_raise(),
                 True,
             ),
             (
-                Grape(
-                    grape_id=BASE_GRAPE_UUID,
-                    region_id=BASE_GRAPE_REGION_ID,
-                ),
-                GrapeTranslate(
-                    grape_id=UUID("59314043-ed6f-435f-a2e4-6789312d423a"),
-                    name=BASE_GRAPE_NAME_RU,
-                    language_id=LanguageEnum.RUSSIAN,
-                ),
-                raises(GrapeIntegrityError),
-                False,
-            ),
-            (
-                Grape(
+                GrapeCreateSchema(
                     grape_id=BASE_GRAPE_UUID,
                     region_id=NO_EXISTING_REGION_ID,
-                ),
-                GrapeTranslate(
-                    grape_id=BASE_GRAPE_UUID,
-                    name=BASE_GRAPE_NAME_RU,
-                    language_id=LanguageEnum.RUSSIAN,
+                    grape_name=BASE_GRAPE_NAME_RU,
+                    language_model=LanguageEnum.RUSSIAN,
                 ),
                 raises(RegionDoesNotExistsError),
                 False,
             ),
             (
-                Grape(
+                GrapeCreateSchema(
                     grape_id=BASE_GRAPE_UUID,
                     region_id=SAMARA_REGION_ID,
-                ),
-                GrapeTranslate(
-                    grape_id=BASE_GRAPE_UUID,
-                    name=BASE_GRAPE_NAME_RU,
-                    language_id=LanguageEnum.KAZAKHSTAN,
+                    grape_name=BASE_GRAPE_NAME_RU,
+                    language_model=LanguageEnum.KAZAKHSTAN,
                 ),
                 raises(LanguageDoesNotExistsError),
                 False,
             ),
             (
-                Grape(
+                GrapeCreateSchema(
                     grape_id=PINOT_GRAPE_ID,
                     region_id=MOSCOW_REGION_ID,
-                ),
-                GrapeTranslate(
-                    grape_id=PINOT_GRAPE_ID,
-                    name=PINOT_GRAPE_NAME,
-                    language_id=LanguageEnum.ENGLISH,
+                    grape_name=BASE_GRAPE_NAME_RU,
+                    language_model=LanguageEnum.ENGLISH,
                 ),
                 raises(GrapeAlreadyExistsError),
                 False,
@@ -109,7 +83,6 @@ class TestGrapeRepository:
         ],
         ids=(
             "success__add_grape",
-            "grape_integrity_error__different_uuid",
             "region_no_exists_error",
             "language_no_exists_error",
             "grape_unique_error__try_create_already_exists_grape",
@@ -117,8 +90,7 @@ class TestGrapeRepository:
     )
     async def test_create_grape(
         self,
-        grape: Grape,
-        grape_translate: GrapeTranslate,
+        grape: GrapeCreateSchema,
         grape_repository: GrapeRepository,
         expectation,
         async_session,
@@ -127,7 +99,6 @@ class TestGrapeRepository:
         with expectation:
             await grape_repository.create_grape(
                 grape=grape,
-                grape_translate=grape_translate,
             )
 
         # additional tests with no exceptions
@@ -174,7 +145,7 @@ class TestGrapeRepository:
             assert result_region.grape_id == grape.grape_id
             assert result_region.region_id == grape.region_id
             assert result_region_translate.grape_id == grape.grape_id
-            assert result_region_translate.name == grape_translate.name
+            assert result_region_translate.name == grape.grape_name
 
     @mark.parametrize(
         "grape_id, language_id, expectation",
@@ -204,7 +175,7 @@ class TestGrapeRepository:
         expectation,
     ):
         with expectation:
-            grape, grape_translate = await grape_repository.get_grape(
+            grape, grape_translate = await grape_repository.get_grape_by_id(
                 grape_id=grape_id, language_id=language_id
             )
 

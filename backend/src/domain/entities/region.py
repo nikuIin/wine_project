@@ -3,11 +3,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from core.general_constants import (
     BASE_MAX_STR_LENGTH,
     BASE_MIN_STR_LENGTH,
-    MAX_COUNTRY_ID,
     MAX_DB_INT,
 )
 from domain.entities.country import Country
-from domain.enums import LanguageEnum
 
 
 class Region(BaseModel):
@@ -16,7 +14,6 @@ class Region(BaseModel):
     """
 
     model_config = ConfigDict(str_strip_whitespace=True, from_attributes=True)
-
     region_id: int = Field(
         ge=1,
         le=MAX_DB_INT,

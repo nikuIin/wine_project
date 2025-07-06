@@ -186,46 +186,46 @@ class TestRegionRepository:
             assert region.name == SAMARA_REGION_NAME
 
     @mark.parametrize(
-        "region_translate, expectation",
+        "region_translate, region_id, expectation",
         [
             (
                 RegionTranslateCreateSchema(
-                    region_id=SAMARA_REGION_ID,
                     region_name="Новый регион",
                     language_model=LanguageEnum.ENGLISH,
                 ),
+                SAMARA_REGION_ID,
                 dont_raise(),
             ),
             (
                 RegionTranslateCreateSchema(
-                    region_id=NO_EXISTING_REGION_ID,
                     region_name="Новый регион",
                     language_model=LanguageEnum.RUSSIAN,
                 ),
+                NO_EXISTING_REGION_ID,
                 raises(RegionDoesNotExistsError),
             ),
             (
                 RegionTranslateCreateSchema(
-                    region_id=SAMARA_REGION_ID,
                     region_name="Новый регион",
                     language_model=LanguageEnum.KAZAKHSTAN,
                 ),
+                SAMARA_REGION_ID,
                 raises(LanguageDoesNotExistsError),
             ),
             (
                 RegionTranslateCreateSchema(
-                    region_id=SAMARA_REGION_ID,
                     region_name="Новый регион",
                     language_model=LanguageEnum.KAZAKHSTAN,
                 ),
+                SAMARA_REGION_ID,
                 raises(LanguageDoesNotExistsError),
             ),
             (
                 RegionTranslateCreateSchema(
-                    region_id=SAMARA_REGION_ID,
                     region_name=SAMARA_REGION_NAME,
                     language_model=LanguageEnum.ENGLISH,
                 ),
+                SAMARA_REGION_ID,
                 dont_raise(),
             ),
         ],
@@ -240,12 +240,13 @@ class TestRegionRepository:
     async def test_create_translate_region(
         self,
         region_translate: RegionTranslateCreateSchema,
+        region_id: int,
         region_repository: RegionRepository,
         expectation,
     ):
         with expectation:
             await region_repository.create_region_translate(
-                region_translate=region_translate
+                region_translate=region_translate, region_id=region_id
             )
 
     @mark.parametrize(

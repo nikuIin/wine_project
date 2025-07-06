@@ -61,7 +61,7 @@ async def create_country(
 
     try:
         is_country_created = await country_service.create_country(
-            country=country_data, language_id=country.data_language
+            country=country_data, language_id=country.language_model
         )
 
         if is_country_created:

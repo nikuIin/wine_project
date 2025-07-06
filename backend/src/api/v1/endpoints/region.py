@@ -16,10 +16,12 @@ from domain.exceptions import (
     RegionDoesNotExistsError,
     RegionIntegrityError,
 )
+from schemas.country_schema import CountryResponseSchema
 from schemas.region_schema import (
+    RegionCountryIDQuery,
     RegionCreateSchema,
+    RegionIDQuery,
     RegionListElement,
-    RegionListRequest,
     RegionListResponse,
     RegionResponseSchema,
     RegionTranslateCreateSchema,
@@ -91,10 +93,10 @@ async def create_region(
 @router.post("/region_translate", status_code=HTTP_201_CREATED)
 async def create_region_translate(
     region_translate_schema: RegionTranslateCreateSchema,
+    region_id: RegionIDQuery = Depends(),
     region_service: RegionService = Depends(region_service_dependency),
 ):
     region_translate = RegionTranslateCreateSchema(
-        region_id=region_translate_schema.region_id,
         region_name=region_translate_schema.region_name,
         language_model=region_translate_schema.language_model,
     )
@@ -102,7 +104,7 @@ async def create_region_translate(
     try:
         is_region_translate_created = (
             await region_service.create_region_translate(
-                region_translate=region_translate
+                region_translate=region_translate, region_id=region_id
             )
         )
 
@@ -140,12 +142,12 @@ async def create_region_translate(
 
 @router.get("/region_list")
 async def get_region_list(
-    region_request: RegionListRequest = Depends(),
+    region_request: RegionCountryIDQuery = Depends(),
     language_id: LanguageEnum = Depends(language_dependency),
     region_service: RegionService = Depends(region_service_dependency),
 ):
     try:
-        region_list = await region_service.get_region_list(
+        country, region_list = await region_service.get_region_list(
             country_id=region_request.country_id,
             language_id=language_id,
         )
@@ -159,7 +161,10 @@ async def get_region_list(
         ]
 
         return RegionListResponse(
-            country_id=region_request.country_id,
+            country=CountryResponseSchema(
+                country_id=country.country_id,
+                country_name=country.name,
+            ),
             language_model=language_id,
             region_list=region_list,
         )
