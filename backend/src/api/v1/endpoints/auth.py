@@ -2,6 +2,7 @@ from http import HTTPStatus
 from pathlib import Path
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 from api.v1.depends import (
     auth_dependency,
@@ -124,7 +125,10 @@ async def register_user(
 
     except Exception as error:
         logger.error("Error %s", error, exc_info=error)
-        return error
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(error),
+        ) from error
 
 
 @router.post("/refresh/", response_model=TokensResponse)

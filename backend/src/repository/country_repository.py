@@ -14,12 +14,14 @@ from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Country as CountryModel
 from db.models import CountryTranslate as CountryTranslateModel
-from domain.entities.country import Country, CountryTranslateData
+from domain.entities.country import Country
 from domain.enums import LanguageEnum
 from domain.exceptions import (
+    CountryAlreadyExistsError,
     CountryDBError,
     CountryDoesNotExistsError,
     CountryIntegrityError,
+    LanguageDoesNotExistsError,
 )
 
 logger = get_configure_logger(Path(__file__).stem)
@@ -33,18 +35,20 @@ class CountryRepository:
         self.__session = session
 
     async def create_country(
-        self,
-        country: Country,
-        country_translate_data: CountryTranslateData,
-    ) -> tuple[Country, CountryTranslateData]:
+        self, country: Country, language_id: LanguageEnum
+    ) -> bool:
         """
         Create country model
         (the country data thats doesn't depends of lagnuage)
         """
 
-        country_model = CountryModel(**country.model_dump(exclude_none=True))
+        country_model = CountryModel(
+            country_id=country.country_id, flag_id=country.flag_id
+        )
         country_translate_model = CountryTranslateModel(
-            **country_translate_data.model_dump(exclude_none=True)
+            country_id=country.country_id,
+            name=country.name,
+            language_id=language_id,
         )
 
         # === main logic ===
@@ -53,14 +57,15 @@ class CountryRepository:
                 session.add_all((country_model, country_translate_model))
                 await session.commit()
 
-            return country, country_translate_data
+            return True
 
         # === errors handling ===
         except IntegrityError as error:
             logger.info(
                 "Integrity error when creating "
-                + "country and country_translate: %s",
-                (country, country_translate_data),
+                + "country %s with language %s",
+                country,
+                language_id,
                 exc_info=error,
             )
 
@@ -73,21 +78,20 @@ class CountryRepository:
                     ) from error
 
                 elif "language" in str(error):
-                    # TODO: поменять ошибку на LangugeNotExistsError
-                    raise CountryIntegrityError(
+                    raise LanguageDoesNotExistsError(
                         "Can't create country, because the"
-                        + f" language {country_translate_data.language_id}"
+                        + f" language {language_id}"
                         + " does't exists."
                     ) from error
 
             elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore
                 if "name" in str(error):
-                    raise CountryIntegrityError(
-                        f"Country with name '{country_translate_model.name}'"
+                    raise CountryAlreadyExistsError(
+                        f"Country with name '{country.name}'"
                         + " already exists."
                     ) from error
 
-                raise CountryIntegrityError(
+                raise CountryAlreadyExistsError(
                     f"Country with id {country.country_id} already exists."
                 ) from error
 
@@ -97,22 +101,22 @@ class CountryRepository:
 
         except (DBAPIError, OSError) as error:
             logger.error(
-                "Error with DB when creating"
-                + "country and country_translate: %s",
-                (country, country_translate_data),
+                "Error with DB when creating country %s with language %s",
+                (country, language_id),
                 exc_info=error,
             )
             raise CountryDBError from error
 
     async def create_translate_country_data(
-        self,
-        country_translate_data: CountryTranslateData,
-    ) -> CountryTranslateData:
+        self, country: Country, language_id: LanguageEnum
+    ) -> bool:
         """Insert the translate of country.
         The client can add translate only for already exists country"""
 
         country_translate_model = CountryTranslateModel(
-            **country_translate_data.model_dump()
+            country_id=country.country_id,
+            name=country.name,
+            language_id=language_id,
         )
 
         # === main logic ===
@@ -121,22 +125,35 @@ class CountryRepository:
                 session.add(country_translate_model)
                 await session.commit()
 
-            return country_translate_data
+            return True
 
         # === errors handling ===
         except IntegrityError as error:
-            # TODO: разграничить ошибки
             logger.debug(
-                "Integrity error when creating country_translate: %s",
-                country_translate_data,
+                "Integrity error when creating translate to country: %s",
+                country,
                 exc_info=error,
             )
+
+            if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore  # noqa: SIM102
+                if "country_translate_country_id_fkey" in str(error):
+                    raise CountryDoesNotExistsError(
+                        f"Country with id {country.country_id} does't exists"
+                    ) from error
+                elif "country_translate_language_id_fkey" in str(error):
+                    raise LanguageDoesNotExistsError(
+                        f"Language {country.country_id} does't exists"
+                    ) from error
+
+            elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore  # noqa: SIM102
+                raise CountryAlreadyExistsError from error
+
             raise CountryIntegrityError from error
 
         except DBAPIError as error:
             logger.error(
-                "Error with DB when creating country_translate: %s",
-                country_translate_data,
+                "Error with DB when creating translate to country: %s",
+                country,
                 exc_info=error,
             )
             raise CountryDBError from error
@@ -168,11 +185,9 @@ class CountryRepository:
             raise CountryDBError from error
 
     async def get_country_data(
-        self,
-        country_id: int,
-        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ) -> tuple[Country, CountryTranslateData]:
-        """Get country and country_translate data.
+        self, country_id: int, language_id: LanguageEnum
+    ) -> Country:
+        """Get country data.
         If each of one does't exists raise CountryDoesNotExists exception"""
 
         select_stmt = text(
@@ -205,9 +220,8 @@ class CountryRepository:
             result = result.mappings().one()
 
             country = Country(**result)
-            country_translate_data = CountryTranslateData(**result)
 
-            return country, country_translate_data
+            return country
 
         # === errors handling ===
         except NoResultFound as error:
@@ -232,8 +246,8 @@ class CountryRepository:
             raise CountryDBError from error
 
     async def get_all_countries(
-        self, language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
-    ) -> list[tuple[Country, CountryTranslateData]]:
+        self, language_id: LanguageEnum
+    ) -> tuple[Country, ...]:
         stmt = text(
             """
             select
@@ -257,10 +271,9 @@ class CountryRepository:
                 )
             countries_data = result.mappings().all()
             logger.error(countries_data)
-            country_list = [
-                (Country(**country_data), CountryTranslateData(**country_data))
-                for country_data in countries_data
-            ]
+            country_list = tuple(
+                Country(**country_data) for country_data in countries_data
+            )
 
             return country_list
 

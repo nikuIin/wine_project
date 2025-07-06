@@ -10,12 +10,12 @@ logger = get_configure_logger(filename=Path(__file__).stem)
 
 
 # ===============================
-#         Tokens erros          #
+#         Tokens errors         #
 # ===============================
 
 
 class TokenSessionExpiredError(Exception):
-    """The error, which occures, when the token session is expired"""
+    """The error, which occurs, when the token session is expired"""
 
     def __init__(self, message="Token session expired."):
         super().__init__(message)
@@ -27,19 +27,19 @@ class InvalidTokenDataError(Exception):
     def __init__(self, message="Invalid JWT-payload."):
         super().__init__(message)
         logger.warning(
-            "The wrong jwt data was recieved to the server", exc_info=True
+            "The wrong jwt data was receieved to the server", exc_info=True
         )
 
 
 class AccessTokenAbsenceError(Exception):
-    """The error occures, while the access token wasn't finds in the cookies"""
+    """The error occurs, while the access token wasn't finds in the cookies"""
 
     def __init__(self, message="The are no access token in the cookies."):
         super().__init__(message)
 
 
 class RefreshTokenAbsenceError(Exception):
-    """The error occures, while the refresh token
+    """The error occurs, while the refresh token
     wasn't finds in the cookies
 
     """
@@ -49,14 +49,14 @@ class RefreshTokenAbsenceError(Exception):
 
 
 class RefreshTokenCreationError(Exception):
-    """The error occures, while the refresh token wasn't created"""
+    """The error occurs, while the refresh token wasn't created"""
 
     def __init__(self, message="The refresh token wasn't created."):
         super().__init__(message)
 
 
 class RefreshTokenIdAbsenceError(Exception):
-    """The error occures, while the refresh token
+    """The error occurs, while the refresh token
     payload doesn't have token_id
 
     """
@@ -67,7 +67,7 @@ class RefreshTokenIdAbsenceError(Exception):
 
 
 class RefreshTokenBlackListError(Exception):
-    """The error occures, while the refresh token is in the black list"""
+    """The error occurs, while the refresh token is in the black list"""
 
     def __init__(self, message="The refresh token is in the black list."):
         super().__init__(message)
@@ -79,7 +79,7 @@ class RefreshTokenBlackListError(Exception):
 
 
 class CountryDBError(Exception):
-    """The error ralated to the error with country data in the database."""
+    """The error related to the error with country data in the database."""
 
     def __init__(
         self,
@@ -89,8 +89,8 @@ class CountryDBError(Exception):
 
 
 class CountryIntegrityError(Exception):
-    """The error occures with attempt to adding
-    the country_data or country_translate_dataa wich
+    """The error occurs with attempt to adding
+    the country_data or country_translate_dataa which
     already exists in the database or trying adding the
     depends-data those doesn't exists.
     """
@@ -101,13 +101,23 @@ class CountryIntegrityError(Exception):
 
 class CountryDoesNotExistsError(Exception):
     """
-    The error occures, while the country wasn't
+    The error occurs, while the country wasn't
     exists in the DB
     """
 
     def __init__(
         self,
         message=("Country with this data doesn't exists."),
+    ):
+        super().__init__(message)
+
+
+class CountryAlreadyExistsError(Exception):
+    """The country with this data already exists in the database"""
+
+    def __init__(
+        self,
+        message="The country with this data already exists in the database",
     ):
         super().__init__(message)
 
@@ -125,8 +135,8 @@ class RegionDatabaseError(Exception):
 
 
 class RegionIntegrityError(Exception):
-    """The error occures with attempt to adding
-    the region_data or region_translate_data wich
+    """The error occurs with attempt to adding
+    the region_data or region_translate_data which
     already exists in the database or trying adding the
     depends-data those doesn't exists.
     """
@@ -154,7 +164,7 @@ class RegionDoesNotExistsError(Exception):
 
 
 # ===============================
-#       Language erros          #
+#       Language errors         #
 # ===============================
 
 
@@ -164,5 +174,46 @@ class LanguageDoesNotExistsError(Exception):
     def __init__(
         self,
         message="The language with this id doesn't exists in the database",
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#         Grape errors          #
+# ===============================
+
+
+class GrapeDatabaseError(Exception):
+    """The error occurs with database errors relating the grape
+    or grape_translate tables"""
+
+    def __init__(self, message="Database grape error."):
+        super().__init__(message)
+
+
+class GrapeIntegrityError(Exception):
+    """The error occurs when database throw
+    IntegrityError after operation with grape
+    or grape_translate data.
+    """
+
+    def __init__(self, message="The integrity error of grape data."):
+        super().__init__(message)
+
+
+class GrapeAlreadyExistsError(Exception):
+    """The grape with this id already exists in the database"""
+
+    def __init__(
+        self, message="The grape with this id already exists in the database"
+    ):
+        super().__init__(message)
+
+
+class GrapeDoesNotExistsError(Exception):
+    """The grape doesn't exists in the database."""
+
+    def __init__(
+        self, message="The grape with this id doesn't exists in the database"
     ):
         super().__init__(message)

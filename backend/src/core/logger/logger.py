@@ -1,9 +1,9 @@
-from logging import Formatter, Logger, getLogger
+from logging import Formatter, Logger, StreamHandler, getLogger
 from logging.handlers import TimedRotatingFileHandler
 from os import mkdir, path
 
 from core.config import log_settings
-from core.logger.filters import SensitiveWordsFilter
+from core.logger.filters import ColorFilter, SensitiveWordsFilter
 
 
 def get_configure_logger(
@@ -14,7 +14,8 @@ def get_configure_logger(
 
     Args:
         filename (str): The name of the log file.
-        log_level (str): The log level to use (default taking by the cofiguration project file).
+        log_level (str): The log level to use (default taking by the configuration
+        project file).
 
     Returns:
         Logger: The configured logger.
@@ -57,11 +58,15 @@ def get_configure_logger(
 
         # use this filter if you want see the logs in the console
         # (import it from the file filters.py in the core/logger/ directory)
-        # logger.addFilter(ColorFilter())  # noqa: ERA001
+        logger_console_handler = StreamHandler()
+        logger.addFilter(ColorFilter())  # noqa: ERA001
+        # console handler
+        logger.addHandler(logger_console_handler)
 
         # Add sensitive words filter
         logger.addFilter(SensitiveWordsFilter())
 
+        # file handler
         logger.addHandler(handler)
 
         logger.debug(

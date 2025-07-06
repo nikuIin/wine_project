@@ -28,6 +28,13 @@ class CountryCreateTranslateSchema(BaseModel):
     data_language: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
 
 
+class CountryIDQuery(BaseModel):
+    country_id: int = Field(ge=1, le=MAX_COUNTRY_ID)
+
+    def __int__(self):
+        return self.country_id
+
+
 class CountryResponseTranslateSchema(BaseModel):
     country_name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
@@ -58,7 +65,7 @@ class CountryListElement(BaseModel):
     flag_url: str | None = Field(
         default=None,
         min_length=BASE_MIN_STR_LENGTH,
-        max_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
         examples=["/img/russian_flag.svg"],
     )
 

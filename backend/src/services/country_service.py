@@ -1,11 +1,13 @@
 from fastapi import Depends
 
-from domain.entities.country import Country, CountryTranslateData
+from domain.entities.country import Country
 from domain.enums import LanguageEnum
 from domain.exceptions import (
+    CountryAlreadyExistsError,
     CountryDBError,
     CountryDoesNotExistsError,
     CountryIntegrityError,
+    LanguageDoesNotExistsError,
 )
 from repository.country_repository import (
     CountryRepository,
@@ -18,55 +20,51 @@ class CountryService:
         self.__country_repository = country_repository
 
     async def create_country(
-        self, country: Country, country_translate_data: CountryTranslateData
-    ) -> tuple[Country, CountryTranslateData]:
+        self, country: Country, language_id: LanguageEnum
+    ) -> bool:
         try:
             # === main logic ===
             return await self.__country_repository.create_country(
-                country=country, country_translate_data=country_translate_data
+                country=country, language_id=language_id
             )
 
         # === errors handling ===
-        # TODO: обрабатывать новые ошибки (смотреть в репозитории)
         except CountryIntegrityError as error:
             raise error
-
+        except LanguageDoesNotExistsError as error:
+            raise error
+        except CountryAlreadyExistsError as error:
+            raise error
         except CountryDBError as error:
             raise error
 
     async def create_country_translate_data(
-        self, country_translate_data: CountryTranslateData
-    ) -> CountryTranslateData:
+        self, country: Country, language_id: LanguageEnum
+    ) -> bool:
         """Check is country exists and create a translate data."""
         try:
             # === main logic ===
-            if not await self.__country_repository.is_country_exists(
-                country_id=country_translate_data.country_id
-            ):
-                raise CountryDoesNotExistsError(
-                    "Can't create translate data for no exists country"
-                    + f" with id {country_translate_data.country_id}"
-                )
-
             return (
                 await self.__country_repository.create_translate_country_data(
-                    country_translate_data=country_translate_data
+                    country=country, language_id=language_id
                 )
             )
 
         # === errors handling ===
-        # TODO: обрабатывать новые ошибки (смотреть в репозитории)
         except CountryIntegrityError as error:
             raise error
-
+        except CountryDoesNotExistsError as error:
+            raise error
+        except LanguageDoesNotExistsError as error:
+            raise error
+        except CountryAlreadyExistsError as error:
+            raise error
         except CountryDBError as error:
             raise error
 
     async def get_country_data(
-        self,
-        country_id: int,
-        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ) -> tuple[Country, CountryTranslateData]:
+        self, country_id: int, language_id: LanguageEnum
+    ) -> Country:
         try:
             # === main logic ===
             return await self.__country_repository.get_country_data(
@@ -85,9 +83,8 @@ class CountryService:
             raise error
 
     async def get_all_countries(
-        self,
-        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ) -> list[tuple[Country, CountryTranslateData]]:
+        self, language_id: LanguageEnum
+    ) -> tuple[Country, ...]:
         try:
             return await self.__country_repository.get_all_countries(
                 language_id=language_id

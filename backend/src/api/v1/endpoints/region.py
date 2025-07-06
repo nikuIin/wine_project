@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import (
     HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,
@@ -7,7 +7,6 @@ from starlette.status import (
 )
 
 from api.v1.depends import language_dependency
-from domain.entities.region import Region, RegionTranslateData
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
@@ -23,7 +22,7 @@ from schemas.region_schema import (
     RegionListRequest,
     RegionListResponse,
     RegionResponseSchema,
-    RegionTranslateSchema,
+    RegionTranslateCreateSchema,
 )
 from services.region_service import (
     RegionService,
@@ -35,7 +34,6 @@ router = APIRouter(prefix="/region", tags=["region"])
 
 @router.post(
     "/",
-    response_model=RegionResponseSchema,
     status_code=HTTP_201_CREATED,
     responses={
         HTTP_201_CREATED: {
@@ -50,28 +48,22 @@ router = APIRouter(prefix="/region", tags=["region"])
     },
 )
 async def create_region(
-    region_schema: RegionCreateSchema,
+    region_create: RegionCreateSchema,
     region_service: RegionService = Depends(region_service_dependency),
 ):
-    # data preparation
-    region = Region(
-        region_id=region_schema.region_id,
-        country_id=region_schema.country_id,
-    )
-    region_translate = RegionTranslateData(
-        region_id=region_schema.region_id,
-        name=region_schema.region_name,
-        language_id=region_schema.language_model,
-    )
-
     try:
         # === main logic ===
-        await region_service.create_region(
-            region=region,
-            region_translate=region_translate,
+        is_region_created = await region_service.create_region(
+            region=region_create,
         )
 
-        return region_schema
+        if is_region_created:
+            return {"detail": "Region create successfully."}
+        else:
+            # TODO: add warning log message
+            raise HTTPException(
+                status_code=HTTP_409_CONFLICT, detail="Region inegrity error."
+            )
 
     # === errors handling ===
     except RegionIntegrityError as error:
@@ -86,29 +78,43 @@ async def create_region(
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND, detail=str(error)
         ) from error
+    except LanguageDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail=str(error)
+        ) from error
     except RegionDatabaseError as error:
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
         ) from error
 
 
-@router.post("/region_translate")
+@router.post("/region_translate", status_code=HTTP_201_CREATED)
 async def create_region_translate(
-    region_translate_schema: RegionTranslateSchema,
+    region_translate_schema: RegionTranslateCreateSchema,
     region_service: RegionService = Depends(region_service_dependency),
 ):
-    region_translate = RegionTranslateData(
+    region_translate = RegionTranslateCreateSchema(
         region_id=region_translate_schema.region_id,
-        name=region_translate_schema.region_name,
-        language_id=region_translate_schema.language_model,
+        region_name=region_translate_schema.region_name,
+        language_model=region_translate_schema.language_model,
     )
 
     try:
-        await region_service.create_region_translate(
-            region_translate=region_translate
+        is_region_translate_created = (
+            await region_service.create_region_translate(
+                region_translate=region_translate
+            )
         )
 
-        return region_translate_schema
+        if is_region_translate_created:
+            return {"detail": "Region translate created successfully"}
+        else:
+            # TODO: add warning log (этот код недостижим)
+            raise HTTPException(
+                status_code=HTTP_409_CONFLICT,
+                detail="Region translate integrity error",
+            )
+
     # === errors handling ===
     except RegionIntegrityError as error:
         raise HTTPException(
@@ -147,9 +153,9 @@ async def get_region_list(
         region_list = [
             RegionListElement(
                 region_id=region.region_id,  # type: ignore
-                region_name=region_translate.name,
+                region_name=region.name,
             )
-            for region, region_translate in region_list
+            for region in region_list
         ]
 
         return RegionListResponse(
@@ -175,15 +181,15 @@ async def get_region(
     language_id: LanguageEnum = Depends(language_dependency),
 ):
     try:
-        region, region_translate = await region_service.get_region(
+        region = await region_service.get_region(
             region_id=region_id, language_id=language_id
         )
 
         return RegionResponseSchema(
             region_id=region.region_id,  # type: ignore
-            region_name=region_translate.name,
-            country_id=region.country_id,
-            language_model=region_translate.language_id,
+            region_name=region.name,
+            country_id=region.country.country_id,
+            language_model=language_id,
         )
 
     except RegionDoesNotExistsError as error:

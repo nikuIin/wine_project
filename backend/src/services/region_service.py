@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from domain.entities.region import Region, RegionTranslateData
+from domain.entities.region import Region
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     CountryDoesNotExistsError,
@@ -18,6 +18,10 @@ from repository.region_repository import (
     RegionRepository,
     region_repository_dependency,
 )
+from schemas.region_schema import (
+    RegionCreateSchema,
+    RegionTranslateCreateSchema,
+)
 
 
 class RegionService:
@@ -27,14 +31,11 @@ class RegionService:
         country_repository: CountryRepository,
     ):
         self.__region_repository = region_repository
-        self.__country_repository = country_repository
 
-    async def create_region(
-        self, region: Region, region_translate: RegionTranslateData
-    ) -> tuple[Region, RegionTranslateData]:
+    async def create_region(self, region: RegionCreateSchema) -> bool:
         try:
             return await self.__region_repository.create_region(
-                region=region, region_translate=region_translate
+                region=region,
             )
 
         except RegionIntegrityError as error:
@@ -43,6 +44,8 @@ class RegionService:
             raise error
         except CountryDoesNotExistsError as error:
             raise error
+        except LanguageDoesNotExistsError as error:
+            raise error
         except RegionDatabaseError as error:
             raise error
 
@@ -50,7 +53,7 @@ class RegionService:
         self,
         region_id: int,
         language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ) -> tuple[Region, RegionTranslateData]:
+    ) -> Region:
         try:
             return await self.__region_repository.get_region(
                 region_id=region_id, language_id=language_id
@@ -63,8 +66,8 @@ class RegionService:
             raise error
 
     async def create_region_translate(
-        self, region_translate: RegionTranslateData
-    ) -> RegionTranslateData:
+        self, region_translate: RegionTranslateCreateSchema
+    ) -> bool:
         try:
             return await self.__region_repository.create_region_translate(
                 region_translate=region_translate
@@ -84,7 +87,7 @@ class RegionService:
         self,
         country_id: int,
         language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ) -> tuple[tuple[Region, RegionTranslateData], ...]:
+    ) -> tuple[Region, ...]:
         try:
             region_list = await self.__region_repository.get_region_list(
                 country_id=country_id, language_id=language_id

@@ -10,20 +10,22 @@ from starlette.status import (
 
 from api.v1.depends import language_dependency
 from core.logger.logger import get_configure_logger
-from domain.entities.country import Country, CountryTranslateData
+from domain.entities.country import Country
 from domain.enums import LanguageEnum
 from domain.exceptions import (
+    CountryAlreadyExistsError,
     CountryDBError,
     CountryDoesNotExistsError,
     CountryIntegrityError,
+    LanguageDoesNotExistsError,
 )
 from schemas.country_schema import (
     CountryCreateSchema,
     CountryCreateTranslateSchema,
+    CountryIDQuery,
     CountryListElement,
     CountryListResponseSchema,
     CountryResponseSchema,
-    CountryResponseTranslateSchema,
 )
 from services.country_service import (
     CountryService,
@@ -37,7 +39,6 @@ logger = get_configure_logger(Path(__file__).stem)
 
 @router.post(
     "/",
-    response_model=CountryResponseSchema,
     status_code=HTTP_201_CREATED,
     responses={
         HTTP_201_CREATED: {
@@ -53,41 +54,49 @@ async def create_country(
     country_service: CountryService = Depends(country_service_dependency),
 ):
     country_data = Country(
-        country_id=country.country_id, flag_id=country.flag_id
-    )
-    country_translate_data = CountryTranslateData(
         country_id=country.country_id,
         name=country.country_name,
-        language_id=country.data_language,
+        flag_id=country.flag_id,
     )
 
     try:
-        (
-            country_data,
-            country_translate_data,
-        ) = await country_service.create_country(
-            country=country_data,
-            country_translate_data=country_translate_data,
+        is_country_created = await country_service.create_country(
+            country=country_data, language_id=country.data_language
         )
 
-        return country
-    # TODO: обработать ошибки FlagNotExistsError, LanguageNotExistsError
+        if is_country_created:
+            return {"detail": "Country create successfully."}
+        else:
+            # TODO: add warning log message
+            raise HTTPException(
+                status_code=HTTP_409_CONFLICT,
+                detail="The country integrity error.",
+            )
+
     except CountryIntegrityError as error:
         raise HTTPException(
             status_code=HTTP_409_CONFLICT,
             detail=str(error),
         ) from error
-
+    except CountryAlreadyExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except LanguageDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
     except CountryDBError as error:
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(error),
+            detail="Internal Server Error",
         ) from error
 
 
 @router.post(
     "/translate/{country_id}",
-    response_model=CountryResponseTranslateSchema,
     responses={
         HTTP_201_CREATED: {
             "detail": "Country translate data create successfully.",
@@ -105,26 +114,30 @@ async def create_country(
 )
 async def create_translate_country_data(
     country_translate_schema: CountryCreateTranslateSchema,
-    country_id,
+    country_id: CountryIDQuery = Depends(),
     country_service: CountryService = Depends(country_service_dependency),
+    language_id: LanguageEnum = Depends(language_dependency),
 ):
-    country_translate_data = CountryTranslateData(
-        country_id=country_id,
+    country = Country(
+        country_id=int(country_id),
         name=country_translate_schema.country_name,
-        language_id=country_translate_schema.data_language,
     )
 
     try:
-        country_translate_data = (
+        is_country_created = (
             await country_service.create_country_translate_data(
-                country_translate_data=country_translate_data,
+                country=country, language_id=language_id
             )
         )
 
-        return CountryResponseTranslateSchema(
-            country_name=country_translate_data.name,
-            data_language=country_translate_data.language_id,
-        )
+        if is_country_created:
+            return {"detail": "Country translate data created successfully."}
+        else:
+            # TODO: add warning log message
+            raise HTTPException(
+                status_code=HTTP_409_CONFLICT,
+                detail="The country translate data integrity error.",
+            )
 
     # TODO: обработать ошибку LanguageNotExistsError
     except CountryDoesNotExistsError as error:
@@ -158,10 +171,10 @@ async def gel_all_countries(
         country_list = [
             CountryListElement(
                 country_id=country_data.country_id,
-                country_name=country_translate.name,
+                country_name=country_data.name,
                 flag_url=country_data.flag_url,
             )
-            for country_data, country_translate in country_list
+            for country_data in country_list
         ]
 
         return CountryListResponseSchema(
@@ -185,17 +198,14 @@ async def get_country(
     language_id: LanguageEnum = Depends(language_dependency),
 ):
     try:
-        (
-            country_data,
-            country_translate_data,
-        ) = await country_service.get_country_data(
+        country_data = await country_service.get_country_data(
             country_id=country_id, language_id=language_id
         )
 
         return CountryResponseSchema(
             country_id=country_data.country_id,
-            country_name=country_translate_data.name,
-            data_language=country_translate_data.language_id,
+            country_name=country_data.name,
+            data_language=language_id,
             flag_id=country_data.flag_id,
         )
 
