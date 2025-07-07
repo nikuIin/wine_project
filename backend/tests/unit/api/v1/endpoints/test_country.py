@@ -40,13 +40,13 @@ def country_service_mock():
 @mark.country
 @mark.api
 @mark.asyncio
-class TestCreateCountry:
+class TestAPICountry:
     async def test_create_country_success(self, country_service_mock):
         country_create = CountryCreateSchema(
             country_id=1,
             country_name="Test Country",
             flag_id=1,
-            data_language=LanguageEnum.ENGLISH,
+            language_model=LanguageEnum.ENGLISH,
         )
         country_service_mock.create_country.return_value = True
 
@@ -60,7 +60,7 @@ class TestCreateCountry:
             country_id=1,
             country_name="Test Country",
             flag_id=1,
-            data_language=LanguageEnum.ENGLISH,
+            language_model=LanguageEnum.ENGLISH,
         )
         country_service_mock.create_country.return_value = False
 
@@ -75,7 +75,7 @@ class TestCreateCountry:
             country_id=1,
             country_name="Test Country",
             flag_id=1,
-            data_language=LanguageEnum.ENGLISH,
+            language_model=LanguageEnum.ENGLISH,
         )
         country_service_mock.create_country.side_effect = (
             CountryIntegrityError("Integrity error")
@@ -94,7 +94,7 @@ class TestCreateCountry:
             country_id=1,
             country_name="Test Country",
             flag_id=1,
-            data_language=LanguageEnum.ENGLISH,
+            language_model=LanguageEnum.ENGLISH,
         )
         country_service_mock.create_country.side_effect = (
             CountryAlreadyExistsError("Country already exists")
@@ -113,7 +113,7 @@ class TestCreateCountry:
             country_id=1,
             country_name="Test Country",
             flag_id=1,
-            data_language=LanguageEnum.ENGLISH,
+            language_model=LanguageEnum.ENGLISH,
         )
         country_service_mock.create_country.side_effect = (
             LanguageDoesNotExistsError("Language not found")
@@ -130,7 +130,7 @@ class TestCreateCountry:
             country_id=1,
             country_name="Test Country",
             flag_id=1,
-            data_language=LanguageEnum.ENGLISH,
+            language_model=LanguageEnum.ENGLISH,
         )
         country_service_mock.create_country.side_effect = CountryDBError(
             "DB error"
@@ -151,7 +151,8 @@ class TestCreateTranslateCountryData:
         self, country_service_mock
     ):
         country_translate_schema = CountryCreateTranslateSchema(
-            country_name="Test Country Translate"
+            country_name="Test Country Translate",
+            language_model=LanguageEnum.ENGLISH,
         )
         country_id_query = CountryIDQuery(country_id=1)
         country_service_mock.create_country_translate_data.return_value = True
@@ -172,7 +173,8 @@ class TestCreateTranslateCountryData:
         self, country_service_mock
     ):
         country_translate_schema = CountryCreateTranslateSchema(
-            country_name="Test Country Translate"
+            country_name="Test Country Translate",
+            language_model=LanguageEnum.ENGLISH,
         )
         country_id_query = CountryIDQuery(country_id=1)
         country_service_mock.create_country_translate_data.return_value = False
@@ -196,7 +198,8 @@ class TestCreateTranslateCountryData:
         country_service_mock,
     ):
         country_translate_schema = CountryCreateTranslateSchema(
-            country_name="Test Country Translate"
+            country_name="Test Country Translate",
+            language_model=LanguageEnum.ENGLISH,
         )
         country_id_query = CountryIDQuery(country_id=1)
         country_service_mock.create_country_translate_data.side_effect = (
@@ -219,7 +222,8 @@ class TestCreateTranslateCountryData:
         country_service_mock,
     ):
         country_translate_schema = CountryCreateTranslateSchema(
-            country_name="Test Country Translate"
+            country_name="Test Country Translate",
+            language_model=LanguageEnum.ENGLISH,
         )
         country_id_query = CountryIDQuery(country_id=1)
         country_service_mock.create_country_translate_data.side_effect = (
@@ -241,7 +245,8 @@ class TestCreateTranslateCountryData:
         self, country_service_mock
     ):
         country_translate_schema = CountryCreateTranslateSchema(
-            country_name="Test Country Translate"
+            country_name="Test Country Translate",
+            language_model=LanguageEnum.ENGLISH,
         )
         country_id_query = CountryIDQuery(country_id=1)
         country_service_mock.create_country_translate_data.side_effect = (
@@ -276,8 +281,8 @@ class TestGetAllCountries:
         )
 
         assert isinstance(response, CountryListResponseSchema)
-        assert len(response.country_list) == 2
-        assert response.data_language == LanguageEnum.ENGLISH
+        assert len(response.countries) == 2
+        assert response.language_model == LanguageEnum.ENGLISH
 
     async def test_get_all_countries_integrity_error(
         self, country_service_mock
@@ -309,7 +314,12 @@ class TestGetAllCountries:
 @mark.asyncio
 class TestGetCountry:
     async def test_get_country_success(self, country_service_mock):
-        country_data = Country(country_id=1, name="Test Country", flag_id=1)
+        country_data = Country(
+            country_id=1,
+            name="Test Country",
+            flag_id=1,
+            flag_url="/flags/1.png",
+        )
         country_service_mock.get_country_data.return_value = country_data
 
         response = await get_country(
@@ -319,8 +329,8 @@ class TestGetCountry:
         assert isinstance(response, CountryResponseSchema)
         assert response.country_id == 1
         assert response.country_name == "Test country"
-        assert response.data_language == LanguageEnum.ENGLISH
-        assert response.flag_id == 1
+        assert response.language_model == LanguageEnum.ENGLISH
+        assert response.flag_url == "/flags/1.png"
 
     async def test_get_country_not_found(self, country_service_mock):
         country_service_mock.get_country_data.side_effect = (
