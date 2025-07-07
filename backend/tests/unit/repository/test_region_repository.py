@@ -150,6 +150,7 @@ class TestRegionRepository:
             country=country,
         )
 
+        assert region_result.country is not None
         assert region_result.country.country_id == region.country_id
         assert region_translate_result.name == region.region_name
         assert region_translate_result.region_id == region.region_id
@@ -181,6 +182,7 @@ class TestRegionRepository:
                 region_id=region_id, language_id=language_id
             )
 
+            assert region.country is not None
             assert region.country.country_id == RUSSIA_ID
             assert region.region_id == SAMARA_REGION_ID
             assert region.name == SAMARA_REGION_NAME
