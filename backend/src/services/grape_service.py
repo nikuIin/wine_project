@@ -43,10 +43,8 @@ class GrapeService:
         except GrapeDatabaseError as error:
             raise error
 
-    async def get_grape(
-        self,
-        grape_id: UUID,
-        language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
+    async def get_grape_by_id(
+        self, grape_id: UUID, language_id: LanguageEnum
     ) -> Grape:
         try:
             return await self.__grape_repository.get_grape_by_id(
@@ -55,6 +53,26 @@ class GrapeService:
 
         except GrapeDoesNotExistsError as error:
             raise error
+        except LanguageDoesNotExistsError as error:
+            raise error
+        except GrapeIntegrityError as error:
+            raise error
+        except GrapeDatabaseError as error:
+            raise error
+
+    async def get_short_grapes(
+        self,
+        offset: int,
+        limit: int,
+        language_id: LanguageEnum,
+    ) -> list[Grape]:
+        try:
+            return await self.__grape_repository.get_short_grapes(
+                language_id=language_id,
+                limit=limit,
+                offset=offset,
+            )
+
         except LanguageDoesNotExistsError as error:
             raise error
         except GrapeIntegrityError as error:

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from fastapi import Depends
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -104,10 +104,19 @@ class GrapeRepository:
               ct.country_id,
               ct.name as country_name
             from grape g
-            join grape_translate gt on (gt.language_id = :language_id and g.grape_id  = gt.grape_id)
+            join grape_translate gt on (
+                gt.language_id = :language_id
+                and g.grape_id  = gt.grape_id
+            )
             join region r using (region_id)
-            join region_translate rt on (rt.language_id = :language_id and rt.region_id = g.region_id)
-            join country_translate ct on (ct.language_id = :language_id and ct.country_id = r.region_id)
+            join region_translate rt on (
+                rt.language_id = :language_id
+                and rt.region_id = g.region_id
+            )
+            join country_translate ct on (
+                ct.language_id = :language_id
+                and ct.country_id = r.country_id
+            )
             where g.grape_id = :grape_id;
             """
         )
@@ -139,7 +148,7 @@ class GrapeRepository:
 
             grape = Grape(
                 grape_id=result.grape_id,
-                name=result.name,
+                name=result.grape_name,
                 region=region,
             )
 
@@ -147,7 +156,8 @@ class GrapeRepository:
 
         except IntegrityError as error:
             logger.debug(
-                "IntegrityError while getting grape with id %s and language %s",
+                "IntegrityError while getting grape with id %s"
+                + " and language %s",
                 grape_id,
                 language_id,
                 exc_info=error,
@@ -172,11 +182,69 @@ class GrapeRepository:
             )
             raise GrapeDatabaseError from error
 
-    async def get_short_grape_by_id(
+    async def get_short_grapes(
         self,
-        grape_id: UUID,
+        limit: int | None,
+        offset: int,
         language_id: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE,
-    ): ...
+    ) -> list[Grape]:
+        # TODO: add ORDER BY field
+        stmt = text(
+            """
+            select
+              grape_id,
+              name
+            from grape_translate
+            where language_id = :language_id
+            limit :limit
+            offset :offset;
+            """
+        )
+
+        try:
+            # === main logic ===
+            async with self.__session as session:
+                result = await session.execute(
+                    stmt,
+                    params={
+                        "limit": limit,
+                        "offset": offset,
+                        "language_id": language_id,
+                    },
+                )
+                await session.commit()
+
+            return [
+                Grape(
+                    grape_id=row.grape_id,
+                    name=row.name,
+                )
+                for row in result.mappings().fetchall()
+            ]
+
+        # === errors handling ===
+        except IntegrityError as error:
+            if (
+                isinstance(error.orig.__cause__, ForeignKeyViolationError)  # type: ignore
+                and "grape_translate_language_id_fkey"
+            ):
+                raise LanguageDoesNotExistsError(
+                    f"The language {language_id} does't exists."
+                ) from error
+
+            logger.error(
+                "IntegrityError when get short grape list with language %s",
+                language_id,
+                exc_info=error,
+            )
+            raise GrapeIntegrityError from error
+        except DBAPIError as error:
+            logger.error(
+                "IntegrityError when get short grape list with language %s",
+                language_id,
+                exc_info=error,
+            )
+            raise GrapeDatabaseError from error
 
     async def get_grapes(): ...
 

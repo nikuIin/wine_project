@@ -12,7 +12,7 @@ from domain.entities.region import Region
 
 class Grape(BaseModel):
     grape_id: UUID = Field(default_factory=uuid7)
-    region: Region
+    region: Region | None = None
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
