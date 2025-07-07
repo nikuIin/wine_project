@@ -206,7 +206,7 @@ async def get_country(
             country_id=country_data.country_id,
             country_name=country_data.name,
             language_model=language_id,
-            flag_id=country_data.flag_id,
+            flag_url=country_data.flag_url,
         )
 
     except CountryDoesNotExistsError as error:

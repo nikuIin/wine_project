@@ -9,14 +9,16 @@ from starlette.status import (
 from api.v1.depends import language_dependency
 from domain.enums import LanguageEnum
 from domain.exceptions import (
+    CountryDBError,
     CountryDoesNotExistsError,
+    CountryIntegrityError,
     LanguageDoesNotExistsError,
     RegionAlreadyExistsError,
     RegionDatabaseError,
     RegionDoesNotExistsError,
     RegionIntegrityError,
 )
-from schemas.country_schema import CountryResponseSchema
+from schemas.country_schema import CountrySchema
 from schemas.region_schema import (
     RegionCountryIDQuery,
     RegionCreateSchema,
@@ -104,7 +106,7 @@ async def create_region_translate(
     try:
         is_region_translate_created = (
             await region_service.create_region_translate(
-                region_translate=region_translate, region_id=region_id
+                region_translate=region_translate, region_id=int(region_id)
             )
         )
 
@@ -161,7 +163,7 @@ async def get_region_list(
         ]
 
         return RegionListResponse(
-            country=CountryResponseSchema(
+            country=CountrySchema(
                 country_id=country.country_id,
                 country_name=country.name,
             ),
@@ -173,6 +175,18 @@ async def get_region_list(
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND, detail=str(error)
         ) from error
+    except CountryDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail=str(error)
+        ) from error
+    except CountryIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+    except CountryDBError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
+        ) from error
     except RegionDatabaseError as error:
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
@@ -181,19 +195,27 @@ async def get_region_list(
 
 @router.get("/{region_id}", response_model=RegionResponseSchema)
 async def get_region(
-    region_id: int,  # TODO: change to pydantic schema (for validation)
+    region_id: RegionIDQuery = Depends(),
     region_service: RegionService = Depends(region_service_dependency),
     language_id: LanguageEnum = Depends(language_dependency),
 ):
     try:
         region = await region_service.get_region(
-            region_id=region_id, language_id=language_id
+            region_id=int(region_id), language_id=language_id
         )
 
+        if not region.country:
+            raise RegionIntegrityError(
+                "Region is not associated with a country"
+            )
+
         return RegionResponseSchema(
-            region_id=region.region_id,  # type: ignore
+            region_id=region.region_id,
             region_name=region.name,
-            country_id=region.country.country_id,
+            country=CountrySchema(
+                country_id=region.country.country_id,
+                country_name=region.country.name,
+            ),
             language_model=language_id,
         )
 
