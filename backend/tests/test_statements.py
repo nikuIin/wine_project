@@ -139,12 +139,12 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert grape translate data 'Pinot noir' ru",
+        description="Insert grape translate data 'Pinot noir' en",
         statement=insert(GrapeTranslate),
         data={
             "grape_id": PINOT_GRAPE_ID,
             "name": PINOT_GRAPE_NAME,
-            "language_id": LanguageEnum.ENGLISH,
+            "language_id": LanguageEnum.RUSSIAN,
         },
         check_query=lambda session: session.query(GrapeTranslate)
         .filter_by(grape_id=PINOT_GRAPE_ID)

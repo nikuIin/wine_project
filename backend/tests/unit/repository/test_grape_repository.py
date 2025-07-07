@@ -152,7 +152,7 @@ class TestGrapeRepository:
         [
             (
                 PINOT_GRAPE_ID,
-                LanguageEnum.ENGLISH,
+                LanguageEnum.RUSSIAN,
                 dont_raise(),
             ),
             (
@@ -167,7 +167,7 @@ class TestGrapeRepository:
             ),
         ],
     )
-    async def test_get_grape(
+    async def test_get_grape_by_id(
         self,
         grape_id: UUID,
         language_id: LanguageEnum,
@@ -175,12 +175,51 @@ class TestGrapeRepository:
         expectation,
     ):
         with expectation:
-            grape, grape_translate = await grape_repository.get_grape_by_id(
+            grape = await grape_repository.get_grape_by_id(
                 grape_id=grape_id, language_id=language_id
             )
 
+            assert grape.region is not None
             assert grape.grape_id == grape_id
-            assert grape.region_id == PINOT_GRAPE_REGION_ID
-            assert grape_translate.grape_id == grape_id
-            assert grape_translate.language_id == language_id
-            assert grape_translate.name == PINOT_GRAPE_NAME
+            assert grape.region.region_id == PINOT_GRAPE_REGION_ID
+            assert grape.name == PINOT_GRAPE_NAME
+
+    @mark.parametrize(
+        "limit, offset, language_id, expecation_rows_quantity",
+        [
+            (
+                10,
+                0,
+                LanguageEnum.RUSSIAN,
+                1,
+            ),
+            (
+                5,
+                5,
+                LanguageEnum.RUSSIAN,
+                0,
+            ),
+            (
+                0,
+                0,
+                LanguageEnum.KAZAKHSTAN,
+                0,
+            ),
+        ],
+    )
+    async def test_short_grapes(
+        self,
+        limit: int,
+        offset: int,
+        language_id: LanguageEnum,
+        expecation_rows_quantity: int,
+        grape_repository: GrapeRepository,
+    ):
+        assert (
+            len(
+                await grape_repository.get_short_grapes(
+                    limit=limit, offset=offset, language_id=language_id
+                )
+            )
+            == expecation_rows_quantity
+        )
