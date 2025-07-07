@@ -22,4 +22,4 @@ class Region(BaseModel):
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
     )
-    country: Country
+    country: Country | None = None
