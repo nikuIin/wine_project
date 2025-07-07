@@ -4,4 +4,4 @@ from domain.enums import LanguageEnum
 
 
 class LanguageSchema(BaseModel):
-    language_model: LanguageEnum = LanguageEnum.DEFAULT_LANGUAGE
+    language_model: LanguageEnum
