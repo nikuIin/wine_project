@@ -174,7 +174,7 @@ class CountryRepository:
                     select_stmt, params={"country_id": country_id}
                 )
 
-            return bool(result.one_or_none())
+            return bool(result.mappings().one_or_none())
 
         except DBAPIError as error:
             logger.error(
@@ -225,6 +225,7 @@ class CountryRepository:
 
         # === errors handling ===
         except NoResultFound as error:
+            print(f"NoResultFound in get_country_data: {error}")
             raise CountryDoesNotExistsError from error
 
         except IntegrityError as error:

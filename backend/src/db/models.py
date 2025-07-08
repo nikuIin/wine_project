@@ -33,7 +33,7 @@ class Language(Base):
     )
     flag_id: Mapped[int | None] = mapped_column(
         Integer,
-        ForeignKey("flag.flag_id"),
+        ForeignKey("flag.flag_id", ondelete="CASCADE"),
         nullable=True,
     )
 
@@ -120,7 +120,7 @@ class User(Base, TimeStampMixin):
     )
     role_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("role.role_id"),
+        ForeignKey("role.role_id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -144,7 +144,7 @@ class RefreshToken(Base, TimeStampMixin):
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("user.user_id"),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
     expire_at: Mapped[datetime] = mapped_column(
@@ -169,7 +169,7 @@ class BlackRefreshTokenList(Base):
 
     refresh_token_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("refresh_token.refresh_token_id"),
+        ForeignKey("refresh_token.refresh_token_id", ondelete="CASCADE"),
         primary_key=True,
         nullable=False,
     )
@@ -209,7 +209,7 @@ class Country(Base):
     )
     flag_id: Mapped[int | None] = mapped_column(
         Integer,
-        ForeignKey("flag.flag_id"),
+        ForeignKey("flag.flag_id", ondelete="CASCADE"),
         nullable=True,
     )
 
@@ -225,12 +225,12 @@ class CountryTranslate(Base):
 
     country_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("country.country_id"),
+        ForeignKey("country.country_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -274,12 +274,12 @@ class RegionTranslate(Base):
 
     region_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("region.region_id"),
+        ForeignKey("region.region_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -306,7 +306,7 @@ class Grape(Base, TimeStampMixin):
     )
     region_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("region.region_id"),
+        ForeignKey("region.region_id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -320,12 +320,12 @@ class GrapeTranslate(Base):
 
     grape_id: Mapped[UUID] = mapped_column(
         UUID,
-        ForeignKey("grape.grape_id"),
+        ForeignKey("grape.grape_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -368,7 +368,7 @@ class Product(Base):
     )
     presentation_type_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("presentation_type.presentation_type_id"),
+        ForeignKey("presentation_type.presentation_type_id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -386,12 +386,12 @@ class ProductTranslate(Base):
 
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("product.product_id"),
+        ForeignKey("product.product_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -423,12 +423,12 @@ class WineCategoryTranslate(Base):
 
     wine_category_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("wine_category.wine_category_id"),
+        ForeignKey("wine_category.wine_category_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -464,12 +464,12 @@ class WineTypeTranslate(Base):
 
     wine_type_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("wine_type.wine_type_id"),
+        ForeignKey("wine_type.wine_type_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -499,12 +499,12 @@ class AromaTranslate(Base):
 
     aroma_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("aroma.aroma_id"),
+        ForeignKey("aroma.aroma_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     name: Mapped[str] = mapped_column(
@@ -526,12 +526,12 @@ class Sort(Base):
 
     grape_id: Mapped[UUID] = mapped_column(
         UUID,
-        ForeignKey("grape.grape_id"),
+        ForeignKey("grape.grape_id", ondelete="CASCADE"),
         primary_key=True,
     )
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("wine.product_id"),
+        ForeignKey("wine.product_id", ondelete="CASCADE"),
         primary_key=True,
     )
     percentage_content: Mapped[decimal.Decimal] = mapped_column(
@@ -558,7 +558,7 @@ class Wine(Base, TimeStampMixin):
 
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("product.product_id"),
+        ForeignKey("product.product_id", ondelete="CASCADE"),
         primary_key=True,
     )
     volume: Mapped[decimal.Decimal] = mapped_column(
@@ -575,12 +575,12 @@ class Wine(Base, TimeStampMixin):
     )
     wine_type_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("wine_type.wine_type_id"),
+        ForeignKey("wine_type.wine_type_id", ondelete="CASCADE"),
         nullable=False,
     )
     wine_category_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("wine_category.wine_category_id"),
+        ForeignKey("wine_category.wine_category_id", ondelete="CASCADE"),
         nullable=False,
     )
     min_serving_temperature: Mapped[int | None] = mapped_column(
@@ -605,12 +605,12 @@ class WineTranslate(Base):
 
     wine_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("wine.product_id"),
+        ForeignKey("wine.product_id", ondelete="CASCADE"),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
         VARCHAR(10),
-        ForeignKey("language.language_id"),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
     production_method_description: Mapped[str | None] = mapped_column(
@@ -631,14 +631,413 @@ class AromaWine(Base):
 
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("wine.product_id"),
+        ForeignKey("wine.product_id", ondelete="CASCADE"),
         primary_key=True,
     )
     aroma_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("aroma.aroma_id"),
+        ForeignKey("aroma.aroma_id", ondelete="CASCADE"),
         primary_key=True,
     )
 
     wine = relationship("Wine", back_populates="aroma_wines")
     aroma = relationship("Aroma", back_populates="aroma_wines")
+
+
+class CountryDeleted(Base):
+    __tablename__ = "country_deleted"
+
+    country_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    flag_id: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class CountryTranslateDeleted(Base):
+    __tablename__ = "country_translate_deleted"
+
+    country_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class RegionDeleted(Base):
+    __tablename__ = "region_deleted"
+
+    region_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    country_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class RegionTranslateDeleted(Base):
+    __tablename__ = "region_translate_deleted"
+
+    region_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class GrapeDeleted(Base, TimeStampMixin):
+    __tablename__ = "grape_deleted"
+
+    grape_id: Mapped[int] = mapped_column(
+        UUID,
+        primary_key=True,
+    )
+    region_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class GrapeTranslateDeleted(Base):
+    __tablename__ = "grape_translate_deleted"
+
+    grape_id: Mapped[UUID] = mapped_column(
+        UUID,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class ProductDeleted(Base):
+    __tablename__ = "product_deleted"
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid7,
+    )
+    price: Mapped[decimal.Decimal] = mapped_column(
+        MONEY,
+        nullable=False,
+    )
+    discount: Mapped[decimal.Decimal] = mapped_column(
+        NUMERIC(3, 2),
+        default=0,
+        nullable=False,
+    )
+    main_image_link: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    video_link: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    presentation_type_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class ProductTranslateDeleted(Base):
+    __tablename__ = "product_translate_deleted"
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class WineCategoryDeleted(Base):
+    __tablename__ = "wine_category_deleted"
+
+    wine_category_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class WineCategoryTranslateDeleted(Base):
+    __tablename__ = "wine_category_translate_deleted"
+
+    wine_category_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class WineTypeDeleted(Base):
+    __tablename__ = "wine_type_deleted"
+
+    wine_type_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class WineTypeTranslateDeleted(Base):
+    __tablename__ = "wine_type_translate_deleted"
+
+    wine_type_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class AromaDeleted(Base):
+    __tablename__ = "aroma_deleted"
+
+    aroma_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class AromaTranslateDeleted(Base):
+    __tablename__ = "aroma_translate_deleted"
+
+    aroma_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class SortDeleted(Base):
+    __tablename__ = "sort_deleted"
+
+    grape_id: Mapped[UUID] = mapped_column(
+        UUID,
+        primary_key=True,
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    percentage_content: Mapped[decimal.Decimal] = mapped_column(
+        NUMERIC(5, 2),
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class WineDeleted(Base, TimeStampMixin):
+    __tablename__ = "wine_deleted"
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    volume: Mapped[decimal.Decimal] = mapped_column(
+        NUMERIC(4, 2),
+        nullable=False,
+    )
+    wine_strength: Mapped[decimal.Decimal | None] = mapped_column(
+        NUMERIC(5, 2),
+        nullable=True,
+    )
+    harvest_year: Mapped[date] = mapped_column(
+        DATE,
+        nullable=False,
+    )
+    wine_type_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    wine_category_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    min_serving_temperature: Mapped[int | None] = mapped_column(
+        SMALLINT,
+        nullable=True,
+    )
+    max_serving_temperature: Mapped[int | None] = mapped_column(
+        SMALLINT,
+        nullable=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class WineTranslateDeleted(Base):
+    __tablename__ = "wine_translate_deleted"
+
+    wine_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    production_method_description: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    description: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class AromaWineDeleted(Base):
+    __tablename__ = "aroma_wine_deleted"
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    aroma_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )

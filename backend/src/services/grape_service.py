@@ -16,7 +16,7 @@ from repository.grape_repository import (
     GrapeRepository,
     grape_repository_dependency,
 )
-from schemas.grape_schema import GrapeCreateSchema
+from schemas.grape_schema import GrapeCreateSchema, GrapeUpdateSchema
 
 
 class GrapeService:
@@ -75,6 +75,48 @@ class GrapeService:
 
         except LanguageDoesNotExistsError as error:
             raise error
+        except GrapeIntegrityError as error:
+            raise error
+        except GrapeDatabaseError as error:
+            raise error
+
+    async def update_grape(
+        self,
+        grape_id: UUID,
+        grape_update: GrapeUpdateSchema,
+        language_id: LanguageEnum,
+    ) -> bool:
+        try:
+            return bool(
+                await self.__grape_repository.update_grape(
+                    grape_id=grape_id,
+                    language_id=language_id,
+                    grape_update=grape_update,
+                )
+            )
+
+        except LanguageDoesNotExistsError as error:
+            raise error
+        except GrapeAlreadyExistsError as error:
+            raise error
+        except RegionDoesNotExistsError as error:
+            raise error
+        except GrapeIntegrityError as error:
+            raise error
+        except GrapeDatabaseError as error:
+            raise error
+
+    async def delete_grape(
+        self,
+        grape_id: UUID,
+    ) -> bool:
+        try:
+            return bool(
+                await self.__grape_repository.delete_grape(
+                    grape_id=grape_id,
+                )
+            )
+
         except GrapeIntegrityError as error:
             raise error
         except GrapeDatabaseError as error:

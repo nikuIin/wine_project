@@ -3,7 +3,7 @@ from uuid import UUID
 
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from fastapi import Depends
-from sqlalchemy import select, text
+from sqlalchemy import delete, select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,8 +22,9 @@ from domain.exceptions import (
     GrapeIntegrityError,
     LanguageDoesNotExistsError,
     RegionDoesNotExistsError,
+    RegionIntegrityError,
 )
-from schemas.grape_schema import GrapeCreateSchema
+from schemas.grape_schema import GrapeCreateSchema, GrapeUpdateSchema
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -246,11 +247,180 @@ class GrapeRepository:
             )
             raise GrapeDatabaseError from error
 
-    async def get_grapes(): ...
+    async def update_grape(
+        self,
+        grape_id: UUID,
+        grape_update: GrapeUpdateSchema,
+        language_id: LanguageEnum,
+    ) -> int:
+        # === data preparation ==
+        grape_update_stmt = text(
+            """
+            update grape
+            set region_id = :region_id
+            where grape_id = :grape_id;
+            """
+        )
+        grape_translate_update_stmt = text(
+            """
+            update grape_translate
+            set name = :grape_name
+            where grape_id = :grape_id
+                  and language_id = :language_id;
+            """
+        )
 
-    async def update_grape(): ...
+        try:
+            # === main logic ===
+            async with self.__session as session:
+                result_grape = await session.execute(
+                    grape_update_stmt,
+                    params={
+                        "grape_id": grape_id,
+                        "region_id": grape_update.region_id,
+                    },
+                )
 
-    async def delete_grape(): ...
+                result_translate_grape = await session.execute(
+                    grape_translate_update_stmt,
+                    params={
+                        "grape_id": grape_id,
+                        "grape_name": grape_update.grape_name,
+                        "language_id": language_id,
+                    },
+                )
+
+                # Get the row count for the grape table update
+                grape_row_count = result_grape.rowcount  # type: ignore
+                # Get the row count for the grape_translate table update
+                translate_grape_row_count = result_translate_grape.rowcount  # type: ignore
+
+                logger.debug(
+                    "Grape updated rows: %s\nGrape_translate updated rows: %s",
+                    grape_row_count,
+                    translate_grape_row_count,
+                )
+
+                # Check if the number of rows updated in both tables is the same
+                # (os success update it must be same), else raise IntegrityError
+                if grape_row_count != translate_grape_row_count:
+                    raise GrapeIntegrityError(
+                        "The integrity error of update the grape."
+                        + " Try to change update data."
+                    )
+
+                await session.commit()
+
+            # Return the sum of updated rows from both operations
+            return grape_row_count + translate_grape_row_count
+
+        # === errors handling ===
+        except IntegrityError as error:
+            logger.debug(
+                "IntegrityError when update grape %s to data %s",
+                grape_id,
+                grape_update,
+                exc_info=error,
+            )
+
+            if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore
+                if "grape_region_id_fkey" in str(error):
+                    raise RegionDoesNotExistsError(
+                        f"The region with id {grape_update.region_id}"
+                        + " doesn't exist."
+                    ) from error
+                elif "grape_translate_language_id_fkey" in str(error):
+                    raise LanguageDoesNotExistsError(
+                        f"The language {language_id} doesn't exist."
+                    ) from error
+            elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore
+                raise GrapeAlreadyExistsError(
+                    "The grape with this data already exist."
+                ) from error
+
+            raise GrapeIntegrityError from error
+
+        except DBAPIError as error:
+            logger.error(
+                "DBError when update grape %s to data %s",
+                grape_id,
+                grape_update,
+                exc_info=error,
+            )
+            raise GrapeDatabaseError from error
+
+    async def delete_grape(self, grape_id: UUID) -> int:
+        """Delete a grape and its translations from the database.
+
+        Args:
+            grape_id: The UUID of the grape to delete.
+
+        Returns:
+            The total number of rows deleted (grape and grape_translate).
+
+        Raises:
+            GrapeDatabaseError: If there is a database error
+            during the deletion process.
+            GrapeIntegrityError: If the number of deleted rows from the
+            grape and grape_translate tables are not equal.
+        """
+        grape_delete_stmt = text(
+            """
+            with grape_delete_row as (
+                delete from grape where grape_id = :grape_id
+                returning grape_id, region_id
+            ) insert into grape_deleted
+            (select *, current_timestamp from grape_delete_row);
+            """
+        )
+        grape_translate_delete_stmt = text(
+            """
+            with grape_delete_row as (
+                delete from grape_translate where grape_id = :grape_id
+                returning grape_id, language_id, name
+            ) insert into grape_translate_deleted
+            (select *, current_timestamp from grape_delete_row);
+            """
+        )
+
+        try:
+            async with self.__session as session:
+                grape_translate_delete_result = await session.execute(
+                    grape_translate_delete_stmt,
+                    params={"grape_id": grape_id},
+                )
+                grape_delete_result = await session.execute(
+                    grape_delete_stmt, params={"grape_id": grape_id}
+                )
+
+                grape_rows_deleted = grape_delete_result.rowcount  # type: ignore
+                grape_translated_rows_deleted = (
+                    grape_translate_delete_result.rowcount  # type: ignore
+                )
+
+                if grape_rows_deleted != grape_translated_rows_deleted:
+                    # The unreacheble code in the right scenario
+                    logger.warning(
+                        "The %s delete %s rows, the %s delete %s."
+                        + " In the right scenario they must delete"
+                        + " the equal quantity of rows.",
+                        grape_delete_stmt,
+                        grape_translate_delete_stmt,
+                        grape_rows_deleted,
+                        grape_translated_rows_deleted,
+                    )
+                    raise GrapeIntegrityError()
+
+                # commit if all right works
+                await session.commit()
+
+            return grape_rows_deleted + grape_translated_rows_deleted
+
+        except DBAPIError as error:
+            logger.error(
+                "DBError when delete grape %s", grape_id, exc_info=error
+            )
+            raise GrapeDatabaseError from error
 
 
 def grape_repository_dependency(

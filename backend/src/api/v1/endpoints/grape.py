@@ -3,7 +3,7 @@
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.sql.expression import desc
 from starlette.status import (
     HTTP_201_CREATED,
@@ -27,9 +27,11 @@ from domain.exceptions import (
 from schemas.country_schema import CountrySchema
 from schemas.grape_schema import (
     GrapeCreateSchema,
+    GrapeIdentifySchema,
     GrapeResponseSchema,
     GrapeShortListSchema,
     GrapeShortSchema,
+    GrapeUpdateSchema,
 )
 from schemas.region_schema import RegionSchema
 from schemas.support_schemas import LimitSchema, OffsetSchema
@@ -100,12 +102,6 @@ async def create_grape(
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
         ) from error
-
-
-@router.get("/")
-async def get_grapes():
-    """Get all grape varieties."""
-    ...
 
 
 @router.get("/short_grapes", response_model=GrapeShortListSchema)
@@ -201,12 +197,79 @@ async def get_grape(
 
 
 @router.put("/")
-async def update_grape():
+async def update_grape(
+    # we dont use dependency of get_language becase the user should
+    # be able to choose the language of the response
+    grape_identify: GrapeIdentifySchema,
+    grape_update: GrapeUpdateSchema = Body(),
+    grape_service: GrapeService = Depends(grape_service_dependency),
+):
     """Update a grape variety."""
-    ...
+    try:
+        is_grape_updated = await grape_service.update_grape(
+            grape_id=grape_identify.grape_id,
+            language_id=grape_identify.language_model,
+            grape_update=grape_update,
+        )
+
+        if not is_grape_updated:
+            raise GrapeIntegrityError(
+                "The integrity error of update the grape."
+                + " Try to change update data."
+            )
+
+        return {"detail": "Grape updated successfully."}
+
+    except LanguageDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except GrapeAlreadyExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except RegionDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except GrapeIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except GrapeDatabaseError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(error),
+        ) from error
 
 
 @router.delete("/{grape_id}")
-async def delete_grape():
+async def delete_grape(
+    grape_id: UUID,
+    grape_service: GrapeService = Depends(grape_service_dependency),
+):
     """Delete a grape variety by its ID."""
-    ...
+    try:
+        is_grape_deleted = await grape_service.delete_grape(grape_id=grape_id)
+
+        if not is_grape_deleted:
+            raise GrapeIntegrityError(
+                "The integrity error of delete the grape."
+            )
+
+        return {"detail": "Grape deleted successfully."}
+
+    except GrapeIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except GrapeDatabaseError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(error),
+        ) from error

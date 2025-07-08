@@ -37,6 +37,19 @@ class GrapeResponseSchema(GrapeSchema, LanguageSchema):
     pass
 
 
+class GrapeUpdateSchema(BaseModel):
+    grape_name: str = Field(
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+        examples=["Pinot noir"],
+    )
+    region_id: int = Field(ge=1, le=MAX_DB_INT)
+
+
+class GrapeIdentifySchema(LanguageSchema):
+    grape_id: UUID
+
+
 class GrapeShortSchema(BaseModel):
     grape_id: UUID
     grape_name: str = Field(

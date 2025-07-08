@@ -18,6 +18,7 @@ from core.logger.logger import get_configure_logger
 from db.models import *  # noqa
 from db.base_models import Base
 from db.statement import Statement
+from db.trigers import TRIGGERS
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -78,6 +79,20 @@ class DatabaseHelper:
                     await conn.execute(stmt.statement, stmt.data)
                 await conn.commit()
                 logger.info("Database scheme insert omplete successfully")
+
+            except DBAPIError:
+                await conn.rollback()
+                logger.error(
+                    "Error inserting base scheme in the database",
+                    exc_info=True,
+                )
+
+    async def create_trigers(self) -> None:
+        async with self.engine.begin() as conn:
+            try:
+                for stmt in TRIGGERS:
+                    await conn.execute(stmt)
+                logger.info("Database triggers insert complete successfully")
 
             except DBAPIError:
                 await conn.rollback()
