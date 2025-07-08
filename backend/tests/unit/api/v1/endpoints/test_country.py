@@ -11,7 +11,7 @@ from starlette.status import (
 from api.v1.endpoints.country import (
     create_country,
     create_translate_country_data,
-    gel_all_countries,
+    get_all_countries,
     get_country,
 )
 from domain.entities.country import Country
@@ -276,7 +276,7 @@ class TestGetAllCountries:
         ]
         country_service_mock.get_all_countries.return_value = country_list
 
-        response = await gel_all_countries(
+        response = await get_all_countries(
             country_service_mock, LanguageEnum.ENGLISH
         )
 
@@ -292,7 +292,7 @@ class TestGetAllCountries:
         )
 
         with raises(HTTPException) as exc_info:
-            await gel_all_countries(country_service_mock, LanguageEnum.ENGLISH)
+            await get_all_countries(country_service_mock, LanguageEnum.ENGLISH)
 
         assert exc_info.value.status_code == HTTP_409_CONFLICT
         assert exc_info.value.detail == "Integrity error"
@@ -303,7 +303,7 @@ class TestGetAllCountries:
         )
 
         with raises(HTTPException) as exc_info:
-            await gel_all_countries(country_service_mock, LanguageEnum.ENGLISH)
+            await get_all_countries(country_service_mock, LanguageEnum.ENGLISH)
 
         assert exc_info.value.status_code == HTTP_500_INTERNAL_SERVER_ERROR
         assert exc_info.value.detail == "DB error"
@@ -323,7 +323,9 @@ class TestGetCountry:
         country_service_mock.get_country_data.return_value = country_data
 
         response = await get_country(
-            1, country_service_mock, LanguageEnum.ENGLISH
+            1,  #  type: ignore
+            country_service_mock,
+            LanguageEnum.ENGLISH,
         )
 
         assert isinstance(response, CountryResponseSchema)
@@ -338,7 +340,7 @@ class TestGetCountry:
         )
 
         with raises(HTTPException) as exc_info:
-            await get_country(1, country_service_mock, LanguageEnum.ENGLISH)
+            await get_country(1, country_service_mock, LanguageEnum.ENGLISH)  # type: ignore
 
         assert exc_info.value.status_code == HTTP_404_NOT_FOUND
         assert exc_info.value.detail == "Country not found"
@@ -349,7 +351,7 @@ class TestGetCountry:
         )
 
         with raises(HTTPException) as exc_info:
-            await get_country(1, country_service_mock, LanguageEnum.ENGLISH)
+            await get_country(1, country_service_mock, LanguageEnum.ENGLISH)  # type: ignore
 
         assert exc_info.value.status_code == HTTP_409_CONFLICT
         assert exc_info.value.detail == "Integrity error"
@@ -360,7 +362,7 @@ class TestGetCountry:
         )
 
         with raises(HTTPException) as exc_info:
-            await get_country(1, country_service_mock, LanguageEnum.ENGLISH)
+            await get_country(1, country_service_mock, LanguageEnum.ENGLISH)  # type: ignore
 
         assert exc_info.value.status_code == HTTP_500_INTERNAL_SERVER_ERROR
         assert exc_info.value.detail == "DB error"

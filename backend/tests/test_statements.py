@@ -9,7 +9,12 @@ from tests.unit.constants import (
     BELARUS_NAME,
     MOSCOW_REGION_ID,
     MOSCOW_REGION_NAME,
+    NEW_GRAPE_ID,
+    NEW_GRAPE_LANGUAGE,
+    NEW_GRAPE_NAME,
+    NEW_GRAPE_REGION_ID,
     PINOT_GRAPE_ID,
+    PINOT_GRAPE_LANGUAGE,
     PINOT_GRAPE_NAME,
     RUSSIA_ID,
     RUSSIA_NAME,
@@ -139,15 +144,38 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert grape translate data 'Pinot noir' en",
+        description="Insert grape translate data 'Pinot noir' ru",
         statement=insert(GrapeTranslate),
         data={
             "grape_id": PINOT_GRAPE_ID,
             "name": PINOT_GRAPE_NAME,
-            "language_id": LanguageEnum.RUSSIAN,
+            "language_id": PINOT_GRAPE_LANGUAGE,
         },
         check_query=lambda session: session.query(GrapeTranslate)
         .filter_by(grape_id=PINOT_GRAPE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert grape data 'Pinot noir'",
+        statement=insert(Grape),
+        data={
+            "grape_id": NEW_GRAPE_ID,
+            "region_id": NEW_GRAPE_REGION_ID,
+        },
+        check_query=lambda session: session.query(Grape)
+        .filter_by(grape_id=NEW_GRAPE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert grape translate data 'Pinot noir' ru",
+        statement=insert(GrapeTranslate),
+        data={
+            "grape_id": NEW_GRAPE_ID,
+            "name": NEW_GRAPE_NAME,
+            "language_id": NEW_GRAPE_LANGUAGE,
+        },
+        check_query=lambda session: session.query(GrapeTranslate)
+        .filter_by(grape_id=NEW_GRAPE_ID)
         .first(),
     ),
 )

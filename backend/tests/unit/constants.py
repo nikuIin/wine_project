@@ -2,6 +2,8 @@
 
 from uuid import UUID
 
+from domain.enums import LanguageEnum
+
 # Roles
 USER_ROLE = 1
 ADMIN_ROLE = 2
@@ -62,6 +64,12 @@ BASE_GRAPE_NAME_RU = "Базовый виноград"
 PINOT_GRAPE_ID = UUID("3fa85f64-5717-4562-b3fc-2c963f66afa6")
 PINOT_GRAPE_NAME = "Pinot noir"
 PINOT_GRAPE_REGION_ID = MOSCOW_REGION_ID
-PINOT_GRAPE_LANGUAGE = "en-US"
+PINOT_GRAPE_LANGUAGE = LanguageEnum.RUSSIAN
 
 NO_EXISTING_GRAPE_ID = UUID("3fa85f64-5717-4562-b4fc-2c963f66afa6")
+
+# new grape data
+NEW_GRAPE_ID = UUID("3fa85f64-5717-4562-b4fc-2c963f66afa7")
+NEW_GRAPE_NAME = "New grape"
+NEW_GRAPE_REGION_ID = MOSCOW_REGION_ID
+NEW_GRAPE_LANGUAGE = LanguageEnum.RUSSIAN

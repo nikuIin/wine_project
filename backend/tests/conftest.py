@@ -1,3 +1,5 @@
+from os import system
+
 from pytest_asyncio import fixture as async_fixture
 from tests.test_statements import TEST_STATEMENTS
 
@@ -15,6 +17,7 @@ async def db_helper():
 
     # Create schemas and tables before tests
     await db_helper.create_tables()
+    await db_helper.create_trigers()
     await db_helper.insert_data(TEST_STATEMENTS)
 
     yield db_helper
