@@ -4,7 +4,6 @@ from pathlib import Path
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from sqlalchemy.sql.expression import desc
 from starlette.status import (
     HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,
@@ -45,6 +44,23 @@ logger = get_configure_logger(Path(__file__).stem)
 @router.post(
     "/",
     status_code=HTTP_201_CREATED,
+    summary="Create a new grape variety.",
+    description="This endpoint allows for the creation of a new grape variety.",
+    response_description="A message indicating the success of the operation.",
+    responses={
+        HTTP_201_CREATED: {
+            "description": "Grape created successfully.",
+        },
+        HTTP_404_NOT_FOUND: {
+            "description": "Region or language not found.",
+        },
+        HTTP_409_CONFLICT: {
+            "description": "Grape already exists or integrity error.",
+        },
+        HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Internal server error.",
+        },
+    },
 )
 async def create_grape(
     grape_create: GrapeCreateSchema,
@@ -61,7 +77,7 @@ async def create_grape(
         grape_service (GrapeService): The dependency-injected grape service.
 
     Returns:
-        GrapeResponse: The created grape information.
+        dict: A message indicating the success of the operation.
 
     Raises:
         HTTPException:
@@ -69,8 +85,9 @@ async def create_grape(
             409 Conflict: If a grape with the same ID or name already exists\n
             500 Internal Server Error: For any other database-related errors\n
     """
-    # === data preparation ===
-
+    # This block attempts to create a new grape variety using the provided
+    # data. It calls the service layer to handle the business logic of
+    # creating the grape.
     try:
         is_grape_created = await grape_service.create_grape(
             grape=grape_create,
@@ -81,7 +98,9 @@ async def create_grape(
 
         return {"detail": "Grape create succesfully."}
 
-    # === errors handling ===
+    # This block handles potential errors that can occur during the grape
+    # creation process. It catches specific exceptions and returns the
+    # appropriate HTTP status code and error message.
     except GrapeIntegrityError as error:
         raise HTTPException(
             status_code=HTTP_409_CONFLICT, detail=str(error)
@@ -104,14 +123,52 @@ async def create_grape(
         ) from error
 
 
-@router.get("/short_grapes", response_model=GrapeShortListSchema)
+@router.get(
+    "/short_grapes",
+    response_model=GrapeShortListSchema,
+    summary="Get a short list of grape varieties.",
+    description="This endpoint returns a paginated list of grape varieties.",
+    response_description="A list of grape varieties.",
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "Language not found.",
+        },
+        HTTP_409_CONFLICT: {
+            "description": "Integrity error.",
+        },
+        HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Internal server error.",
+        },
+    },
+)
 async def get_short_grapes(
     limit: LimitSchema = Depends(),
     offset: OffsetSchema = Depends(),
     language_id: LanguageEnum = Depends(language_dependency),
     grape_service: GrapeService = Depends(grape_service_dependency),
 ):
+    """Get a short list of grape varieties.
+
+    This endpoint returns a paginated list of grape varieties.
+
+    Args:
+        limit (LimitSchema): The maximum number of grapes to return.
+        offset (OffsetSchema): The starting offset for the grape list.
+        language_id (LanguageEnum): The language for the grape names.
+        grape_service (GrapeService): The dependency-injected grape service.
+
+    Returns:
+        GrapeShortListSchema: A list of grape varieties.
+
+    Raises:
+        HTTPException:
+            404 Not Found: If the specified language does not exist.\n
+            409 Conflict: If there is an integrity error.\n
+            500 Internal Server Error: For any other database-related errors.\n
+    """
     try:
+        # This block retrieves a list of grape varieties with minimal
+        # information, suitable for display in a list.
         short_grapes = await grape_service.get_short_grapes(
             limit=int(limit),
             offset=int(offset),
@@ -146,14 +203,47 @@ async def get_short_grapes(
         ) from error
 
 
-@router.get("/{grape_id}", response_model=GrapeResponseSchema)
+@router.get(
+    "/{grape_id}",
+    response_model=GrapeResponseSchema,
+    summary="Get a specific grape variety by its ID.",
+    description="This endpoint returns a specific grape variety by its ID.",
+    response_description="The grape variety information.",
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "Grape or language not found.",
+        },
+        HTTP_409_CONFLICT: {
+            "description": "Integrity error.",
+        },
+        HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Internal server error.",
+        },
+    },
+)
 async def get_grape(
     grape_id: UUID,
     grape_service: GrapeService = Depends(grape_service_dependency),
     language_id: LanguageEnum = Depends(language_dependency),
 ):
-    """Get a specific grape variety by its ID."""
+    """Get a specific grape variety by its ID.
+
+    Args:
+        grape_id (UUID): The ID of the grape to retrieve.
+        grape_service (GrapeService): The dependency-injected grape service.
+        language_id (LanguageEnum): The language for the grape name.
+
+    Returns:
+        GrapeResponseSchema: The grape variety information.
+
+    Raises:
+        HTTPException:
+            404 Not Found: If the grape or language does not exist.\n
+            409 Conflict: If there is an integrity error.\n
+            500 Internal Server Error: For any other database-related errors.\n
+    """
     try:
+        # This block retrieves a single grape variety by its ID.
         grape = await grape_service.get_grape_by_id(
             grape_id=grape_id,
             language_id=language_id,
@@ -196,7 +286,23 @@ async def get_grape(
         ) from error
 
 
-@router.put("/")
+@router.put(
+    "/",
+    summary="Update a grape variety.",
+    description="This endpoint allows for updating a grape variety.",
+    response_description="A message indicating the success of the operation.",
+    responses={
+        HTTP_404_NOT_FOUND: {
+            "description": "Language or region not found.",
+        },
+        HTTP_409_CONFLICT: {
+            "description": "Grape already exists or integrity error.",
+        },
+        HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Internal server error.",
+        },
+    },
+)
 async def update_grape(
     # we dont use dependency of get_language becase the user should
     # be able to choose the language of the response
@@ -204,8 +310,24 @@ async def update_grape(
     grape_update: GrapeUpdateSchema = Body(),
     grape_service: GrapeService = Depends(grape_service_dependency),
 ):
-    """Update a grape variety."""
+    """Update a grape variety.
+
+    Args:
+        grape_identify (GrapeIdentifySchema): The grape identification schema.
+        grape_update (GrapeUpdateSchema): The grape update schema.
+        grape_service (GrapeService): The dependency-injected grape service.
+
+    Returns:
+        dict: A message indicating the success of the operation.
+
+    Raises:
+        HTTPException:
+            404 Not Found: If the language or region does not exist.\n
+            409 Conflict: If the grape already exists or for integrity errors.\n
+            500 Internal Server Error: For any other database-related errors.\n
+    """
     try:
+        # This block updates an existing grape variety with the provided data.
         is_grape_updated = await grape_service.update_grape(
             grape_id=grape_identify.grape_id,
             language_id=grape_identify.language_model,
@@ -247,13 +369,40 @@ async def update_grape(
         ) from error
 
 
-@router.delete("/{grape_id}")
+@router.delete(
+    "/{grape_id}",
+    summary="Delete a grape variety by its ID.",
+    description="This endpoint allows for deleting a grape variety by its ID.",
+    response_description="A message indicating the success of the operation.",
+    responses={
+        HTTP_409_CONFLICT: {
+            "description": "Integrity error.",
+        },
+        HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Internal server error.",
+        },
+    },
+)
 async def delete_grape(
     grape_id: UUID,
     grape_service: GrapeService = Depends(grape_service_dependency),
 ):
-    """Delete a grape variety by its ID."""
+    """Delete a grape variety by its ID.
+
+    Args:
+        grape_id (UUID): The ID of the grape to delete.
+        grape_service (GrapeService): The dependency-injected grape service.
+
+    Returns:
+        dict: A message indicating the success of the operation.
+
+    Raises:
+        HTTPException:
+            409 Conflict: If there is an integrity error.\n
+            500 Internal Server Error: For any other database-related errors.\n
+    """
     try:
+        # This block deletes a grape variety by its ID.
         is_grape_deleted = await grape_service.delete_grape(grape_id=grape_id)
 
         if not is_grape_deleted:
