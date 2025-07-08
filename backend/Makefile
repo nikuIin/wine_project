@@ -2,7 +2,7 @@ test-cov:
 	uv run pytest --cov=./src
 
 test:
-	uv run pytest
+	uv run pytest -s
 
 start:
 	uv run src/main.py
