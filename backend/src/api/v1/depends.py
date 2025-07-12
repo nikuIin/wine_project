@@ -11,6 +11,7 @@ from fastapi import Depends, HTTPException, Request
 from core.config import auth_settings
 from core.logger.logger import get_configure_logger
 from domain.entities.auth_master import AuthMaster
+from domain.entities.token import TokenPayload
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     AccessTokenAbsenceError,
@@ -24,6 +25,10 @@ from repository.token_repository import (
 from repository.user_repository import (
     UserRepository,
     user_repository_dependency,
+)
+from services.email_verification_service import (
+    EmailVerificationService,
+    email_verification_service_dependency,
 )
 from services.token_service import TokenService
 from services.user_service import UserService
@@ -39,8 +44,14 @@ def token_service_dependency(
 
 def user_service_dependency(
     user_repository: UserRepository = Depends(user_repository_dependency),
+    email_verification_service: EmailVerificationService = Depends(
+        email_verification_service_dependency
+    ),
 ):
-    return UserService(user_repository=user_repository)
+    return UserService(
+        user_repository=user_repository,
+        email_verification_service=email_verification_service,
+    )
 
 
 def auth_master_dependency(
@@ -64,7 +75,7 @@ def auth_master_dependency(
 
 def auth_dependency(
     request: Request, auth_master: AuthMaster = Depends(auth_master_dependency)
-):
+) -> TokenPayload:
     """FastAPI dependency that provides auth checking
 
     Args:
@@ -74,12 +85,13 @@ def auth_dependency(
         AuthMaster function for checking auth.
     """
     try:
-        auth_master.auth_check(request=request)
+        return auth_master.auth_check(request=request)
     except (
         AccessTokenAbsenceError,
         InvalidTokenDataError,
         TokenSessionExpiredError,
     ) as error:
+        logger.debug("Auth error.", exc_info=error)
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED, detail=str(error)
         ) from error
@@ -87,22 +99,22 @@ def auth_dependency(
 
 # TODO: change return types
 def language_dependency(
-    request: Request, prefered_language: str | None = None
+    request: Request, preferred_language: str | None = None
 ) -> LanguageEnum | str | None:
-    if not prefered_language:
+    if not preferred_language:
         request_language = request.headers.get("Accept-Language", "")
 
         # parse Accept-Language header
-        prefered_language = request_language.split(";")[0].split(",")[0]
+        preferred_language = request_language.split(";")[0].split(",")[0]
 
-        # TODO: create a cycle of getting prefered languages and checking
+        # TODO: create a cycle of getting preferred languages and checking
         #  that language is in the LanguageEnum (supports in our application).
         #  Else set language to the default language
 
-    logger.debug("Prefered accept-language header: %s.", prefered_language)
+    logger.debug("Preferred accept-language header: %s.", preferred_language)
 
     return (
-        prefered_language
-        if prefered_language in LanguageEnum
+        preferred_language
+        if preferred_language in LanguageEnum
         else LanguageEnum.DEFAULT_LANGUAGE
     )

@@ -87,7 +87,7 @@ class DatabaseHelper:
                     exc_info=True,
                 )
 
-    async def create_trigers(self) -> None:
+    async def create_triggers(self) -> None:
         async with self.engine.begin() as conn:
             try:
                 for stmt in TRIGGERS:

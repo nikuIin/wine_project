@@ -271,7 +271,6 @@ class CountryRepository:
                     stmt, params={"language_id": language_id}
                 )
             countries_data = result.mappings().all()
-            logger.error(countries_data)
             country_list = tuple(
                 Country(**country_data) for country_data in countries_data
             )

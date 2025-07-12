@@ -14,7 +14,6 @@ app = FastAPI(
 )
 
 app.include_router(api_router)
-
 logger = get_configure_logger(Path(__file__).stem)
 
 

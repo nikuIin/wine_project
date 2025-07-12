@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta
 
 from sqlalchemy import (
     UUID,
+    Boolean,
     CheckConstraint,
     ForeignKey,
     Integer,
@@ -123,6 +124,11 @@ class User(Base, TimeStampMixin):
         ForeignKey("role.role_id", ondelete="CASCADE"),
         nullable=False,
     )
+    is_registered: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
 
     __table_args__ = (
         CheckConstraint("length(login) > 0", name="user_login_check"),
@@ -131,6 +137,39 @@ class User(Base, TimeStampMixin):
 
     role = relationship("Role", back_populates="users")
     refresh_tokens = relationship("RefreshToken", back_populates="user")
+    md_user = relationship("MdUser", back_populates="user", uselist=False)
+
+
+class MdUser(Base):
+    __tablename__ = "md_user"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    email: Mapped[str | None] = mapped_column(
+        VARCHAR(320),
+        nullable=True,
+    )
+    profile_picture_link: Mapped[str | None] = mapped_column(
+        VARCHAR(255),
+        nullable=True,
+    )
+    description: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(email) >= 3", name="md_user_email_check"),
+        CheckConstraint(
+            "length(profile_picture_link) > 0",
+            name="md_user_profile_picture_link_check",
+        ),
+    )
+
+    user = relationship("User", back_populates="md_user")
 
 
 class RefreshToken(Base, TimeStampMixin):
@@ -368,7 +407,9 @@ class Product(Base):
     )
     presentation_type_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("presentation_type.presentation_type_id", ondelete="CASCADE"),
+        ForeignKey(
+            "presentation_type.presentation_type_id", ondelete="CASCADE"
+        ),
         nullable=False,
     )
 
@@ -1012,6 +1053,62 @@ class WineTranslateDeleted(Base):
     )
     production_method_description: Mapped[str | None] = mapped_column(
         TEXT,
+        nullable=True,
+    )
+    description: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class UserDeleted(Base):
+    __tablename__ = "user_deleted"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    login: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    password: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    role_id: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    is_registered: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+
+class MdUserDeleted(Base):
+    __tablename__ = "md_user_deleted"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    email: Mapped[str | None] = mapped_column(
+        VARCHAR(320),
+        nullable=True,
+    )
+    profile_picture_link: Mapped[str | None] = mapped_column(
+        VARCHAR(255),
         nullable=True,
     )
     description: Mapped[str | None] = mapped_column(

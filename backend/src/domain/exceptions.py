@@ -74,6 +74,21 @@ class RefreshTokenBlackListError(Exception):
 
 
 # ===============================
+#          Email errors         #
+# ===============================
+
+
+class EmailDBError(Exception):
+    """The error related to the error with email data in the database."""
+
+    def __init__(
+        self,
+        message="The database error.",
+    ):
+        super().__init__(message)
+
+
+# ===============================
 #        Country errors         #
 # ===============================
 
@@ -118,6 +133,51 @@ class CountryAlreadyExistsError(Exception):
     def __init__(
         self,
         message="The country with this data already exists in the database",
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#           User errors         #
+# ===============================
+
+
+class UserDBError(Exception):
+    """The error related to the error with user data in the database."""
+
+    def __init__(
+        self,
+        message="The db error of user data.",
+    ):
+        super().__init__(message)
+
+
+class UserIntegrityError(Exception):
+    """The error occurs with attempt to adding the user."""
+
+    def __init__(self, message="The integrity error of user data."):
+        super().__init__(message)
+
+
+class UserDoesNotExistsError(Exception):
+    """
+    The error occurs, while the user wasn't
+    exists in the DB
+    """
+
+    def __init__(
+        self,
+        message=("User with this data doesn't exists."),
+    ):
+        super().__init__(message)
+
+
+class UserAlreadyExistsError(Exception):
+    """The user with this data already exists in the database"""
+
+    def __init__(
+        self,
+        message="The user with this data already exists in the database",
     ):
         super().__init__(message)
 
@@ -215,5 +275,74 @@ class GrapeDoesNotExistsError(Exception):
 
     def __init__(
         self, message="The grape with this id doesn't exists in the database"
+    ):
+        super().__init__(message)
+
+
+# ===================================== #
+#        Email verification errors      #
+# ===================================== #
+
+
+class SetVerificationKeyError(Exception):
+    """The error with setting verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error when set verification key"
+    ):
+        super().__init__(message)
+
+
+class GetVerificationKeyError(Exception):
+    """The error with getting verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error when get verification key"
+    ):
+        super().__init__(message)
+
+
+class ValidateVerificationKeyError(Exception):
+    """The error with validating verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error when get validate key"
+    ):
+        super().__init__(message)
+
+
+class DeleteVerificationKeyError(Exception):
+    """The error with deliting verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error with verification key"
+    ):
+        super().__init__(message)
+
+
+class RateLimitingError(Exception):
+    """The error occures with a lot of attepts of auth with the same data
+    in the one time period"""
+
+    def __init__(self, message="A lot of attemts to auth."):
+        super().__init__(message)
+
+
+class UserRateLimitingError(RateLimitingError):
+    pass
+
+
+class EmailRateLimitingError(RateLimitingError):
+    pass
+
+
+class NextCodeAttemptNotPassedError(Exception):
+    """The error occures when client ask new code in the time interval
+    when new attemnt does't allowed"""
+
+    def __init__(
+        self,
+        message="Attemt to get new code not allowed yet."
+        + " Please wait a bit more",
     ):
         super().__init__(message)

@@ -1,8 +1,15 @@
 from http import HTTPStatus
 from pathlib import Path
+from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, Response
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from pydantic import EmailStr
+from starlette.status import (
+    HTTP_401_UNAUTHORIZED,
+    HTTP_404_NOT_FOUND,
+    HTTP_409_CONFLICT,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
 
 from api.v1.depends import (
     auth_dependency,
@@ -11,22 +18,42 @@ from api.v1.depends import (
 )
 from core.logger.logger import get_configure_logger
 from domain.entities.auth_master import AuthMaster
+from domain.entities.token import TokenPayload
 from domain.entities.user import UserBase, UserCreate, UserCreds
 from domain.exceptions import (
     InvalidTokenDataError,
+    RateLimitingError,
     RefreshTokenAbsenceError,
     RefreshTokenBlackListError,
     RefreshTokenCreationError,
     RefreshTokenIdAbsenceError,
     TokenSessionExpiredError,
+    UserAlreadyExistsError,
+    UserDBError,
+    UserDoesNotExistsError,
+    UserIntegrityError,
+    ValidateVerificationKeyError,
 )
 from schemas.token_schema import TokensResponse
-from schemas.user_schema import UserCreateRequest, UserCredsRequest
+from schemas.user_schema import (
+    UserCreateSchema,
+    UserCredsRequest,
+    UserVerifyCode,
+)
+from services.email_verification_service import (
+    EmailVerificationService,
+    email_verification_service_dependency,
+)
 from services.user_service import UserService
 
 logger = get_configure_logger(Path(__file__).stem)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+# !!!!!!!!!
+# TODO: move all buiseness logic to the service layer
+# !!!!!!!!!
 
 
 @router.post(
@@ -100,16 +127,19 @@ async def get_tokens(
 @router.post("/register/", status_code=HTTPStatus.CREATED)
 async def register_user(
     response: Response,
-    user_in: UserCreateRequest = Body(),
+    user_in: UserCreateSchema = Body(),
     user_service: UserService = Depends(user_service_dependency),
     auth_master: AuthMaster = Depends(auth_master_dependency),
 ):
     try:
         hashed_password = auth_master.hash_password(password=user_in.password)
+        user_in.password = hashed_password
+
         user = await user_service.create_user(
             user=UserCreate(
                 login=user_in.login,
                 password=hashed_password,
+                email=user_in.email,
             )
         )
 
@@ -123,11 +153,23 @@ async def register_user(
             refresh_token=str(refresh_token),
         )
 
+    except UserDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+    except UserAlreadyExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+    except UserIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
     except Exception as error:
         logger.error("Error %s", error, exc_info=error)
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(error),
+            detail="Internal server error",
         ) from error
 
 
@@ -188,6 +230,71 @@ async def refresh_tokens(
         ) from RefreshTokenCreationError
 
 
-@router.get("/protected")
-def protecded_example(auth_dependency=Depends(auth_dependency)):
-    return {"status": "success"}
+@router.post("/get_verification_code/email")
+async def get_email_verification_code(
+    email: EmailStr,
+    jwt: TokenPayload = Depends(auth_dependency),
+    email_verification_service: EmailVerificationService = Depends(
+        email_verification_service_dependency
+    ),
+):
+    try:
+        await email_verification_service.set_verification_code(
+            email=email,
+            user_id=UUID(jwt.user_id),
+        )
+    except UserIntegrityError as error:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail=str(error),
+        ) from error
+    except RateLimitingError as error:
+        logger.error("Error with verification operation.", exc_info=error)
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error with code operations.",
+        ) from error
+
+
+@router.post("/verify_code/email")
+async def verify_email_code(
+    user_verify_data: UserVerifyCode,
+    jwt: TokenPayload = Depends(auth_dependency),
+    user_service: UserService = Depends(user_service_dependency),
+):
+    try:
+        is_user_registered = await user_service.register_user(
+            user_id=UUID(jwt.user_id),
+            validate_code=str(user_verify_data.code),
+        )
+
+        if not is_user_registered:
+            raise HTTPException(
+                status_code=HTTP_401_UNAUTHORIZED,
+                detail="Token is invalid.",
+            )
+
+        return {"status": "success"}
+
+    except UserDoesNotExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except ValidateVerificationKeyError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Intenal server error when validate token.",
+        ) from error
+    except UserIntegrityError as error:
+        raise HTTPException(
+            # 500 code, because user_integriry_error don't should
+            # to raises in the register scenario
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error.",
+        ) from error
+    except UserDBError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error when validate token.",
+        ) from error
