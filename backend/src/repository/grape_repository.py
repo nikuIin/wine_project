@@ -366,20 +366,13 @@ class GrapeRepository:
         """
         grape_delete_stmt = text(
             """
-            with grape_delete_row as (
-                delete from grape where grape_id = :grape_id
-                returning grape_id, region_id
-            ) insert into grape_deleted
-            (select *, current_timestamp from grape_delete_row);
+            delete from grape where grape_id = :grape_id;
             """
         )
         grape_translate_delete_stmt = text(
             """
-            with grape_delete_row as (
-                delete from grape_translate where grape_id = :grape_id
-                returning grape_id, language_id, name
-            ) insert into grape_translate_deleted
-            (select *, current_timestamp from grape_delete_row);
+            delete from grape_translate where grape_id = :grape_id
+            returning grape_id, language_id, name
             """
         )
 
