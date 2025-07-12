@@ -366,40 +366,180 @@ def downgrade() -> None:
     op.execute(
         """
     DROP TRIGGER IF EXISTS trigger_move_to_country_deleted ON country;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_country_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_country_translate_deleted ON country_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_country_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_region_deleted ON region;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_region_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_region_translate_deleted ON region_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_region_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_grape_deleted ON grape;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_grape_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_grape_translate_deleted ON grape_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_grape_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_product_deleted ON product;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_product_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_product_translate_deleted ON product_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_product_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_wine_category_deleted ON wine_category;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_wine_category_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_wine_category_translate_deleted ON wine_category_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_wine_category_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_wine_type_deleted ON wine_type;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_wine_type_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_wine_type_translate_deleted ON wine_type_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_wine_type_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_aroma_deleted ON aroma;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_aroma_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_aroma_translate_deleted ON aroma_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_aroma_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_sort_deleted ON sort;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_sort_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_wine_deleted ON wine;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_wine_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_wine_translate_deleted ON wine_translate;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_wine_translate_deleted();
+    """
+    )
+    op.execute(
+        """
     DROP TRIGGER IF EXISTS trigger_move_to_aroma_wine_deleted ON aroma_wine;
+    """
+    )
+    op.execute(
+        """
     DROP FUNCTION IF EXISTS move_to_aroma_wine_deleted();
     """
     )
