@@ -2,6 +2,8 @@
 
 from uuid import UUID
 
+from uuid_extensions import uuid7
+
 from domain.enums import LanguageEnum
 
 # Roles
@@ -73,3 +75,9 @@ NEW_GRAPE_ID = UUID("3fa85f64-5717-4562-b4fc-2c963f66afa7")
 NEW_GRAPE_NAME = "New grape"
 NEW_GRAPE_REGION_ID = MOSCOW_REGION_ID
 NEW_GRAPE_LANGUAGE = LanguageEnum.RUSSIAN
+
+
+# For auth_code_repository
+REDIS_TEST_USER_ID = uuid7()
+REDIS_TEST_EMAIL = "test@mail.ru"
+REDIS_TEST_CODE = "123456"
