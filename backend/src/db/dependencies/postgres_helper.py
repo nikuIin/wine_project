@@ -2,6 +2,8 @@
 from pathlib import Path
 
 # Import necessary components from SQLAlchemy for asynchronous operations
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,  # Represents an asynchronous database session
     async_sessionmaker,  # Factory to create async sessions
@@ -15,6 +17,8 @@ from core.logger.logger import get_configure_logger
 # import all models BEFORE initialization the Base class
 from db.models import *  # noqa
 from db.base_models import Base
+from db.statement import Statement
+from db.trigers import TRIGGERS
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -60,7 +64,44 @@ class DatabaseHelper:
             await conn.run_sync(Base.metadata.create_all)
             await conn.commit()
 
-    async def drop_database(self) -> None:
+    async def create_schemas(self, schemas_list: tuple[str, ...]) -> None:
+        async with self.engine.begin() as conn:
+            for schema in schemas_list:
+                await conn.execute(
+                    text(f"create schema if not exists {schema}"),
+                )
+            await conn.commit()
+
+    async def insert_data(self, statements: tuple[Statement, ...]) -> None:
+        async with self.engine.begin() as conn:
+            try:
+                for stmt in statements:
+                    await conn.execute(stmt.statement, stmt.data)
+                await conn.commit()
+                logger.info("Database scheme insert omplete successfully")
+
+            except DBAPIError:
+                await conn.rollback()
+                logger.error(
+                    "Error inserting base scheme in the database",
+                    exc_info=True,
+                )
+
+    async def create_triggers(self) -> None:
+        async with self.engine.begin() as conn:
+            try:
+                for stmt in TRIGGERS:
+                    await conn.execute(stmt)
+                logger.info("Database triggers insert complete successfully")
+
+            except DBAPIError:
+                await conn.rollback()
+                logger.error(
+                    "Error inserting base scheme in the database",
+                    exc_info=True,
+                )
+
+    async def clear_data(self) -> None:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.commit()

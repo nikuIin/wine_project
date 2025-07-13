@@ -1,18 +1,21 @@
-from logging import Formatter, Logger, getLogger
+from logging import Formatter, Logger, StreamHandler, getLogger
 from logging.handlers import TimedRotatingFileHandler
 from os import mkdir, path
 
 from core.config import log_settings
-from core.logger.filters import SensitiveWordsFilter
+from core.logger.filters import ColorFilter, SensitiveWordsFilter
 
 
-def get_configure_logger(filename: str, log_level: int = log_settings.log_level) -> Logger:
+def get_configure_logger(
+    filename: str, log_level: int = log_settings.log_level
+) -> Logger:
     """
     Configure logger with the given filename.
 
     Args:
         filename (str): The name of the log file.
-        log_level (str): The log level to use (default taking by the cofiguration project file).
+        log_level (str): The log level to use (default taking by the configuration
+        project file).
 
     Returns:
         Logger: The configured logger.
@@ -30,10 +33,14 @@ def get_configure_logger(filename: str, log_level: int = log_settings.log_level)
             mkdir(log_settings.log_directory)
     except OSError as error:
         logger.error(
-            "Error with creating the log directory %r: %s", log_settings.log_directory, error
+            "Error with creating the log directory %r: %s",
+            log_settings.log_directory,
+            error,
         )
 
-    log_formatter = Formatter(fmt=log_settings.log_format, datefmt=log_settings.date_format)
+    log_formatter = Formatter(
+        fmt=log_settings.log_format, datefmt=log_settings.date_format
+    )
 
     safe_filename = filename.replace(".", "_") + ".log"
     log_file_path = path.join(log_settings.log_directory, safe_filename)
@@ -51,11 +58,15 @@ def get_configure_logger(filename: str, log_level: int = log_settings.log_level)
 
         # use this filter if you want see the logs in the console
         # (import it from the file filters.py in the core/logger/ directory)
-        # logger.addFilter(ColorFilter())  # noqa: ERA001
+        logger_console_handler = StreamHandler()
+        logger.addFilter(ColorFilter())  # noqa: ERA001
+        # console handler
+        logger.addHandler(logger_console_handler)
 
         # Add sensitive words filter
         logger.addFilter(SensitiveWordsFilter())
 
+        # file handler
         logger.addHandler(handler)
 
         logger.debug(

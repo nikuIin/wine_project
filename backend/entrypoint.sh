@@ -35,7 +35,7 @@ while true; do
       log "Error: Failed to connect to PostgreSQL within $TIMEOUT_SECONDS seconds."
       exit 1
     fi
-    log "Failed to connect. Retrying in 0.5 seconds..."
+    log "Failed to connect $DB_HOST:$DB_PORT. Retrying in 0.5 seconds..."
     sleep 0.5
   fi
 done

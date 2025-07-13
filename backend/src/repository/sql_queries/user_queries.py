@@ -12,14 +12,6 @@ GET_USER_CREDS = text(
     """
 )
 
-
-CREATE_USER = text(
-    """
-    insert into "user"(user_id, login, password, role_id, created_at)
-    values(:user_id, :login, :password, :role_id, current_timestamp)
-    """
-)
-
 UPDATE_USER = text(
     """
     update "user" set

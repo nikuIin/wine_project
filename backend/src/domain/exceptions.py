@@ -10,12 +10,12 @@ logger = get_configure_logger(filename=Path(__file__).stem)
 
 
 # ===============================
-#         Tokens erros          #
+#         Tokens errors         #
 # ===============================
 
 
 class TokenSessionExpiredError(Exception):
-    """The error, which occures, when the token session is expired"""
+    """The error, which occurs, when the token session is expired"""
 
     def __init__(self, message="Token session expired."):
         super().__init__(message)
@@ -26,40 +26,323 @@ class InvalidTokenDataError(Exception):
 
     def __init__(self, message="Invalid JWT-payload."):
         super().__init__(message)
-        logger.warning("The wrong jwt data was recieved to the server", exc_info=True)
+        logger.warning(
+            "The wrong jwt data was receieved to the server", exc_info=True
+        )
 
 
 class AccessTokenAbsenceError(Exception):
-    """The error occures, while the access token wasn't finds in the cookies"""
+    """The error occurs, while the access token wasn't finds in the cookies"""
 
     def __init__(self, message="The are no access token in the cookies."):
         super().__init__(message)
 
 
 class RefreshTokenAbsenceError(Exception):
-    """The error occures, while the refresh token wasn't finds in the cookies"""
+    """The error occurs, while the refresh token
+    wasn't finds in the cookies
+
+    """
 
     def __init__(self, message="The are no refresh token in the cookies."):
         super().__init__(message)
 
 
 class RefreshTokenCreationError(Exception):
-    """The error occures, while the refresh token wasn't created"""
+    """The error occurs, while the refresh token wasn't created"""
 
     def __init__(self, message="The refresh token wasn't created."):
         super().__init__(message)
 
 
 class RefreshTokenIdAbsenceError(Exception):
-    """The error occures, while the refresh token payload doesn't have token_id"""
+    """The error occurs, while the refresh token
+    payload doesn't have token_id
+
+    """
 
     def __init__(self, message="The refresh token id must have token_id."):
-        logger.warning("The attemt of creating the refresh token without id", exc_info=True)
+        logger.warning(message, exc_info=True)
         super().__init__(message)
 
 
 class RefreshTokenBlackListError(Exception):
-    """The error occures, while the refresh token is in the black list"""
+    """The error occurs, while the refresh token is in the black list"""
 
     def __init__(self, message="The refresh token is in the black list."):
+        super().__init__(message)
+
+
+# ===============================
+#          Email errors         #
+# ===============================
+
+
+class EmailDBError(Exception):
+    """The error related to the error with email data in the database."""
+
+    def __init__(
+        self,
+        message="The database error.",
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#        Country errors         #
+# ===============================
+
+
+class CountryDBError(Exception):
+    """The error related to the error with country data in the database."""
+
+    def __init__(
+        self,
+        message="The error of adding country to the database.",
+    ):
+        super().__init__(message)
+
+
+class CountryIntegrityError(Exception):
+    """The error occurs with attempt to adding
+    the country_data or country_translate_dataa which
+    already exists in the database or trying adding the
+    depends-data those doesn't exists.
+    """
+
+    def __init__(self, message="The integrity error of country data."):
+        super().__init__(message)
+
+
+class CountryDoesNotExistsError(Exception):
+    """
+    The error occurs, while the country wasn't
+    exists in the DB
+    """
+
+    def __init__(
+        self,
+        message=("Country with this data doesn't exists."),
+    ):
+        super().__init__(message)
+
+
+class CountryAlreadyExistsError(Exception):
+    """The country with this data already exists in the database"""
+
+    def __init__(
+        self,
+        message="The country with this data already exists in the database",
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#           User errors         #
+# ===============================
+
+
+class UserDBError(Exception):
+    """The error related to the error with user data in the database."""
+
+    def __init__(
+        self,
+        message="The db error of user data.",
+    ):
+        super().__init__(message)
+
+
+class UserIntegrityError(Exception):
+    """The error occurs with attempt to adding the user."""
+
+    def __init__(self, message="The integrity error of user data."):
+        super().__init__(message)
+
+
+class UserDoesNotExistsError(Exception):
+    """
+    The error occurs, while the user wasn't
+    exists in the DB
+    """
+
+    def __init__(
+        self,
+        message=("User with this data doesn't exists."),
+    ):
+        super().__init__(message)
+
+
+class UserAlreadyExistsError(Exception):
+    """The user with this data already exists in the database"""
+
+    def __init__(
+        self,
+        message="The user with this data already exists in the database",
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#         Region erros          #
+# ===============================
+
+
+class RegionDatabaseError(Exception):
+    """The error occurs with database errors relating the region table"""
+
+    def __init__(self, message="Database region error."):
+        super().__init__(message)
+
+
+class RegionIntegrityError(Exception):
+    """The error occurs with attempt to adding
+    the region_data or region_translate_data which
+    already exists in the database or trying adding the
+    depends-data those doesn't exists.
+    """
+
+    def __init__(self, message="The integrity error of region data."):
+        super().__init__(message)
+
+
+class RegionAlreadyExistsError(Exception):
+    """The region with this id already exists in the database"""
+
+    def __init__(
+        self, message="The region with this id already exists in the database"
+    ):
+        super().__init__(message)
+
+
+class RegionDoesNotExistsError(Exception):
+    """The region doesn't exists in the database."""
+
+    def __init__(
+        self, message="The region with this id doesn't exists in the database"
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#       Language errors         #
+# ===============================
+
+
+class LanguageDoesNotExistsError(Exception):
+    """The language doesn't exists in the database."""
+
+    def __init__(
+        self,
+        message="The language with this id doesn't exists in the database",
+    ):
+        super().__init__(message)
+
+
+# ===============================
+#         Grape errors          #
+# ===============================
+
+
+class GrapeDatabaseError(Exception):
+    """The error occurs with database errors relating the grape
+    or grape_translate tables"""
+
+    def __init__(self, message="Database grape error."):
+        super().__init__(message)
+
+
+class GrapeIntegrityError(Exception):
+    """The error occurs when database throw
+    IntegrityError after operation with grape
+    or grape_translate data.
+    """
+
+    def __init__(self, message="The integrity error of grape data."):
+        super().__init__(message)
+
+
+class GrapeAlreadyExistsError(Exception):
+    """The grape with this id already exists in the database"""
+
+    def __init__(
+        self, message="The grape with this id already exists in the database"
+    ):
+        super().__init__(message)
+
+
+class GrapeDoesNotExistsError(Exception):
+    """The grape doesn't exists in the database."""
+
+    def __init__(
+        self, message="The grape with this id doesn't exists in the database"
+    ):
+        super().__init__(message)
+
+
+# ===================================== #
+#        Email verification errors      #
+# ===================================== #
+
+
+class SetVerificationKeyError(Exception):
+    """The error with setting verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error when set verification key"
+    ):
+        super().__init__(message)
+
+
+class GetVerificationKeyError(Exception):
+    """The error with getting verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error when get verification key"
+    ):
+        super().__init__(message)
+
+
+class ValidateVerificationKeyError(Exception):
+    """The error with validating verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error when get validate key"
+    ):
+        super().__init__(message)
+
+
+class DeleteVerificationKeyError(Exception):
+    """The error with deliting verification key in the Redis"""
+
+    def __init__(
+        self, message="The internal server error with verification key"
+    ):
+        super().__init__(message)
+
+
+class RateLimitingError(Exception):
+    """The error occures with a lot of attepts of auth with the same data
+    in the one time period"""
+
+    def __init__(self, message="A lot of attemts to auth."):
+        super().__init__(message)
+
+
+class UserRateLimitingError(RateLimitingError):
+    pass
+
+
+class EmailRateLimitingError(RateLimitingError):
+    pass
+
+
+class NextCodeAttemptNotPassedError(Exception):
+    """The error occures when client ask new code in the time interval
+    when new attemnt does't allowed"""
+
+    def __init__(
+        self,
+        message="Attemt to get new code not allowed yet."
+        + " Please wait a bit more",
+    ):
         super().__init__(message)

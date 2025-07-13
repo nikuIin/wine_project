@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from pydantic import BaseModel, Field
 
 from core.config import auth_settings

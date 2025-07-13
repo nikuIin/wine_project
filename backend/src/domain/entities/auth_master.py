@@ -1,11 +1,12 @@
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import time
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import Request, Response
 from jwt import encode as jwt_encode
 from passlib.context import CryptContext
+from uuid_extensions import uuid7
 
 from core.config import auth_settings
 from core.logger.logger import get_configure_logger
@@ -18,9 +19,10 @@ from domain.exceptions import (
     RefreshTokenBlackListError,
     TokenSessionExpiredError,
 )
-from use_cases.token_service import TokenService
+from services.token_service import TokenService
 
 logger = get_configure_logger(Path(__file__).stem)
+
 
 CRYPTO_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -108,7 +110,7 @@ class AuthMaster:
         jwt_refresh_payload = RefreshTokenPayload(
             user_id=str(user.user_id),
             login=user.login,
-            token_id=str(uuid4()),
+            token_id=str(uuid7()),
             role_id=user.role_id,
             exp=refresh_expire.timestamp(),
         )
@@ -276,12 +278,12 @@ class AuthMaster:
             raise RefreshTokenBlackListError("Refresh token is blacklisted")
         return token_payload
 
-    def auth_check(self, request: Request):
+    def auth_check(self, request: Request) -> TokenPayload:
         token = self._get_token_from_cookies(
             request=request, cookie_key=auth_settings.access_cookie_name
         )
         # validate token and get payload
-        token = self.decode_access_token(token=token)
+        return self.decode_access_token(token=token)
 
     def set_jwt_to_cookies(
         self, response: Response, access_token: Token, refresh_token: Token

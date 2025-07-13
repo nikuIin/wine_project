@@ -4,9 +4,9 @@ The main configuration file of the backend project part.
 
 from enum import StrEnum, auto
 from logging import INFO
-from pathlib import Path
 
-from pydantic import Field
+from fastapi_mail import ConnectionConfig
+from pydantic import EmailStr, Field, SecretStr
 from pydantic_settings import BaseSettings
 from pydantic_settings.main import SettingsConfigDict
 
@@ -14,16 +14,16 @@ THIRTY_DAYS_IN_MINUTES = 42000
 
 
 class ModeEnum(StrEnum):
-    test = auto()
-    dev = auto()
-    prod = auto()
+    TEST = auto()
+    DEV = auto()
+    PROD = auto()
 
 
 # Base config class
 class ModelConfig(BaseSettings):
     model_config = SettingsConfigDict(
         case_sensitive=True,
-        env_file=(".env", "../.env"),
+        env_file=(".prod.env", "../.prod.env", ".env", "../.env"),
         env_file_encoding="utf-8",
         # ignore extra vars in the env file
         extra="ignore",
@@ -32,7 +32,7 @@ class ModelConfig(BaseSettings):
 
 class AppSettings(ModelConfig):
     app_mode: ModeEnum = Field(
-        default=ModeEnum.prod, validation_alias="APP_MODE"
+        default=ModeEnum.PROD, validation_alias="APP_MODE"
     )
 
 
@@ -65,6 +65,7 @@ class AuthSettings(ModelConfig):
     access_token_expire_minutes: int = Field(
         default=30, validation_alias="ACCESS_TOKEN_EXPIRES_MINUTES"
     )
+    salt: str = Field(default="my-cool-salt", validation_alias="FIX_SALT")
     refresh_token_expire_minutes: int = Field(
         default=THIRTY_DAYS_IN_MINUTES,
         validation_alias="REFRESH_TOKEN_EXPIRES_MINUTES",
@@ -106,7 +107,7 @@ class LoggingSettings(ModelConfig):
         validation_alias="LOG_FORMAT",
     )
     log_roating: str = Field(
-        default="midnight", validation_alias="LOG_ROATING"
+        default="midnight", validation_alias="LOG_ROTATING"
     )
     backup_count: int = Field(
         default=30,
@@ -119,9 +120,64 @@ class LoggingSettings(ModelConfig):
     utc: bool = Field(default=True, validation_alias="LOG_UTC")
 
 
+class MailSettings(ModelConfig):
+    mail_username: str = Field(
+        default="name", validation_alias="MAIL_USERNAME"
+    )
+    mail_password: SecretStr = Field(
+        default=SecretStr("cool password"), validation_alias="MAIL_PASSWORD"
+    )
+    mail_from: EmailStr = Field(
+        default="my@gmail.com", validation_alias="MAIL_FROM"
+    )
+    mail_port: int = Field(default=587, validation_alias="MAIL_PORT")
+    mail_server: str = Field(
+        default="smtp.gmail.com", validation_alias="MAIL_SERVER"
+    )
+    mail_from_name: str = Field(
+        default="My cool company name", validation_alias="MAIL_FROM_NAME"
+    )
+    mail_starttls: bool = Field(default=True, validation_alias="MAIL_STARTTLS")
+    mail_ssl_tls: bool = Field(default=False, validation_alias="MAIL_SSL_TLS")
+    use_credentials: bool = Field(
+        default=True, validation_alias="USE_CREDENTIALS"
+    )
+    validate_certs: bool = Field(
+        default=True, validation_alias="VALIDATE_CERTS"
+    )
+
+    @property
+    def mail_config(self):
+        return ConnectionConfig(
+            MAIL_USERNAME=self.mail_username,
+            MAIL_PASSWORD=self.mail_password,
+            MAIL_FROM=self.mail_from,
+            MAIL_PORT=self.mail_port,
+            MAIL_SERVER=self.mail_server,
+            MAIL_FROM_NAME=self.mail_from_name,
+            MAIL_STARTTLS=self.mail_starttls,
+            MAIL_SSL_TLS=self.mail_ssl_tls,
+            USE_CREDENTIALS=self.use_credentials,
+            VALIDATE_CERTS=self.validate_certs,
+        )
+
+
+class RedisSettings(ModelConfig):
+    host: str = Field(default="localhost", validation_alias="REDIS_HOST")
+    port: int = Field(default=6379, validation_alias="REDIS_PORT")
+    db: int = Field(default=0, validation_alias="REDIS_DB")
+    password: str = Field(default="", validation_alias="REDIS_PASSWORD")
+
+    @property
+    def redis_url(self):
+        return f"redis://{self.host}:{self.port}/{self.db}"
+
+
 # create config instances
 host_settings = HostSettings()
 auth_settings = AuthSettings()
 db_settings = DBSettings()
 log_settings = LoggingSettings()
 app_settings = AppSettings()
+mail_settings = MailSettings()
+redis_settings = RedisSettings()

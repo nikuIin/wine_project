@@ -28,11 +28,25 @@ services:
     volumes:
       - ./logs/:/app/logs/
     env_file:
-      - .env
+      - .prod.env
     depends_on:
       - db
     ports:
       - "8000:8000"
+    networks:
+      - base-fastapi-app-network
+  redis:
+    image: redis:8.2-rc1-bookworm
+    container_name: redis-fastapi-base-app
+    platform: linux/amd64
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "6379:6379"
     networks:
       - base-fastapi-app-network
   nginx:

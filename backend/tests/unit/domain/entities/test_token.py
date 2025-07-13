@@ -8,7 +8,7 @@ from contextlib import nullcontext as dont_raise
 from uuid import UUID
 
 from jwt import encode as jwt_encode
-from pytest import fixture, mark, raises
+from pytest import fixture, raises
 
 from core.config import auth_settings
 from domain.entities.token import RefreshTokenPayload, Token, TokenPayload

@@ -45,5 +45,6 @@ class SensitiveWordsFilter(Filter):
         Returns False to filter the record if a sensitive word is found.
         """
         return not any(
-            word.lower() in str(record.msg).lower() for word in SensitiveWordsFilter.SENSITIVE_WORDS
+            word.lower() in str(record.msg).lower()
+            for word in SensitiveWordsFilter.SENSITIVE_WORDS
         )

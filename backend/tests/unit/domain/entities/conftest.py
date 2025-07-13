@@ -5,13 +5,9 @@ from contextlib import nullcontext as dont_raise
 from uuid import UUID
 
 from pytest import fixture
+from tests.unit.constants import USER_ROLE
 
 from domain.entities.user import UserBase
-
-USER_ROLE = 1
-ADMIN_ROLE = 2
-
-NO_EXISTING_ROLE = 100
 
 
 # the user_base data for testing
