@@ -5,8 +5,6 @@ from uuid import UUID
 from redis.asyncio import Redis
 
 from core.general_constants import (
-    CODE_LE_VALUE,
-    CODE_LEN,
     CODE_REQUEST_LOCK_TIME_IN_SECONDS,
     FIFTEEN_MINUTES_IN_SECONDS,
     ONE_HOUR_IN_SECONDS,
@@ -191,7 +189,7 @@ class AuthCodeRepository:
             ConnectionResetError: On Redis connection reset.
         """
         logger.info(
-            "Attemt to connect to the system from id %s: %s",
+            "Attempt to connect to the system from id %s: %s",
             user_id,
             rate_limit,
         )

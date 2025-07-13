@@ -2,11 +2,9 @@ from contextlib import nullcontext as dont_raise
 from unittest.mock import AsyncMock
 from uuid import UUID
 
-from pytest import fixture, mark, raises
+from pytest import fixture, mark
 from tests.unit.constants import (
-    MOSCOW_REGION_COUNTRY_ID,
     MOSCOW_REGION_ID,
-    NO_EXISTING_GRAPE_ID,
     PINOT_GRAPE_ID,
     RUSSIA_ID,
     RUSSIA_NAME,
@@ -17,7 +15,6 @@ from domain.entities.country import Country
 from domain.entities.grape import Grape
 from domain.entities.region import Region
 from domain.enums import LanguageEnum
-from domain.exceptions import GrapeDoesNotExistsError
 from schemas.grape_schema import GrapeCreateSchema
 from services.grape_service import GrapeService
 

@@ -8,7 +8,6 @@ from core.general_constants import (
     BASE_MIN_STR_LENGTH,
     MAX_DB_INT,
 )
-from domain.enums import LanguageEnum
 from schemas.language_schema import LanguageSchema
 from schemas.region_schema import RegionSchema
 

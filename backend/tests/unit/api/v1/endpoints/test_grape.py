@@ -9,8 +9,6 @@ from starlette.status import (
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from tests.unit.constants import (
-    PINOT_GRAPE_ID,
-    PINOT_GRAPE_NAME,
     SAMARA_REGION_ID,
 )
 from uuid_extensions import uuid7
@@ -25,7 +23,6 @@ from domain.exceptions import (
     RegionDoesNotExistsError,
 )
 from schemas.grape_schema import GrapeCreateSchema
-from services.grape_service import GrapeService
 
 
 @fixture

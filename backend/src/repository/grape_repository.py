@@ -164,7 +164,7 @@ class GrapeRepository:
                 exc_info=error,
             )
 
-            if isinstance(error.orig.__casue__, ForeignKeyViolationError):  # type: ignore  # noqa: SIM102
+            if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore  # noqa: SIM102
                 if "grape_translate_language_id_fkey" in str(error):
                     raise LanguageDoesNotExistsError(
                         f"Region with {language_id} does't exists."

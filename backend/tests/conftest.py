@@ -1,8 +1,7 @@
-from pytest import fixture
 from pytest_asyncio import fixture as async_fixture
 from tests.test_statements import TEST_STATEMENTS
 
-from core.config import ModeEnum, app_settings, db_settings, redis_settings
+from core.config import ModeEnum, app_settings, db_settings
 from db.dependencies.postgres_helper import DatabaseHelper
 from db.dependencies.redis_helper import redis_helper
 

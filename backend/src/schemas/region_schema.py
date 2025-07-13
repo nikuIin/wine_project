@@ -6,8 +6,7 @@ from core.general_constants import (
     MAX_COUNTRY_ID,
     MAX_DB_INT,
 )
-from domain.enums import LanguageEnum
-from schemas.country_schema import CountryResponseSchema, CountrySchema
+from schemas.country_schema import CountrySchema
 from schemas.language_schema import LanguageSchema
 
 

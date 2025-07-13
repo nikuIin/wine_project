@@ -1,13 +1,9 @@
-import asyncio
-import time
-from contextlib import nullcontext as dont_raise
 from hashlib import md5
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 from uuid import UUID
 
-from fastapi import params
 from pydantic import EmailStr
-from pytest import fixture, mark, raises
+from pytest import fixture, mark
 from tests.unit.constants import (
     REDIS_TEST_CODE,
     REDIS_TEST_EMAIL,

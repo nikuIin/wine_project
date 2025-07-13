@@ -2,7 +2,6 @@ from pathlib import Path
 from uuid import UUID
 
 from pydantic import EmailStr
-from uuid_extensions import uuid7
 
 from core.logger.logger import get_configure_logger
 from domain.entities.user import UserBase, UserCreate, UserCreds
@@ -15,7 +14,6 @@ from domain.exceptions import (
     ValidateVerificationKeyError,
 )
 from repository.user_repository import UserRepository
-from schemas.user_schema import UserCreateSchema
 from services.email_verification_service import EmailVerificationService
 
 logger = get_configure_logger(Path(__file__).stem)

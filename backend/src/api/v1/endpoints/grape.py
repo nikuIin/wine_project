@@ -13,7 +13,6 @@ from starlette.status import (
 
 from api.v1.depends import language_dependency
 from core.logger.logger import get_configure_logger
-from domain.entities import grape
 from domain.enums import LanguageEnum
 from domain.exceptions import (
     GrapeAlreadyExistsError,
@@ -96,7 +95,7 @@ async def create_grape(
         if not is_grape_created:
             raise GrapeIntegrityError
 
-        return {"detail": "Grape create succesfully."}
+        return {"detail": "Grape create successfully."}
 
     # This block handles potential errors that can occur during the grape
     # creation process. It catches specific exceptions and returns the
@@ -304,7 +303,7 @@ async def get_grape(
     },
 )
 async def update_grape(
-    # we dont use dependency of get_language becase the user should
+    # we dont use dependency of get_language because the user should
     # be able to choose the language of the response
     grape_identify: GrapeIdentifySchema = Query(),
     grape_update: GrapeUpdateSchema = Body(),

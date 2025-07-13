@@ -5,7 +5,6 @@ from jwt import ExpiredSignatureError
 from jwt import decode as jwt_decode
 from jwt.exceptions import InvalidTokenError, PyJWTError
 from pydantic import BaseModel, Field, ValidationError
-from pydantic.networks import EmailStr
 
 from core.config import auth_settings
 from core.logger.logger import get_configure_logger
@@ -24,9 +23,13 @@ base_expire_date = lambda: (
 
 
 class TokenPayload(BaseModel):
-    user_id: str = Field(description="The user UUID. Type str because JWT supports only string.")
+    user_id: str = Field(
+        description="The user UUID. Type str because JWT supports only string."
+    )
     login: str
-    role_id: int  # TODO: create enum, that contains information about user roles
+    role_id: (
+        int  # TODO: create enum, that contains information about user roles
+    )
     exp: float = Field(
         default_factory=base_expire_date,
         description="Expire date in the epoch format",
@@ -41,7 +44,9 @@ class Token:
     def __init__(self, token: str):
         self.__token = token
 
-    def decode_access_token(self, secret_key: str, algorithm: str) -> TokenPayload:
+    def decode_access_token(
+        self, secret_key: str, algorithm: str
+    ) -> TokenPayload:
         try:
             payload = jwt_decode(
                 jwt=self.__token,
@@ -59,7 +64,9 @@ class Token:
         ) as error:
             raise InvalidTokenDataError from error
 
-    def decode_refresh_token(self, secret_key: str, algorithm: str) -> RefreshTokenPayload:
+    def decode_refresh_token(
+        self, secret_key: str, algorithm: str
+    ) -> RefreshTokenPayload:
         try:
             payload = jwt_decode(
                 jwt=self.__token,
