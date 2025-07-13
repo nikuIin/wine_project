@@ -1,6 +1,6 @@
 """
 The file with the general constants of the project.
-It means, that this file contains only constats, that can be used
+It means, that this file contains only constants, that can be used
 by the several files. If the file/module have constants and
 this constants are used only in this file/module, it's ok, if
 they are provides in those file/module.
