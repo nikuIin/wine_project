@@ -306,7 +306,7 @@ async def get_grape(
 async def update_grape(
     # we dont use dependency of get_language becase the user should
     # be able to choose the language of the response
-    grape_identify: GrapeIdentifySchema,
+    grape_identify: GrapeIdentifySchema = Query(),
     grape_update: GrapeUpdateSchema = Body(),
     grape_service: GrapeService = Depends(grape_service_dependency),
 ):
