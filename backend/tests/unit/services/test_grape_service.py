@@ -98,7 +98,7 @@ class TestGrapeService:
         grape_service = GrapeService(grape_repository_mock)
 
         with expectation_raise:
-            assert grape_service.get_grape_by_id(
+            assert await grape_service.get_grape_by_id(
                 grape_id=grape_id,
                 language_id=language_id,
             )
