@@ -45,7 +45,7 @@ lint.select = [
     "ERA",  # found commented-out code
     "D401", # check docstring format
 ]
-# unfixable = ["F401"] # Prevent Ruff from auto-fixing unused imports
+unfixable = ["F401"] # Prevent Ruff from auto-fixing unused imports
 lint.ignore = [
     "B008", # Ignore depends in function calls
     "E731", # Allow to use the lambda functions
