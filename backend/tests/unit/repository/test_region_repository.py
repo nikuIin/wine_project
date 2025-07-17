@@ -44,7 +44,7 @@ class TestRegionRepository:
                     region_id=888,
                     country_id=RUSSIA_ID,
                     region_name="Test region name",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 dont_raise(),
             ),
@@ -52,7 +52,7 @@ class TestRegionRepository:
                 RegionCreateSchema(
                     country_id=RUSSIA_ID,
                     region_name="Test region name",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 dont_raise(),
             ),
@@ -61,7 +61,7 @@ class TestRegionRepository:
                     region_id=SAMARA_REGION_ID,
                     country_id=RUSSIA_ID,
                     region_name="Test region name",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 raises(RegionAlreadyExistsError),
             ),
@@ -70,7 +70,7 @@ class TestRegionRepository:
                     region_id=888,
                     country_id=NO_EXISTING_COUNTRY_ID,
                     region_name="Test region name",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 raises(CountryDoesNotExistsError),
             ),
@@ -79,7 +79,7 @@ class TestRegionRepository:
                     region_id=888,
                     country_id=RUSSIA_ID,
                     region_name=SAMARA_REGION_NAME,
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 raises(RegionAlreadyExistsError),
             ),
@@ -193,7 +193,7 @@ class TestRegionRepository:
             (
                 RegionTranslateCreateSchema(
                     region_name="Новый регион",
-                    language_model=LanguageEnum.ENGLISH,
+                    language=LanguageEnum.ENGLISH,
                 ),
                 SAMARA_REGION_ID,
                 dont_raise(),
@@ -201,7 +201,7 @@ class TestRegionRepository:
             (
                 RegionTranslateCreateSchema(
                     region_name="Новый регион",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 NO_EXISTING_REGION_ID,
                 raises(RegionDoesNotExistsError),
@@ -209,7 +209,7 @@ class TestRegionRepository:
             (
                 RegionTranslateCreateSchema(
                     region_name="Новый регион",
-                    language_model=LanguageEnum.KAZAKHSTAN,
+                    language=LanguageEnum.KAZAKHSTAN,
                 ),
                 SAMARA_REGION_ID,
                 raises(LanguageDoesNotExistsError),
@@ -217,7 +217,7 @@ class TestRegionRepository:
             (
                 RegionTranslateCreateSchema(
                     region_name="Новый регион",
-                    language_model=LanguageEnum.KAZAKHSTAN,
+                    language=LanguageEnum.KAZAKHSTAN,
                 ),
                 SAMARA_REGION_ID,
                 raises(LanguageDoesNotExistsError),
@@ -225,7 +225,7 @@ class TestRegionRepository:
             (
                 RegionTranslateCreateSchema(
                     region_name=SAMARA_REGION_NAME,
-                    language_model=LanguageEnum.ENGLISH,
+                    language=LanguageEnum.ENGLISH,
                 ),
                 SAMARA_REGION_ID,
                 dont_raise(),

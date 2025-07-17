@@ -185,7 +185,7 @@ async def get_short_grapes(
                 )
                 for short_grape in short_grapes
             ],
-            language_model=language_id,
+            language=language_id,
         )
 
     except LanguageDoesNotExistsError as error:
@@ -264,7 +264,7 @@ async def get_grape(
                     country_name=grape.region.country.name,
                 ),
             ),
-            language_model=language_id,
+            language=language_id,
         )
 
     except GrapeDoesNotExistsError as error:
@@ -329,7 +329,7 @@ async def update_grape(
         # This block updates an existing grape variety with the provided data.
         is_grape_updated = await grape_service.update_grape(
             grape_id=grape_identify.grape_id,
-            language_id=grape_identify.language_model,
+            language_id=grape_identify.language,
             grape_update=grape_update,
         )
 

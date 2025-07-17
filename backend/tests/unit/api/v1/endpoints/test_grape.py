@@ -41,11 +41,11 @@ class TestAPIGrape:
                 GrapeCreateSchema(
                     grape_id=uuid7(),
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                     region_id=SAMARA_REGION_ID,
                 ),
                 True,
-                {"detail": "Grape create succesfully."},
+                {"detail": "Grape create successfully."},
                 dont_raise(),
             ),
         ],
@@ -75,7 +75,7 @@ class TestAPIGrape:
                 GrapeCreateSchema(
                     grape_id=uuid7(),
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                     region_id=SAMARA_REGION_ID,
                 ),
                 GrapeAlreadyExistsError,
@@ -86,7 +86,7 @@ class TestAPIGrape:
                 GrapeCreateSchema(
                     grape_id=uuid7(),
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                     region_id=SAMARA_REGION_ID,
                 ),
                 GrapeIntegrityError,
@@ -97,7 +97,7 @@ class TestAPIGrape:
                 GrapeCreateSchema(
                     grape_id=uuid7(),
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                     region_id=SAMARA_REGION_ID,
                 ),
                 GrapeDatabaseError,
@@ -108,7 +108,7 @@ class TestAPIGrape:
                 GrapeCreateSchema(
                     grape_id=uuid7(),
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                     region_id=SAMARA_REGION_ID,
                 ),
                 RegionDoesNotExistsError,
@@ -119,7 +119,7 @@ class TestAPIGrape:
                 GrapeCreateSchema(
                     grape_id=uuid7(),
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                     region_id=SAMARA_REGION_ID,
                 ),
                 LanguageDoesNotExistsError,

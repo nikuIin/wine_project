@@ -3,7 +3,7 @@ from uuid import UUID
 
 from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from fastapi import Depends
-from sqlalchemy import delete, select, text, update
+from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,7 +22,6 @@ from domain.exceptions import (
     GrapeIntegrityError,
     LanguageDoesNotExistsError,
     RegionDoesNotExistsError,
-    RegionIntegrityError,
 )
 from schemas.grape_schema import GrapeCreateSchema, GrapeUpdateSchema
 
@@ -45,7 +44,7 @@ class GrapeRepository:
         grape_translate_model = GrapeTranslateModel(
             grape_id=grape.grape_id,
             name=grape.grape_name,
-            language_id=grape.language_model,
+            language_id=grape.language,
         )
 
         try:
@@ -71,7 +70,7 @@ class GrapeRepository:
                     ) from error
                 elif "grape_translate_language_id_fkey" in str(error):
                     raise LanguageDoesNotExistsError(
-                        f"Language {grape.language_model} does't exists."
+                        f"Language {grape.language} does't exists."
                     ) from error
             elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore  # noqa: SIM102
                 if "grape_pkey" in str(error):
@@ -227,7 +226,7 @@ class GrapeRepository:
         except IntegrityError as error:
             if (
                 isinstance(error.orig.__cause__, ForeignKeyViolationError)  # type: ignore
-                and "grape_translate_language_id_fkey"
+                and "grape_translate_language_id_fkey" in str(error)
             ):
                 raise LanguageDoesNotExistsError(
                     f"The language {language_id} does't exists."

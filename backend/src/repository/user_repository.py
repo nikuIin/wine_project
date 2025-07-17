@@ -79,7 +79,6 @@ class UserRepository:
                     insert_md_data_stmt,
                     params={
                         "user_id": user.user_id,
-                        "email": user.email,
                     },
                 )
                 await session.commit()
