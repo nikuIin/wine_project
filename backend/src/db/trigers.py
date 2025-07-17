@@ -310,7 +310,7 @@ TRIGGERS = [
     CREATE OR REPLACE FUNCTION move_to_md_user_deleted()
     RETURNS TRIGGER AS $$
     BEGIN
-        INSERT INTO md_user_deleted (user_id, email, profile_picture_link, description, deleted_at)
+        INSERT INTO md_user_deleted (user_id, email, first_name, last_name, middle_name, profile_picture_link, description, deleted_at)
         VALUES (OLD.user_id, OLD.email, OLD.profile_picture_link, OLD.description, NOW());
         RETURN OLD;
     END;
@@ -320,5 +320,37 @@ TRIGGERS = [
     CREATE TRIGGER trigger_move_to_md_user_deleted
     BEFORE DELETE ON md_user
     FOR EACH ROW EXECUTE FUNCTION move_to_md_user_deleted();
+    """),
+    # Article
+    text("""
+    CREATE OR REPLACE FUNCTION move_to_article_deleted()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        INSERT INTO article_deleted (article_id, author_id, slug, views_count, deleted_at, created_at, updated_at)
+        VALUES (OLD.article_id, OLD.author_id, OLD.slug, OLD.views_count, NOW(), OLD.created_at, OLD.updated_at);
+        RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql;
+    """),
+    text("""
+    CREATE TRIGGER trigger_move_to_article_deleted
+    BEFORE DELETE ON article
+    FOR EACH ROW EXECUTE FUNCTION move_to_article_deleted();
+    """),
+    # Article-translate
+    text("""
+    CREATE OR REPLACE FUNCTION move_to_article_translate_deleted()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        INSERT INTO article_translate_deleted (article_id, image_src, language_id, title, content, tsv_content, deleted_at)
+        VALUES (OLD.article_id, OLD.image_src, OLD.language_id, OLD.title, OLD.content, OLD.tsv_content, NOW());
+        RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql;
+    """),
+    text("""
+    CREATE TRIGGER trigger_move_to_article_translate_deleted
+    BEFORE DELETE ON article_translate
+    FOR EACH ROW EXECUTE FUNCTION move_to_article_translate_deleted();
     """),
 ]

@@ -1,6 +1,6 @@
 from sqlalchemy import insert
 
-from db.models import Country
+from db.models import Country, Status
 from db.statement import Statement
 
 SCHEMAS_LIST = (
@@ -12,6 +12,7 @@ SCHEMAS_LIST = (
 )
 
 # Tuple of insert statements for initial data loading
+# TODO: add statuses, roles and reformat insert country data.
 BASE_STATEMENTS: tuple[Statement, ...] = (
     Statement(
         description="Insert country 'Russia'",

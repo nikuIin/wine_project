@@ -346,3 +346,94 @@ class NextCodeAttemptNotPassedError(Exception):
         + " Please wait a bit more",
     ):
         super().__init__(message)
+
+
+# ===================================== #
+#            Article errors             #
+# ===================================== #
+
+
+class TagAlreadyImplementedError(Exception):
+    """Occures when the tag already exists in the article"""
+
+    def __init__(self, message="Tag already implemented in the article."):
+        super().__init__(message)
+
+
+class ArticleAlreadyExistsError(Exception):
+    """Occures when the article already exists in the database"""
+
+    def __init__(self, message="Article already exists in the database."):
+        super().__init__(message)
+
+
+class ArticleDoesNotExistsError(Exception):
+    """Occures when the article doesn't exists in the database"""
+
+    def __init__(self, message="Article doesn't exists in the database."):
+        super().__init__(message)
+
+
+class AuthorDoesNotExistsError(Exception):
+    """Occures when the author doesn't exists in the database"""
+
+    def __init__(self, message="Author doesn't exists in the database."):
+        super().__init__(message)
+
+
+class ArticleDatabaseError(Exception):
+    pass
+
+
+class SlugAlreadyExistsError(Exception):
+    """Occures when the article or tag with the same slug already exists."""
+
+    def __init__(self, message="The same slug already exists."):
+        super().__init__(message)
+
+
+class TitleAlreadyExistsError(Exception):
+    """
+    Occures when the article with the same title and language already exists
+    """
+
+    def __init__(
+        self, message="The same title already exists in the some article."
+    ):
+        super().__init__(message)
+
+
+class TagAlreadyExistsError(Exception):
+    """
+    Occures when the tag with the same name and language already exists
+    """
+
+    def __init__(self, message="The same tag already exists."):
+        super().__init__(message)
+
+
+class ArticleIntegrityError(Exception):
+    """The error occurs when database throw
+    IntegrityError after operation with article
+    or article_translate data.
+    """
+
+    def __init__(self, message="The integrity error of article data."):
+        super().__init__(message)
+
+
+class TagDoesNotExistsError(Exception):
+    """The error occures when the tag doesn't exists."""
+
+    def __init__(self, message="The tag doesn't exists."):
+        super().__init__(message)
+
+
+class TagIntegrityError(Exception):
+    """The error occurs when database throw
+    IntegrityError after operation with tag
+    or tag_translate data.
+    """
+
+    def __init__(self, message="The integrity error of tag data."):
+        super().__init__(message)
