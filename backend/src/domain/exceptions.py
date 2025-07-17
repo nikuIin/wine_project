@@ -22,7 +22,7 @@ class TokenSessionExpiredError(Exception):
 
 
 class InvalidTokenDataError(Exception):
-    """The error, which occures, that the JWT-payload is invalid"""
+    """The error, which occurs, that the JWT-payload is invalid"""
 
     def __init__(self, message="Invalid JWT-payload."):
         super().__init__(message)
@@ -183,7 +183,7 @@ class UserAlreadyExistsError(Exception):
 
 
 # ===============================
-#         Region erros          #
+#         Region errors          #
 # ===============================
 
 
@@ -321,7 +321,7 @@ class DeleteVerificationKeyError(Exception):
 
 
 class RateLimitingError(Exception):
-    """The error occures with a lot of attepts of auth with the same data
+    """The error occurs with a lot of attepts of auth with the same data
     in the one time period"""
 
     def __init__(self, message="A lot of attemts to auth."):
@@ -337,7 +337,7 @@ class EmailRateLimitingError(RateLimitingError):
 
 
 class NextCodeAttemptNotPassedError(Exception):
-    """The error occures when client ask new code in the time interval
+    """The error occurs when client ask new code in the time interval
     when new attemnt does't allowed"""
 
     def __init__(
@@ -354,28 +354,28 @@ class NextCodeAttemptNotPassedError(Exception):
 
 
 class TagAlreadyImplementedError(Exception):
-    """Occures when the tag already exists in the article"""
+    """Occurs when the tag already exists in the article"""
 
     def __init__(self, message="Tag already implemented in the article."):
         super().__init__(message)
 
 
 class ArticleAlreadyExistsError(Exception):
-    """Occures when the article already exists in the database"""
+    """Occurs when the article already exists in the database"""
 
     def __init__(self, message="Article already exists in the database."):
         super().__init__(message)
 
 
 class ArticleDoesNotExistsError(Exception):
-    """Occures when the article doesn't exists in the database"""
+    """Occurs when the article doesn't exists in the database"""
 
     def __init__(self, message="Article doesn't exists in the database."):
         super().__init__(message)
 
 
 class AuthorDoesNotExistsError(Exception):
-    """Occures when the author doesn't exists in the database"""
+    """Occurs when the author doesn't exists in the database"""
 
     def __init__(self, message="Author doesn't exists in the database."):
         super().__init__(message)
@@ -386,7 +386,7 @@ class ArticleDatabaseError(Exception):
 
 
 class SlugAlreadyExistsError(Exception):
-    """Occures when the article or tag with the same slug already exists."""
+    """Occurs when the article or tag with the same slug already exists."""
 
     def __init__(self, message="The same slug already exists."):
         super().__init__(message)
@@ -394,7 +394,7 @@ class SlugAlreadyExistsError(Exception):
 
 class TitleAlreadyExistsError(Exception):
     """
-    Occures when the article with the same title and language already exists
+    Occurs when the article with the same title and language already exists
     """
 
     def __init__(
@@ -405,7 +405,7 @@ class TitleAlreadyExistsError(Exception):
 
 class TagAlreadyExistsError(Exception):
     """
-    Occures when the tag with the same name and language already exists
+    Occurs when the tag with the same name and language already exists
     """
 
     def __init__(self, message="The same tag already exists."):
@@ -423,7 +423,7 @@ class ArticleIntegrityError(Exception):
 
 
 class TagDoesNotExistsError(Exception):
-    """The error occures when the tag doesn't exists."""
+    """The error Occurs when the tag doesn't exists."""
 
     def __init__(self, message="The tag doesn't exists."):
         super().__init__(message)

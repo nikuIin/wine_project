@@ -188,7 +188,7 @@ class ArticleRepository:
                     delete_translate_article,
                     params={"article_id": article_id},
                 )
-                article_delele = await session.execute(
+                article_delete = await session.execute(
                     delete_article,
                     params={
                         "article_id": article_id,
@@ -196,7 +196,7 @@ class ArticleRepository:
                 )
                 await session.commit()
 
-            return article_delele.rowcount + translate_article_delete.rowcount  # type: ignore
+            return article_delete.rowcount + translate_article_delete.rowcount  # type: ignore
         except DBAPIError as error:
             logger.error(
                 "Error when trying to delete article %s",
@@ -241,7 +241,7 @@ class ArticleRepository:
                 elif "article_title_language_unique" in str(error):
                     raise TitleAlreadyExistsError from error
             logger.warning(
-                "Doen't deretmined error while adding tag %s",
+                "Doesn't deretmined error while adding tag %s",
                 tag,
                 exc_info=error,
             )
