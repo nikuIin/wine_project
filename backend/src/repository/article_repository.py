@@ -27,7 +27,12 @@ from domain.exceptions import (
     TagIntegrityError,
     TitleAlreadyExistsError,
 )
-from schemas.article_schema import ArticleCreateSchema, ArticleUpdateSchema
+from schemas.article_schema import (
+    ArticleCreateSchema,
+    ArticleUpdateSchema,
+    TagCreateSchema,
+    TagGetSchema,
+)
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -205,7 +210,7 @@ class ArticleRepository:
             )
             raise ArticleDatabaseError from error
 
-    async def add_tag(self, tag: Tag) -> None:
+    async def add_tag(self, tag: TagCreateSchema) -> None:
         tag_model = TagModel(
             tag_id=tag.tag_id,
         )
@@ -306,7 +311,7 @@ class ArticleRepository:
 
     # TODO: change domain model Tag to some list tag-schema
     async def set_tags_to_article(
-        self, article_id: UUID, tags: list[Tag]
+        self, article_id: UUID, tags: list[TagGetSchema]
     ) -> None:
         models = [
             TagArticleModel(tag_id=tag.tag_id, article_id=article_id)

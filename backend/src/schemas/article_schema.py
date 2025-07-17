@@ -13,6 +13,7 @@ from schemas.language_schema import LanguageSchema
 
 
 class TagSchema(BaseModel):
+    tag_id: int = Field(ge=1, le=MAX_DB_INT)
     name: str = Field(
         min_length=BASE_MIN_STR_LENGTH,
         max_length=BASE_MAX_STR_LENGTH,
@@ -20,7 +21,11 @@ class TagSchema(BaseModel):
 
 
 class TagGetSchema(TagSchema, LanguageSchema):
-    tag_id: int = Field(ge=1, le=MAX_DB_INT)
+    pass
+
+
+class TagCreateSchema(TagSchema, LanguageSchema):
+    pass
 
 
 class ArticleSchema(BaseModel):
