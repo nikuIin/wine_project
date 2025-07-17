@@ -44,6 +44,7 @@ class UserRepository:
                 user_id,
                 login,
                 password,
+                email,
                 role_id,
                 created_at,
                 is_registered
@@ -52,6 +53,7 @@ class UserRepository:
                 :user_id,
                 :login,
                 :password,
+                :email,
                 :role_id,
                 current_timestamp,
                 false
@@ -60,8 +62,8 @@ class UserRepository:
         )
         insert_md_data_stmt = text(
             """
-            insert into md_user (user_id, email)
-            values (:user_id, :email)
+            insert into md_user (user_id)
+            values (:user_id)
             """
         )
         try:
@@ -71,6 +73,7 @@ class UserRepository:
                     params={
                         "user_id": user.user_id,
                         "login": user.login,
+                        "email": user.email,
                         "password": user.password,
                         "role_id": USER_ROLE_ID,
                     },
