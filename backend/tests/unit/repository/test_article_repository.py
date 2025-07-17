@@ -35,7 +35,12 @@ from domain.exceptions import (
     TitleAlreadyExistsError,
 )
 from repository.article_repository import ArticleRepository
-from schemas.article_schema import ArticleCreateSchema, ArticleUpdateSchema
+from schemas.article_schema import (
+    ArticleCreateSchema,
+    ArticleUpdateSchema,
+    TagCreateSchema,
+    TagGetSchema,
+)
 
 
 @fixture
@@ -455,7 +460,7 @@ class TestArticleRepository:
         "tag, expectation",
         [
             (
-                Tag(
+                TagCreateSchema(
                     tag_id=100,
                     name="new_tag",
                     language=LanguageEnum.ENGLISH,
@@ -463,7 +468,7 @@ class TestArticleRepository:
                 dont_raise(),
             ),
             (
-                Tag(
+                TagCreateSchema(
                     tag_id=101,
                     name=TAG_NAME,
                     language=LanguageEnum.ENGLISH,
@@ -475,7 +480,7 @@ class TestArticleRepository:
     )
     async def test_add_tag(
         self,
-        tag: Tag,
+        tag: TagCreateSchema,
         expectation,
         article_repository: ArticleRepository,
         async_session: AsyncSession,
@@ -523,7 +528,7 @@ class TestArticleRepository:
             (
                 PINOT_ARTICLE_ID,
                 [
-                    Tag(
+                    TagGetSchema(
                         tag_id=101,
                         name="new_tag_1",
                         language=LanguageEnum.ENGLISH,
@@ -534,7 +539,7 @@ class TestArticleRepository:
             (
                 PINOT_ARTICLE_ID,
                 [
-                    Tag(
+                    TagGetSchema(
                         tag_id=100,
                         name="new_tag_1",
                         language=LanguageEnum.ENGLISH,
@@ -545,7 +550,7 @@ class TestArticleRepository:
             (
                 NO_EXISTING_ARTICLE_ID,
                 [
-                    Tag(
+                    TagGetSchema(
                         tag_id=100,
                         name="new_tag_1",
                         language=LanguageEnum.ENGLISH,
@@ -556,7 +561,7 @@ class TestArticleRepository:
             (
                 BASE_ARTICLE_ID,
                 [
-                    Tag(
+                    TagGetSchema(
                         tag_id=101,
                         name="new-tag",
                         language=LanguageEnum.ENGLISH,
@@ -570,13 +575,12 @@ class TestArticleRepository:
             "article_does_not_exists_error",
             "tag_does_not_exists",
             "tag_already_exists_error",
-            "new",
         ),
     )
     async def test_set_tags_to_article(
         self,
         article_id: UUID,
-        tags: list[Tag],
+        tags: list[TagGetSchema],
         expectation,
         article_repository: ArticleRepository,
         async_session: AsyncSession,
