@@ -1,10 +1,15 @@
 """
 The file contains the test data for database.
-This file have been creating like the db/dependencies/base_statements.py file.
+This file has been created like the db/dependencies/base_statements.py file.
 """
 
 from sqlalchemy import insert
 from tests.unit.constants import (
+    BASE_ARTICLE_AUTHOR_ID,
+    BASE_ARTICLE_CATEGORY_ID,
+    BASE_ARTICLE_ID,
+    BASE_ARTICLE_SLUG,
+    BASE_ARTICLE_TITLE,
     BELARUS_ID,
     BELARUS_NAME,
     MOSCOW_REGION_ID,
@@ -13,6 +18,10 @@ from tests.unit.constants import (
     NEW_GRAPE_LANGUAGE,
     NEW_GRAPE_NAME,
     NEW_GRAPE_REGION_ID,
+    PINOT_ARTICLE_ID,
+    PINOT_ARTICLE_LANGUAGE,
+    PINOT_ARTICLE_SLUG,
+    PINOT_ARTICLE_TITLE,
     PINOT_GRAPE_ID,
     PINOT_GRAPE_LANGUAGE,
     PINOT_GRAPE_NAME,
@@ -23,6 +32,10 @@ from tests.unit.constants import (
 )
 
 from db.models import (
+    Article,
+    ArticleTranslate,
+    Author,
+    BlogCategory,
     Country,
     CountryTranslate,
     Grape,
@@ -30,9 +43,15 @@ from db.models import (
     Language,
     Region,
     RegionTranslate,
+    Role,
+    Status,
+    Tag,
+    TagArticle,
+    TagTranslate,
+    User,
 )
 from db.statement import Statement
-from domain.enums import LanguageEnum
+from domain.enums import ArticleStatus, LanguageEnum
 
 # Tuple of insert statements for initial **test** data loading
 TEST_STATEMENTS: tuple[Statement, ...] = (
@@ -45,11 +64,149 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert language 'ge'",
+        description="Insert language 'en'",
         statement=insert(Language),
-        data={"language_id": LanguageEnum.ENGLISH, "name": "German"},
+        data={"language_id": LanguageEnum.ENGLISH, "name": "English"},
         check_query=lambda session: session.query(Language)
         .filter_by(language_id=LanguageEnum.ENGLISH)
+        .first(),
+    ),
+    Statement(
+        description="Insert language 'ge'",
+        statement=insert(Language),
+        data={"language_id": "ge", "name": "German"},
+        check_query=lambda session: session.query(Language)
+        .filter_by(language_id="ge")
+        .first(),
+    ),
+    Statement(
+        description="Insert the test role",
+        statement=insert(Role),
+        data={"role_id": 1, "name": "Test Role"},
+        check_query=lambda session: session.query(Role)
+        .filter_by(role_id=1)
+        .first(),
+    ),
+    Statement(
+        description="Insert user 'Base User'",
+        statement=insert(User),
+        data={
+            "user_id": BASE_ARTICLE_AUTHOR_ID,
+            "login": "base_user",
+            "email": "base_user@example.com",
+            "password": "securepassword123",
+            "role_id": 1,
+            "is_registered": True,
+        },
+        check_query=lambda session: session.query(User)
+        .filter_by(user_id=BASE_ARTICLE_AUTHOR_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert author 'Base Author'",
+        statement=insert(Author),
+        data={
+            "user_id": BASE_ARTICLE_AUTHOR_ID,
+            "name": "Base Author",
+            "work_place": "Test",
+            "language_id": LanguageEnum.DEFAULT_LANGUAGE,
+            "post": "CEO",
+        },
+        check_query=lambda session: session.query(Author)
+        .filter_by(author_id=BASE_ARTICLE_AUTHOR_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert category 'Base Category'",
+        statement=insert(BlogCategory),
+        data={
+            "blog_category_id": BASE_ARTICLE_CATEGORY_ID,
+            "slug": "base-category",
+        },
+        check_query=lambda session: session.query(BlogCategory)
+        .filter_by(category_id=BASE_ARTICLE_CATEGORY_ID)
+        .first(),
+    ),
+    Statement(
+        description="Add status",
+        statement=insert(Status),
+        data={"status_id": 1},
+        check_query=lambda session: session.query(Status)
+        .filter_by(status_id=1)
+        .first(),
+    ),
+    Statement(
+        description="Add status",
+        statement=insert(Status),
+        data={"status_id": 2},
+        check_query=lambda session: session.query(Status)
+        .filter_by(status_id=2)
+        .first(),
+    ),
+    Statement(
+        description="Add status",
+        statement=insert(Status),
+        data={"status_id": 3},
+        check_query=lambda session: session.query(Status)
+        .filter_by(status_id=3)
+        .first(),
+    ),
+    Statement(
+        description="Insert article 'Pinot Article'",
+        statement=insert(Article),
+        data={
+            "article_id": PINOT_ARTICLE_ID,
+            "author_id": BASE_ARTICLE_AUTHOR_ID,
+            "slug": PINOT_ARTICLE_SLUG,
+            "category_id": BASE_ARTICLE_CATEGORY_ID,
+            "views_count": 50,
+            "status_id": ArticleStatus.DRAFT,
+        },
+        check_query=lambda session: session.query(Article)
+        .filter_by(article_id=PINOT_ARTICLE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert article translate data 'Pinot Article' ru",
+        statement=insert(ArticleTranslate),
+        data={
+            "article_id": PINOT_ARTICLE_ID,
+            "title": PINOT_ARTICLE_TITLE,
+            "content": "Pinot article content",
+            "language_id": PINOT_ARTICLE_LANGUAGE,
+            "image_src": "pinot_image.jpg",
+        },
+        check_query=lambda session: session.query(ArticleTranslate)
+        .filter_by(article_id=PINOT_ARTICLE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert article 'Base Article'",
+        statement=insert(Article),
+        data={
+            "article_id": BASE_ARTICLE_ID,
+            "author_id": BASE_ARTICLE_AUTHOR_ID,
+            "slug": BASE_ARTICLE_SLUG,
+            "category_id": BASE_ARTICLE_CATEGORY_ID,
+            "views_count": 100,
+            "status_id": ArticleStatus.PUBLISHED,
+        },
+        check_query=lambda session: session.query(Article)
+        .filter_by(article_id=BASE_ARTICLE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert article translate data 'Base Article' ru",
+        statement=insert(ArticleTranslate),
+        data={
+            "article_id": BASE_ARTICLE_ID,
+            "title": BASE_ARTICLE_TITLE,
+            "content": "Base article content",
+            "language_id": LanguageEnum.RUSSIAN,
+            "image_src": "base_image.jpg",
+        },
+        check_query=lambda session: session.query(ArticleTranslate)
+        .filter_by(article_id=BASE_ARTICLE_ID)
         .first(),
     ),
     Statement(
@@ -81,7 +238,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert translate country data 'Belarus'",
+        description="Insert translate country data 'Russia'",
         statement=insert(CountryTranslate),
         data={
             "country_id": RUSSIA_ID,
@@ -89,7 +246,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
             "language_id": LanguageEnum.RUSSIAN,
         },
         check_query=lambda session: session.query(CountryTranslate)
-        .filter_by(country_id=BELARUS_ID)
+        .filter_by(country_id=RUSSIA_ID)
         .first(),
     ),
     Statement(
@@ -109,7 +266,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert region transalate data 'Samara' ru",
+        description="Insert region translate data 'Samara' ru",
         statement=insert(RegionTranslate),
         data={
             "name": SAMARA_REGION_NAME,
@@ -121,7 +278,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert region transalate data 'Moscow' ru",
+        description="Insert region translate data 'Moscow' ru",
         statement=insert(RegionTranslate),
         data={
             "name": MOSCOW_REGION_NAME,
@@ -156,7 +313,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert grape data 'Pinot noir'",
+        description="Insert grape data 'New Grape'",
         statement=insert(Grape),
         data={
             "grape_id": NEW_GRAPE_ID,
@@ -167,7 +324,7 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         .first(),
     ),
     Statement(
-        description="Insert grape translate data 'Pinot noir' ru",
+        description="Insert grape translate data 'New Grape' ru",
         statement=insert(GrapeTranslate),
         data={
             "grape_id": NEW_GRAPE_ID,
@@ -176,6 +333,37 @@ TEST_STATEMENTS: tuple[Statement, ...] = (
         },
         check_query=lambda session: session.query(GrapeTranslate)
         .filter_by(grape_id=NEW_GRAPE_ID)
+        .first(),
+    ),
+    Statement(
+        description="Insert tag",
+        statement=insert(Tag),
+        data={"tag_id": 101},
+        check_query=lambda session: session.query(Tag)
+        .filter_by(tag_id=101)
+        .first(),
+    ),
+    Statement(
+        description="Insert tag_translate",
+        statement=insert(TagTranslate),
+        data={
+            "tag_id": 101,
+            "language_id": LanguageEnum.ENGLISH,
+            "name": "new-tag",
+        },
+        check_query=lambda session: session.query(TagTranslate)
+        .filter_by(tag_id=101)
+        .first(),
+    ),
+    Statement(
+        description="Insert tag_article",
+        statement=insert(TagArticle),
+        data={
+            "tag_id": 101,
+            "article_id": BASE_ARTICLE_ID,
+        },
+        check_query=lambda session: session.query(TagArticle)
+        .filter_by(tag_id=101)
         .first(),
     ),
 )
