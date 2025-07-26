@@ -371,3 +371,26 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trigger_move_to_article_translate_deleted
 BEFORE DELETE ON article_translate
 FOR EACH ROW EXECUTE FUNCTION move_to_article_translate_deleted();
+
+
+-- Content
+create or replace function move_to_content_deleted()
+return trigger as $$
+begin
+    insert into content_deleted (content_id, language_id, md_title, md_description, content, created_at, updated_at, deleted_at)
+    values (old.content_id, old.language_id, old.md_title, old.md_description, old.content, old.created_at, old.updated_at, current_timestamp)
+    on conflict (content_id, language_id)
+    do update set
+        md_title = excluded.md_title,
+        md_description = excluded.md_description,
+        content = excluded.content,
+        created_at = excluded.created_at,
+        updated_at = excluded.updated_at,
+        deleted_at = current_timestamp
+    return old;
+end;
+$$ language plpgsql;
+
+create trigger trigger_move_to_content_deleted
+before delete on content
+for each row execute function move_to_content_deleted();
