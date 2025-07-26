@@ -42,6 +42,7 @@ class AbstractContentRepository(ABC):
     async def get_content_by_name(
         self,
         content_name: str,
+        language: LanguageEnum,
     ) -> Content | None:
         """
         Retrieve content by its name.
@@ -153,8 +154,29 @@ class ContentRepository(AbstractContentRepository):
     async def get_content_by_name(
         self,
         content_name: str,
+        language: LanguageEnum,
     ) -> Content | None:
-        raise NotImplementedError
+        stmt = select(
+            C.c.content_id,
+            C.c.md_title,
+            C.c.md_description,
+            C.c.content,
+            C.c.language_id.label("language"),
+        ).where(
+            and_(C.c.md_title == content_name, C.c.language_id == language)
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+
+            logger.info(stmt)
+            result = result.mappings().fetchone()
+            return Content(**result) if result else None
+
+        except DBAPIError as error:
+            logger.error("DBError with get content", exc_info=error)
+            raise ContentDBError from error
 
     async def update_content(
         self,
