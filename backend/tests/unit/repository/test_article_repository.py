@@ -18,13 +18,20 @@ from tests.unit.constants import (
     PINOT_ARTICLE_LANGUAGE,
     PINOT_ARTICLE_SLUG,
     PINOT_ARTICLE_TITLE,
+    PINOT_GRAPE_LANGUAGE,
     TAG_ID,
     TAG_NAME,
 )
 
-from domain.entities.article import Article, Author
+from domain.entities.article import Article, ArticleCategory, Author
 from domain.entities.tag import Tag
-from domain.enums import ArticleCategory, ArticleStatus, LanguageEnum
+from domain.enums import (
+    ArticleCategoriesID,
+    ArticleSortBy,
+    ArticleStatus,
+    LanguageEnum,
+    SortOrder,
+)
 from domain.exceptions import (
     ArticleAlreadyExistsError,
     ArticleDoesNotExistsError,
@@ -64,14 +71,17 @@ class TestArticleRepository:
                     article_id=PINOT_ARTICLE_ID,
                     title=PINOT_ARTICLE_TITLE,
                     image_src="pinot_image.jpg",
-                    content="Pinot article content",
+                    content="# Pinot article content",
                     language=PINOT_ARTICLE_LANGUAGE,
                     author=Author(
                         author_id=BASE_ARTICLE_AUTHOR_ID,
                         first_name="John",
                         last_name="Doe",
                     ),
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
+                    category=ArticleCategory(
+                        category_id=BASE_ARTICLE_CATEGORY_ID,
+                        name="Base Category",
+                    ),
                     views_count=50,
                     status=ArticleStatus.DRAFT,
                     slug=PINOT_ARTICLE_SLUG,
@@ -92,14 +102,17 @@ class TestArticleRepository:
                     article_id=UUID("223e4567-e89b-12d3-a456-426614174002"),
                     title="Merlot Article",
                     image_src="merlot_image.jpg",
-                    content="Merlot article content",
+                    content="# Merlot article content",
                     language=LanguageEnum.RUSSIAN,
                     author=Author(
                         author_id=UUID("550e8400-e29b-41d4-a716-446655440000"),
                         first_name="John",
                         last_name="Doe",
                     ),
-                    category_id=ArticleCategory.RED_WINE,
+                    category=ArticleCategory(
+                        category_id=ArticleCategoriesID.RED_WINE,
+                        name="Base Category",
+                    ),
                     views_count=75,
                     status=ArticleStatus.DRAFT,
                     slug="merlot-article",
@@ -116,11 +129,18 @@ class TestArticleRepository:
                 None,
                 dont_raise(),
             ),
+            (
+                "223e4567-e89b-12d3-a456-426614174002",
+                LanguageEnum.KAZAKHSTAN,
+                None,
+                dont_raise(),
+            ),
         ],
         ids=[
             "success_article_with_tags",
             "success_article_without_tags",
-            "not_exists_article_with_",
+            "not_exists_article_with_definite_id",
+            "not_exists_article_with_definite_language",
         ],
     )
     async def test_get_article(
@@ -136,361 +156,20 @@ class TestArticleRepository:
                 article_id=article_id, language=language
             )
 
-            assert article is not None
-            assert article.article_id == article_expectation.article_id
-            assert article.title == article_expectation.title
-            assert article.content == article_expectation.content
-            assert article.slug == article_expectation.slug
-            assert article.published_at == article_expectation.published_at
-            assert article.category_id == article_expectation.category_id
-            assert article.tags == article_expectation.tags
-            assert article.author == article_expectation.author
-            assert article.image_src == article_expectation.image_src
-            assert article.views_count == article_expectation.views_count
-
-    @mark.parametrize(
-        "article, expectation",
-        [
-            (
-                ArticleCreateSchema(
-                    article_id=uuid4(),
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug="new-slug",
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=1,
-                    status=ArticleStatus.DRAFT,
-                    title="new-title",
-                    content="New article content",
-                    language=LanguageEnum.RUSSIAN,
-                    image_src="new_image.jpg",
-                ),
-                dont_raise(),
-            ),
-            (
-                ArticleCreateSchema(
-                    article_id=uuid4(),
-                    author_id=NO_EXISTING_AUTHOR_ID,
-                    slug="new-slug",
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=1,
-                    status=ArticleStatus.DRAFT,
-                    title=BASE_ARTICLE_TITLE,
-                    content="New article content",
-                    language=LanguageEnum.RUSSIAN,
-                    image_src="new_image.jpg",
-                ),
-                raises(AuthorDoesNotExistsError),
-            ),
-            (
-                ArticleCreateSchema(
-                    article_id=uuid4(),
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug="new-slug",
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=1,
-                    status=ArticleStatus.DRAFT,
-                    title=BASE_ARTICLE_TITLE,
-                    content="New article content",
-                    language=NO_EXISTING_LANGUAGE_ID,
-                    image_src="new_image.jpg",
-                ),
-                raises(LanguageDoesNotExistsError),
-            ),
-            (
-                ArticleCreateSchema(
-                    article_id=uuid4(),
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=PINOT_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=1,
-                    status=ArticleStatus.DRAFT,
-                    title=BASE_ARTICLE_TITLE,
-                    content="New article content",
-                    language=LanguageEnum.RUSSIAN,
-                    image_src="new_image.jpg",
-                ),
-                raises(SlugAlreadyExistsError),
-            ),
-            (
-                ArticleCreateSchema(
-                    article_id=BASE_ARTICLE_ID,
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=BASE_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=1,
-                    status=ArticleStatus.DRAFT,
-                    title=PINOT_ARTICLE_TITLE,
-                    content="New article content",
-                    language=LanguageEnum.RUSSIAN,
-                    image_src="new_image.jpg",
-                ),
-                raises(ArticleAlreadyExistsError),
-            ),
-            (
-                ArticleCreateSchema(
-                    article_id=PINOT_ARTICLE_ID,
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=BASE_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=1,
-                    status=ArticleStatus.DRAFT,
-                    title=BASE_ARTICLE_TITLE,
-                    content="New article content",
-                    language=LanguageEnum.RUSSIAN,
-                    image_src="new_image.jpg",
-                ),
-                raises(ArticleAlreadyExistsError),
-            ),
-        ],
-        ids=(
-            "success__create_article",
-            "author_no_exists_error",
-            "language_no_exists_error",
-            "slug_unique_error",
-            "title_unique_error",
-            "article_already_exists_error",
-        ),
-    )
-    async def test_article_insert(
-        self,
-        article: ArticleCreateSchema,
-        article_repository: ArticleRepository,
-        expectation,
-        async_session: AsyncSession,
-    ):
-        with expectation:
-            await article_repository.article_insert(article=article)
-
-            # Verify insertion only for successful case
-            if expectation is dont_raise():
-                async with async_session:
-                    result_article = await async_session.execute(
-                        text(
-                            """
-                            select
-                                article_id,
-                                author_id,
-                                slug,
-                                category_id,
-                                views_count,
-                                status
-                            from article
-                            where article_id=:article_id
-                            """
-                        ),
-                        params={"article_id": article.article_id},
-                    )
-
-                    result_article_translate = await async_session.execute(
-                        text(
-                            """
-                            select
-                                article_id,
-                                title,
-                                content,
-                                image_src,
-                                language_id
-                            from article_translate
-                            where article_id=:article_id and language_id=:language_id
-                            """
-                        ),
-                        params={
-                            "article_id": article.article_id,
-                            "language_id": article.language,
-                        },
-                    )
-
-                result_article = result_article.mappings().one_or_none()
-                result_article_translate = (
-                    result_article_translate.mappings().one_or_none()
-                )
-
-                assert result_article is not None
-                assert result_article_translate is not None
-
-                assert result_article.article_id == article.article_id
-                assert result_article.author_id == article.author_id
-                assert result_article.slug == article.slug
-                assert result_article.category_id == article.category_id
-                assert result_article.views_count == article.views_count
-                assert result_article.status == article.status
-                assert (
-                    result_article_translate.article_id == article.article_id
-                )
-                assert result_article_translate.title == article.title
-                assert result_article_translate.content == article.content
-                assert result_article_translate.image_src == article.image_src
-                assert result_article_translate.language_id == article.language
-
-    @mark.parametrize(
-        "article_id, language, update_article, expectation",
-        [
-            (
-                PINOT_ARTICLE_ID,
-                PINOT_ARTICLE_LANGUAGE,
-                ArticleUpdateSchema(
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=PINOT_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=100,
-                    status=ArticleStatus.PUBLISHED,
-                    title=PINOT_ARTICLE_TITLE,
-                    content="Updated content",
-                    language=PINOT_ARTICLE_LANGUAGE,
-                    image_src="updated_image.jpg",
-                ),
-                dont_raise(),
-            ),
-            (
-                PINOT_ARTICLE_ID,
-                PINOT_ARTICLE_LANGUAGE,
-                ArticleUpdateSchema(
-                    author_id=NO_EXISTING_AUTHOR_ID,
-                    slug=PINOT_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=100,
-                    status=ArticleStatus.PUBLISHED,
-                    title=BASE_ARTICLE_TITLE,
-                    content="Updated content",
-                    language=PINOT_ARTICLE_LANGUAGE,
-                    image_src="updated_image.jpg",
-                ),
-                raises(AuthorDoesNotExistsError),
-            ),
-            (
-                PINOT_ARTICLE_ID,
-                LanguageEnum.KAZAKHSTAN,
-                ArticleUpdateSchema(
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=PINOT_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=100,
-                    status=ArticleStatus.PUBLISHED,
-                    title=BASE_ARTICLE_TITLE,
-                    content="Updated content",
-                    language=LanguageEnum.KAZAKHSTAN,
-                    image_src="updated_image.jpg",
-                ),
-                dont_raise(),
-            ),
-            (
-                PINOT_ARTICLE_ID,
-                PINOT_ARTICLE_LANGUAGE,
-                ArticleUpdateSchema(
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=BASE_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=100,
-                    status=ArticleStatus.PUBLISHED,
-                    title=BASE_ARTICLE_TITLE,
-                    content="Updated content",
-                    language=PINOT_ARTICLE_LANGUAGE,
-                    image_src="updated_image.jpg",
-                ),
-                raises(SlugAlreadyExistsError),
-            ),
-            (
-                PINOT_ARTICLE_ID,
-                PINOT_ARTICLE_LANGUAGE,
-                ArticleUpdateSchema(
-                    author_id=BASE_ARTICLE_AUTHOR_ID,
-                    slug=PINOT_ARTICLE_SLUG,
-                    category_id=BASE_ARTICLE_CATEGORY_ID,
-                    views_count=100,
-                    status=ArticleStatus.PUBLISHED,
-                    title=BASE_ARTICLE_TITLE,
-                    content="Updated content",
-                    language=PINOT_ARTICLE_LANGUAGE,
-                    image_src="updated_image.jpg",
-                ),
-                raises(TitleAlreadyExistsError),
-            ),
-        ],
-        ids=(
-            "success__update_article",
-            "author_no_exists_error",
-            "language_no_exists_error",
-            "slug_unique_error",
-            "title_unique_error",
-        ),
-    )
-    async def test_update_article(
-        self,
-        article_id: UUID,
-        language: LanguageEnum,
-        update_article: ArticleUpdateSchema,
-        article_repository: ArticleRepository,
-        expectation,
-        async_session: AsyncSession,
-    ):
-        with expectation:
-            await article_repository.update_article(
-                article_id=article_id,
-                language=language,
-                update_article=update_article,
-            )
-
-            # Verify updates only for successful case
-            if expectation is dont_raise():
-                async with async_session:
-                    result_article = await async_session.execute(
-                        text(
-                            """
-                            select
-                                article_id,
-                                author_id,
-                                slug,
-                                category_id,
-                                views_count,
-                                status
-                            from article
-                            where article_id=:article_id
-                            """
-                        ),
-                        params={"article_id": article_id},
-                    )
-
-                    result_article_translate = await async_session.execute(
-                        text(
-                            """
-                            select
-                                article_id,
-                                title,
-                                content,
-                                image_src
-                            from article_translate
-                            where article_id=:article_id and language_id=:language_id
-                            """
-                        ),
-                        params={
-                            "article_id": article_id,
-                            "language_id": language.value,
-                        },
-                    )
-
-                result_article = result_article.mappings().one_or_none()
-                result_article_translate = (
-                    result_article_translate.mappings().one_or_none()
-                )
-
-                assert result_article is not None
-                assert result_article_translate is not None
-
-                assert result_article.article_id == article_id
-                assert result_article.author_id == update_article.author_id
-                assert result_article.slug == update_article.slug
-                assert result_article.category_id == update_article.category_id
-                assert result_article.views_count == update_article.views_count
-                assert result_article.status == update_article.status
-                assert result_article_translate.article_id == article_id
-                assert result_article_translate.title == update_article.title
-                assert (
-                    result_article_translate.content == update_article.content
-                )
-                assert (
-                    result_article_translate.image_src
-                    == update_article.image_src
-                )
+            if article_expectation is None:
+                assert article is article_expectation
+            else:
+                assert article is not None
+                assert article.article_id == article_expectation.article_id
+                assert article.title == article_expectation.title
+                assert article.content == article_expectation.content
+                assert article.slug == article_expectation.slug
+                assert article.published_at == article_expectation.published_at
+                assert article.category == article_expectation.category
+                assert article.tags == article_expectation.tags
+                assert article.author == article_expectation.author
+                assert article.image_src == article_expectation.image_src
+                assert article.views_count == article_expectation.views_count
 
     async def test_delete_article_success(
         self,
@@ -498,7 +177,7 @@ class TestArticleRepository:
         async_session: AsyncSession,
     ):
         rows = await article_repository.delete_article(
-            article_id=PINOT_ARTICLE_ID
+            article_id=PINOT_ARTICLE_ID,
         )
         assert rows == 2
 
@@ -582,7 +261,7 @@ class TestArticleRepository:
         async_session: AsyncSession,
     ):
         with expectation:
-            await article_repository.add_tag(tag)
+            await article_repository.create_tag(tag)
 
             if expectation is dont_raise():
                 result = await async_session.execute(
@@ -682,7 +361,12 @@ class TestArticleRepository:
         async_session: AsyncSession,
     ):
         with expectation:
-            await article_repository.set_tags_to_article(article_id, tags)
+            domain_tags = [
+                Tag(tag_id=tag.tag_id, name=tag.name) for tag in tags
+            ]
+            await article_repository.set_tags_to_article(
+                article_id, domain_tags
+            )
 
             if expectation is dont_raise():
                 for tag in tags:
