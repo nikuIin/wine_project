@@ -35,7 +35,6 @@ class SensitiveWordsFilter(Filter):
         "phone",
         "password",
         "passport",
-        "api",
         "key",
     }
 

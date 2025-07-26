@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from api.v1.endpoints.article import router as article_router
 from api.v1.endpoints.auth import router as auth_router
 from api.v1.endpoints.country import router as country_router
 from api.v1.endpoints.grape import router as grape_router
@@ -9,6 +10,7 @@ v1_router = APIRouter(prefix="/v1")
 
 
 routers = [
+    article_router,
     auth_router,
     country_router,
     region_router,

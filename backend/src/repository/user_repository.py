@@ -117,7 +117,7 @@ class UserRepository:
             raise UserDBError from error
 
     async def get_user_email(self, user_id: UUID) -> EmailStr | None:
-        stmt = text("select email from md_user where user_id = :user_id")
+        stmt = text('select email from "user" where user_id = :user_id')
 
         try:
             # === main logic ===

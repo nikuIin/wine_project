@@ -40,6 +40,8 @@ router = APIRouter(prefix="/grape", tags=["grape"])
 logger = get_configure_logger(Path(__file__).stem)
 
 
+# TODO: move grape_id to service layer
+# (generate automicity on the service layer instead web)
 @router.post(
     "/",
     status_code=HTTP_201_CREATED,

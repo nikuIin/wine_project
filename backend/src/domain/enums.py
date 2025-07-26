@@ -14,6 +14,23 @@ class ArticleStatus(IntEnum):
     PUBLISHED = 3
 
 
-class ArticleCategory(IntEnum):
+class ArticleCategoriesID(IntEnum):
     RED_WINE = 1
     WHITE_WINE = 2
+
+
+class ArticleSortBy(StrEnum):
+    # should be named like columns in the article table
+    PUBLISHED_AT = "published_at"
+    VIEWS_COUNT = "views_count"
+
+
+class SortOrder(StrEnum):
+    ASC = "asc"
+    DESC = "desc"
+
+
+class TSQUERYRules(StrEnum):
+    AND = "&"
+    OR = "|"
+    NOT = "!"

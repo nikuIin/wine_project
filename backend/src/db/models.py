@@ -11,6 +11,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    func,
 )
 from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -36,6 +37,10 @@ class Language(Base):
     flag_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("flag.flag_id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    cfgname: Mapped[str] = mapped_column(
+        String(255),
         nullable=True,
     )
 
@@ -534,7 +539,7 @@ class Article(Base, TimeStampMixin):
         ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
-    category_id: Mapped[int] = mapped_column(
+    blog_category_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("blog_category.blog_category_id", ondelete="CASCADE"),
         nullable=True,
@@ -553,6 +558,15 @@ class Article(Base, TimeStampMixin):
         Integer,
         nullable=False,
         default=0,
+    )
+    published_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        default=func.current_timestamp(),
+    )
+    scheduled_publish_time: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
     )
 
     __table_args__ = (
@@ -1154,7 +1168,7 @@ class StatusTranslate(Base):
     language_id: Mapped[VARCHAR] = mapped_column(
         VARCHAR(10),
         ForeignKey("language.language_id", ondelete="CASCADE"),
-        nullable=False,
+        primary_key=True,
     )
 
     language = relationship("Language", back_populates="status_translate")

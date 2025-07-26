@@ -381,8 +381,18 @@ class AuthorDoesNotExistsError(Exception):
         super().__init__(message)
 
 
+class AuthorIntegrityError(Exception):
+    """Occurs when the author data is invalid"""
+
+    def __init__(self, message="Author data is invalid."):
+        super().__init__(message)
+
+
 class ArticleDatabaseError(Exception):
-    pass
+    """Occurs with database error with article data"""
+
+    def __init__(self, message="Article data database error."):
+        super().__init__(message)
 
 
 class SlugAlreadyExistsError(Exception):
@@ -436,4 +446,22 @@ class TagIntegrityError(Exception):
     """
 
     def __init__(self, message="The integrity error of tag data."):
+        super().__init__(message)
+
+
+class TagDatabaseError(Exception):
+    pass
+
+
+class ContentTitleValidationError(Exception):
+    """The error occurs when the content of the article is not valid."""
+
+    def __init__(self, message="The title of the article is not valid."):
+        super().__init__(message)
+
+
+class SlugIsMissingError(Exception):
+    """The error occurs when the slug of the article is missing"""
+
+    def __init__(self, message="The slug of the article is missing."):
         super().__init__(message)
