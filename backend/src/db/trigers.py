@@ -7,7 +7,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO country_deleted (country_id, flag_id, deleted_at)
-        VALUES (OLD.country_id, OLD.flag_id, NOW());
+        VALUES (OLD.country_id, OLD.flag_id, NOW())
+        ON CONFLICT (country_id) DO UPDATE SET flag_id = EXCLUDED.flag_id, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -23,7 +24,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO country_translate_deleted (country_id, language_id, name, deleted_at)
-        VALUES (OLD.country_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.country_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (country_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -39,7 +41,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO region_deleted (region_id, country_id, deleted_at)
-        VALUES (OLD.region_id, OLD.country_id, NOW());
+        VALUES (OLD.region_id, OLD.country_id, NOW())
+        ON CONFLICT (region_id) DO UPDATE SET country_id = EXCLUDED.country_id, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -55,7 +58,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO region_translate_deleted (region_id, language_id, name, deleted_at)
-        VALUES (OLD.region_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.region_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (region_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -71,7 +75,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO grape_deleted (grape_id, region_id, deleted_at)
-        VALUES (OLD.grape_id, OLD.region_id, NOW());
+        VALUES (OLD.grape_id, OLD.region_id, NOW())
+        ON CONFLICT (grape_id) DO UPDATE SET region_id = EXCLUDED.region_id, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -87,7 +92,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO grape_translate_deleted (grape_id, language_id, name, deleted_at)
-        VALUES (OLD.grape_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.grape_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (grape_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -103,7 +109,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO product_deleted (product_id, price, discount, main_image_link, video_link, presentation_type_id, deleted_at)
-        VALUES (OLD.product_id, OLD.price, OLD.discount, OLD.main_image_link, OLD.video_link, OLD.presentation_type_id, NOW());
+        VALUES (OLD.product_id, OLD.price, OLD.discount, OLD.main_image_link, OLD.video_link, OLD.presentation_type_id, NOW())
+        ON CONFLICT (product_id) DO UPDATE SET price = EXCLUDED.price, discount = EXCLUDED.discount, main_image_link = EXCLUDED.main_image_link, video_link = EXCLUDED.video_link, presentation_type_id = EXCLUDED.presentation_type_id, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -119,7 +126,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO product_translate_deleted (product_id, language_id, name, deleted_at)
-        VALUES (OLD.product_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.product_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (product_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -135,7 +143,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO wine_category_deleted (wine_category_id, deleted_at)
-        VALUES (OLD.wine_category_id, NOW());
+        VALUES (OLD.wine_category_id, NOW())
+        ON CONFLICT (wine_category_id) DO UPDATE SET deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -151,7 +160,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO wine_category_translate_deleted (wine_category_id, language_id, name, deleted_at)
-        VALUES (OLD.wine_category_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.wine_category_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (wine_category_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -167,7 +177,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO wine_type_deleted (wine_type_id, deleted_at)
-        VALUES (OLD.wine_type_id, NOW());
+        VALUES (OLD.wine_type_id, NOW())
+        ON CONFLICT (wine_type_id) DO UPDATE SET deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -183,7 +194,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO wine_type_translate_deleted (wine_type_id, language_id, name, deleted_at)
-        VALUES (OLD.wine_type_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.wine_type_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (wine_type_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -199,7 +211,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO aroma_deleted (aroma_id, deleted_at)
-        VALUES (OLD.aroma_id, NOW());
+        VALUES (OLD.aroma_id, NOW())
+        ON CONFLICT (aroma_id) DO UPDATE SET deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -215,7 +228,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO aroma_translate_deleted (aroma_id, language_id, name, deleted_at)
-        VALUES (OLD.aroma_id, OLD.language_id, OLD.name, NOW());
+        VALUES (OLD.aroma_id, OLD.language_id, OLD.name, NOW())
+        ON CONFLICT (aroma_id, language_id) DO UPDATE SET name = EXCLUDED.name, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -231,7 +245,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO sort_deleted (grape_id, product_id, percentage_content, deleted_at)
-        VALUES (OLD.grape_id, OLD.product_id, OLD.percentage_content, NOW());
+        VALUES (OLD.grape_id, OLD.product_id, OLD.percentage_content, NOW())
+        ON CONFLICT (grape_id, product_id) DO UPDATE SET percentage_content = EXCLUDED.percentage_content, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -247,7 +262,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO wine_deleted (product_id, volume, wine_strength, harvest_year, wine_type_id, wine_category_id, min_serving_temperature, max_serving_temperature, deleted_at)
-        VALUES (OLD.product_id, OLD.volume, OLD.wine_strength, OLD.harvest_year, OLD.wine_type_id, OLD.wine_category_id, OLD.min_serving_temperature, OLD.max_serving_temperature, NOW());
+        VALUES (OLD.product_id, OLD.volume, OLD.wine_strength, OLD.harvest_year, OLD.wine_type_id, OLD.wine_category_id, OLD.min_serving_temperature, OLD.max_serving_temperature, NOW())
+        ON CONFLICT (product_id) DO UPDATE SET volume = EXCLUDED.volume, wine_strength = EXCLUDED.wine_strength, harvest_year = EXCLUDED.harvest_year, wine_type_id = EXCLUDED.wine_type_id, wine_category_id = EXCLUDED.wine_category_id, min_serving_temperature = EXCLUDED.min_serving_temperature, max_serving_temperature = EXCLUDED.max_serving_temperature, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -263,7 +279,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO wine_translate_deleted (wine_id, language_id, production_method_description, description, deleted_at)
-        VALUES (OLD.wine_id, OLD.language_id, OLD.production_method_description, OLD.description, NOW());
+        VALUES (OLD.wine_id, OLD.language_id, OLD.production_method_description, OLD.description, NOW())
+        ON CONFLICT (wine_id, language_id) DO UPDATE SET production_method_description = EXCLUDED.production_method_description, description = EXCLUDED.description, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -279,7 +296,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO aroma_wine_deleted (product_id, aroma_id, deleted_at)
-        VALUES (OLD.product_id, OLD.aroma_id, NOW());
+        VALUES (OLD.product_id, OLD.aroma_id, NOW())
+        ON CONFLICT (product_id, aroma_id) DO UPDATE SET deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -295,7 +313,8 @@ TRIGGERS = [
     RETURNS TRIGGER AS $$
     BEGIN
         INSERT INTO user_deleted (user_id, login, password, role_id, is_registered, deleted_at)
-        VALUES (OLD.user_id, OLD.login, OLD.password, OLD.role_id, OLD.is_registered, NOW());
+        VALUES (OLD.user_id, OLD.login, OLD.password, OLD.role_id, OLD.is_registered, NOW())
+        ON CONFLICT (user_id) DO UPDATE SET login = EXCLUDED.login, password = EXCLUDED.password, role_id = EXCLUDED.role_id, is_registered = EXCLUDED.is_registered, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -310,8 +329,9 @@ TRIGGERS = [
     CREATE OR REPLACE FUNCTION move_to_md_user_deleted()
     RETURNS TRIGGER AS $$
     BEGIN
-        INSERT INTO md_user_deleted (user_id, email, profile_picture_link, description, deleted_at)
-        VALUES (OLD.user_id, OLD.email, OLD.profile_picture_link, OLD.description, NOW());
+        INSERT INTO md_user_deleted (user_id, email, first_name, last_name, middle_name, profile_picture_link, description, deleted_at)
+        VALUES (OLD.user_id, OLD.email, OLD.profile_picture_link, OLD.description, NOW())
+        ON CONFLICT (user_id) DO UPDATE SET email = EXCLUDED.email, first_name = EXCLUDED.first_name, last_name = EXCLUDED.last_name, middle_name = EXCLUDED.middle_name, profile_picture_link = EXCLUDED.profile_picture_link, description = EXCLUDED.description, deleted_at = NOW();
         RETURN OLD;
     END;
     $$ LANGUAGE plpgsql;
@@ -320,5 +340,39 @@ TRIGGERS = [
     CREATE TRIGGER trigger_move_to_md_user_deleted
     BEFORE DELETE ON md_user
     FOR EACH ROW EXECUTE FUNCTION move_to_md_user_deleted();
+    """),
+    # Article
+    text("""
+    CREATE OR REPLACE FUNCTION move_to_article_deleted()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        INSERT INTO article_deleted (article_id, author_id, slug, views_count, deleted_at, created_at, updated_at)
+        VALUES (OLD.article_id, OLD.author_id, OLD.slug, OLD.views_count, NOW(), OLD.created_at, OLD.updated_at)
+        ON CONFLICT (article_id) DO UPDATE SET author_id = EXCLUDED.author_id, slug = EXCLUDED.slug, views_count = EXCLUDED.views_count, deleted_at = NOW(), created_at = EXCLUDED.created_at, updated_at = EXCLUDED.updated_at;
+        RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql;
+    """),
+    text("""
+    CREATE TRIGGER trigger_move_to_article_deleted
+    BEFORE DELETE ON article
+    FOR EACH ROW EXECUTE FUNCTION move_to_article_deleted();
+    """),
+    # Article-translate
+    text("""
+    CREATE OR REPLACE FUNCTION move_to_article_translate_deleted()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        INSERT INTO article_translate_deleted (article_id, image_src, language_id, title, content, tsv_content, deleted_at)
+        VALUES (OLD.article_id, OLD.image_src, OLD.language_id, OLD.title, OLD.content, OLD.tsv_content, NOW())
+        ON CONFLICT (article_id, language_id) DO UPDATE SET image_src = EXCLUDED.image_src, title = EXCLUDED.title, content = EXCLUDED.content, tsv_content = EXCLUDED.tsv_content, deleted_at = NOW();
+        RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql;
+    """),
+    text("""
+    CREATE TRIGGER trigger_move_to_article_translate_deleted
+    BEFORE DELETE ON article_translate
+    FOR EACH ROW EXECUTE FUNCTION move_to_article_translate_deleted();
     """),
 ]

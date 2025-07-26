@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
 
-from core.general_constants import DEFAULT_LIMIT, MAX_LIMIT
+from core.general_constants import DEFAULT_LIMIT, MAX_DB_INT, MAX_LIMIT
 
 
 class OffsetSchema(BaseModel):
-    offset: int = Field(default=0, ge=0)
+    offset: int = Field(default=0, ge=0, le=MAX_DB_INT)
 
     def __int__(self):
         return self.offset

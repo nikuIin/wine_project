@@ -100,7 +100,7 @@ async def create_region_translate(
 ):
     region_translate = RegionTranslateCreateSchema(
         region_name=region_translate_schema.region_name,
-        language_model=region_translate_schema.language_model,
+        language=region_translate_schema.language,
     )
 
     try:
@@ -167,7 +167,7 @@ async def get_region_list(
                 country_id=country.country_id,
                 country_name=country.name,
             ),
-            language_model=language_id,
+            language=language_id,
             region_list=region_list,
         )
 
@@ -216,7 +216,7 @@ async def get_region(
                 country_id=region.country.country_id,
                 country_name=region.country.name,
             ),
-            language_model=language_id,
+            language=language_id,
         )
 
     except RegionDoesNotExistsError as error:

@@ -31,3 +31,6 @@ FIFTEEN_MINUTES_IN_SECONDS = 900
 CODE_LEN = 6
 CODE_LE_VALUE = 1_000_000  # it's mean, the max code is 999-999
 CODE_REQUEST_LOCK_TIME_IN_SECONDS = 60
+
+
+RUSSIAN_LOWERCASE_LETTERS = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя")

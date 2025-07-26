@@ -1,9 +1,20 @@
+import asyncio
+
+from pytest import fixture
 from pytest_asyncio import fixture as async_fixture
 from tests.test_statements import TEST_STATEMENTS
 
 from core.config import ModeEnum, app_settings, db_settings
 from db.dependencies.postgres_helper import DatabaseHelper
 from db.dependencies.redis_helper import redis_helper
+
+
+@fixture(scope="session")
+def event_loop():
+    """Фикстура события цикла."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @async_fixture(scope="function")

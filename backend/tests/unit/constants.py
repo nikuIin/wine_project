@@ -4,7 +4,7 @@ from uuid import UUID
 
 from uuid_extensions import uuid7
 
-from domain.enums import LanguageEnum
+from domain.enums import ArticleCategoriesID, LanguageEnum
 
 # Roles
 USER_ROLE = 1
@@ -81,3 +81,24 @@ NEW_GRAPE_LANGUAGE = LanguageEnum.RUSSIAN
 REDIS_TEST_USER_ID = uuid7()
 REDIS_TEST_EMAIL = "test@mail.ru"
 REDIS_TEST_CODE = "123456"
+
+# Article-related constants
+BASE_ARTICLE_ID = UUID("123e4567-e89b-12d3-a456-426614174000")
+PINOT_ARTICLE_ID = UUID("223e4567-e89b-12d3-a456-426614174001")
+NO_EXISTING_ARTICLE_ID = UUID("323e4567-e89b-12d3-a456-426614174999")
+
+BASE_ARTICLE_AUTHOR_ID = UUID("423e4567-e89b-12d3-a456-426614174002")
+NO_EXISTING_AUTHOR_ID = UUID("523e4567-e89b-12d3-a456-426614174998")
+
+BASE_ARTICLE_CATEGORY_ID = ArticleCategoriesID.RED_WINE
+BASE_ARTICLE_SLUG = "base-article-slug"
+PINOT_ARTICLE_SLUG = "pinot-article-slug"
+BASE_ARTICLE_TITLE = "Base Article Title"
+PINOT_ARTICLE_TITLE = "Pinot Article Title"
+
+PINOT_ARTICLE_LANGUAGE = LanguageEnum.DEFAULT_LANGUAGE
+NO_EXISTING_LANGUAGE_ID = LanguageEnum.KAZAKHSTAN
+
+# Tag constants
+TAG_ID = 1
+TAG_NAME = "Base Tag"

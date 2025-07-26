@@ -36,7 +36,7 @@ class TestGrapeService:
                     grape_id=uuid7(),
                     region_id=MOSCOW_REGION_ID,
                     grape_name="Test grape",
-                    language_model=LanguageEnum.RUSSIAN,
+                    language=LanguageEnum.RUSSIAN,
                 ),
                 dont_raise(),
                 True,

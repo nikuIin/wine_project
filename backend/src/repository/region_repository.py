@@ -41,7 +41,7 @@ class RegionRepository:
         region_model = RegionModel(country_id=region.country_id)
         region_translate_model = RegionTranslateModel(
             name=region.region_name,
-            language_id=region.language_model,
+            language_id=region.language,
         )
 
         try:
@@ -102,7 +102,7 @@ class RegionRepository:
                     ) from error
                 elif "region_translate_language_id_fkey" in str(error):
                     raise LanguageDoesNotExistsError(
-                        f"Language {region.language_model} doesn't exist."
+                        f"Language {region.language} doesn't exist."
                     ) from error
 
             raise RegionIntegrityError from error
@@ -190,7 +190,7 @@ class RegionRepository:
         ### === prepared data ===
         region_translate_model = RegionTranslateModel(
             region_id=region_id,
-            language_id=region_translate.language_model,
+            language_id=region_translate.language,
             name=region_translate.region_name,
         )
 
@@ -210,14 +210,14 @@ class RegionRepository:
                     ) from error
                 elif "region_translate_language_id_fkey" in str(error):
                     raise LanguageDoesNotExistsError(
-                        f"Language {region_translate.language_model}"
+                        f"Language {region_translate.language}"
                         + " doesn't exists"
                     ) from error
             elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore  # noqa: SIM102
                 if "region_translate_pkey" in str(error):
                     raise RegionAlreadyExistsError(
                         f"Region translate id {region_id}"
-                        + f" and language {region_translate.language_model}"
+                        + f" and language {region_translate.language}"
                         + " already exists."
                     ) from error
 

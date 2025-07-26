@@ -83,7 +83,7 @@ async def create_country(
 
     try:
         is_country_created = await country_service.create_country(
-            country=country_data, language_id=country.language_model
+            country=country_data, language_id=country.language
         )
 
         if is_country_created:
@@ -250,7 +250,7 @@ async def get_all_countries(
 
         return CountryListResponseSchema(
             countries=country_list,
-            language_model=language_id,
+            language=language_id,
         )
     except CountryIntegrityError as error:
         raise HTTPException(
@@ -308,7 +308,7 @@ async def get_country(
         return CountryResponseSchema(
             country_id=country_data.country_id,
             country_name=country_data.name,
-            language_model=language_id,
+            language=language_id,
             flag_url=country_data.flag_url,
         )
 

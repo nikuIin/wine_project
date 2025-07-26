@@ -1,20 +1,22 @@
-# models.py
 import decimal
 import uuid
 from datetime import date, datetime, timedelta
 
 from sqlalchemy import (
+    TEXT,
     UUID,
+    VARCHAR,
     Boolean,
     CheckConstraint,
     ForeignKey,
     Integer,
     String,
+    func,
 )
-from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP
+from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.schema import UniqueConstraint
-from sqlalchemy.types import DATE, SMALLINT, TEXT, VARCHAR
+from sqlalchemy.types import DATE, SMALLINT
 from uuid_extensions import uuid7
 
 from core.config import auth_settings
@@ -35,6 +37,10 @@ class Language(Base):
     flag_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("flag.flag_id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    cfgname: Mapped[str] = mapped_column(
+        String(255),
         nullable=True,
     )
 
@@ -61,6 +67,18 @@ class Language(Base):
         "AromaTranslate", back_populates="language"
     )
     wine_translates = relationship("WineTranslate", back_populates="language")
+    author_translates = relationship("Author", back_populates="language")
+    city_translates = relationship("CityTranslate", back_populates="language")
+    blog_category_translates = relationship(
+        "BlogCategoryTranslate", back_populates="language"
+    )
+    tag_translates = relationship("TagTranslate", back_populates="language")
+    article_translates = relationship(
+        "ArticleTranslate", back_populates="language"
+    )
+    status_translate = relationship(
+        "StatusTranslate", back_populates="language"
+    )
 
 
 class Flag(Base):
@@ -99,6 +117,9 @@ class Role(Base):
     )
 
     users = relationship("User", back_populates="role")
+    permissions = relationship(
+        "Permission", secondary="role_permission", back_populates="roles"
+    )
 
 
 class User(Base, TimeStampMixin):
@@ -114,6 +135,10 @@ class User(Base, TimeStampMixin):
         String(255),
         nullable=False,
         unique=True,
+    )
+    email: Mapped[str | None] = mapped_column(
+        VARCHAR(320),
+        nullable=True,
     )
     password: Mapped[str] = mapped_column(
         String(255),
@@ -133,11 +158,149 @@ class User(Base, TimeStampMixin):
     __table_args__ = (
         CheckConstraint("length(login) > 0", name="user_login_check"),
         CheckConstraint("length(password) > 0", name="user_password_check"),
+        CheckConstraint("length(email) >= 3", name="user_email_check"),
     )
 
     role = relationship("Role", back_populates="users")
     refresh_tokens = relationship("RefreshToken", back_populates="user")
     md_user = relationship("MdUser", back_populates="user", uselist=False)
+    author_translates = relationship("Author", back_populates="user")
+    social_networks = relationship(
+        "SocialNetwork",
+        secondary="user_social_network",
+        back_populates="users",
+    )
+    articles = relationship("Article", back_populates="author")
+
+
+class Permission(Base):
+    __tablename__ = "permission"
+
+    permission_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="permission_name_check"),
+    )
+
+    roles = relationship(
+        "Role", secondary="role_permission", back_populates="permissions"
+    )
+
+
+class RolePermission(Base):
+    __tablename__ = "role_permission"
+
+    role_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("role.role_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    permission_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("permission.permission_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+
+class Author(Base):
+    __tablename__ = "author"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    work_place: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    post: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    awards: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    biography: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    experience: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    education: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "length(work_place) > 0", name="author_work_place_check"
+        ),
+        CheckConstraint("length(post) > 0", name="author_post_check"),
+    )
+
+    user = relationship("User", back_populates="author_translates")
+    language = relationship("Language", back_populates="author_translates")
+
+
+class City(Base):
+    __tablename__ = "city"
+
+    city_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    region_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("region.region_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    region = relationship("Region", back_populates="cities")
+    city_translates = relationship("CityTranslate", back_populates="city")
+
+
+class CityTranslate(Base):
+    __tablename__ = "city_translate"
+
+    city_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("city.city_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="city_name_check"),
+    )
+
+    city = relationship("City", back_populates="city_translates")
+    language = relationship("Language", back_populates="city_translates")
 
 
 class MdUser(Base):
@@ -148,10 +311,9 @@ class MdUser(Base):
         ForeignKey("user.user_id", ondelete="CASCADE"),
         primary_key=True,
     )
-    email: Mapped[str | None] = mapped_column(
-        VARCHAR(320),
-        nullable=True,
-    )
+    first_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(255), nullable=True)
+    middle_name: Mapped[str] = mapped_column(String(255), nullable=True)
     profile_picture_link: Mapped[str | None] = mapped_column(
         VARCHAR(255),
         nullable=True,
@@ -162,7 +324,15 @@ class MdUser(Base):
     )
 
     __table_args__ = (
-        CheckConstraint("length(email) >= 3", name="md_user_email_check"),
+        CheckConstraint(
+            "length(first_name) > 0", name="md_user_first_name_check"
+        ),
+        CheckConstraint(
+            "length(last_name) > 0", name="md_user_last_name_check"
+        ),
+        CheckConstraint(
+            "length(middle_name) > 0", name="md_user_middle_name_check"
+        ),
         CheckConstraint(
             "length(profile_picture_link) > 0",
             name="md_user_profile_picture_link_check",
@@ -170,6 +340,288 @@ class MdUser(Base):
     )
 
     user = relationship("User", back_populates="md_user")
+
+
+class SocialNetwork(Base):
+    __tablename__ = "social_network"
+
+    social_network_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    link: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+    image_src: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="social_network_name_check"),
+        CheckConstraint("length(link) > 0", name="social_network_link_check"),
+        CheckConstraint(
+            "length(image_src) > 0", name="social_network_image_src_check"
+        ),
+    )
+
+    users = relationship(
+        "User",
+        secondary="user_social_network",
+        back_populates="social_networks",
+    )
+
+
+class UserSocialNetwork(Base):
+    __tablename__ = "user_social_network"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    social_network_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("social_network.social_network_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+
+class BlogCategory(Base):
+    __tablename__ = "blog_category"
+
+    blog_category_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    slug: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+    image_src: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    parent_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("blog_category.blog_category_id", ondelete="CASCADE"),
+        nullable=True,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(slug) > 0", name="blog_category_slug_check"),
+    )
+
+    parent = relationship("BlogCategory", remote_side=[blog_category_id])
+    blog_category_translates = relationship(
+        "BlogCategoryTranslate", back_populates="blog_category"
+    )
+    article = relationship("Article", back_populates="blog_category")
+
+
+class BlogCategoryTranslate(Base):
+    __tablename__ = "blog_category_translate"
+
+    blog_category_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("blog_category.blog_category_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    description: Mapped[str] = mapped_column(
+        TEXT,
+        nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="blog_category_name_check"),
+        CheckConstraint(
+            "length(description) > 0", name="blog_category_description_check"
+        ),
+    )
+
+    blog_category = relationship(
+        "BlogCategory", back_populates="blog_category_translates"
+    )
+    language = relationship(
+        "Language", back_populates="blog_category_translates"
+    )
+
+
+class Tag(Base):
+    __tablename__ = "tag"
+
+    tag_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+    tag_translates = relationship("TagTranslate", back_populates="tag")
+    tag_article = relationship("TagArticle", back_populates="tag")
+
+
+class TagTranslate(Base):
+    __tablename__ = "tag_translate"
+
+    tag_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("tag.tag_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="tag_name_check"),
+        UniqueConstraint(
+            "name", "language_id", name="tag_name_language_unique"
+        ),
+    )
+
+    tag = relationship("Tag", back_populates="tag_translates")
+    language = relationship("Language", back_populates="tag_translates")
+
+
+class TagArticle(Base, TimeStampMixin):
+    __tablename__ = "tag_article"
+
+    tag_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("tag.tag_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("article.article_id", ondelete="CASCADE"),
+        primary_key=True,
+        nullable=False,
+    )
+
+    article = relationship("Article", back_populates="tag_article")
+    tag = relationship("Tag", back_populates="tag_article")
+
+
+class Article(Base, TimeStampMixin):
+    __tablename__ = "article"
+
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid7,
+        nullable=False,
+    )
+    author_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    blog_category_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("blog_category.blog_category_id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    status_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("status.status_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    slug: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        unique=True,
+    )
+    views_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    published_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+        default=func.current_timestamp(),
+    )
+    scheduled_publish_time: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
+
+    __table_args__ = (
+        CheckConstraint("views_count >= 0", name="article_views_count_check"),
+    )
+
+    author = relationship("User", back_populates="articles")
+    article_translates = relationship(
+        "ArticleTranslate", back_populates="article"
+    )
+    blog_category = relationship("BlogCategory", back_populates="article")
+    status = relationship("Status", back_populates="article")
+    tag_article = relationship("TagArticle", back_populates="article")
+
+
+class ArticleTranslate(Base):
+    __tablename__ = "article_translate"
+
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("article.article_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    title: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    content: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    image_src: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    tsv_content: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        nullable=True,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(title) > 0", name="article_title_check"),
+        CheckConstraint("length(content) >= 0", name="article_content_check"),
+        UniqueConstraint(
+            "title", "language_id", name="article_title_language_unique"
+        ),
+    )
+
+    article = relationship("Article", back_populates="article_translates")
+    language = relationship("Language", back_populates="article_translates")
 
 
 class RefreshToken(Base, TimeStampMixin):
@@ -306,6 +758,7 @@ class Region(Base):
     region_translates = relationship(
         "RegionTranslate", back_populates="region"
     )
+    cities = relationship("City", back_populates="region")
 
 
 class RegionTranslate(Base):
@@ -339,9 +792,10 @@ class RegionTranslate(Base):
 class Grape(Base, TimeStampMixin):
     __tablename__ = "grape"
 
-    grape_id: Mapped[int] = mapped_column(
-        UUID,
+    grape_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
+        default=uuid7,
     )
     region_id: Mapped[int] = mapped_column(
         Integer,
@@ -357,8 +811,8 @@ class Grape(Base, TimeStampMixin):
 class GrapeTranslate(Base):
     __tablename__ = "grape_translate"
 
-    grape_id: Mapped[UUID] = mapped_column(
-        UUID,
+    grape_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("grape.grape_id", ondelete="CASCADE"),
         primary_key=True,
     )
@@ -565,8 +1019,8 @@ class Sort(Base):
         ),
     )
 
-    grape_id: Mapped[UUID] = mapped_column(
-        UUID,
+    grape_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("grape.grape_id", ondelete="CASCADE"),
         primary_key=True,
     )
@@ -685,6 +1139,42 @@ class AromaWine(Base):
     aroma = relationship("Aroma", back_populates="aroma_wines")
 
 
+class Status(Base):
+    __tablename__ = "status"
+
+    status_id: Mapped[Integer] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
+
+    status_translate = relationship("StatusTranslate", back_populates="status")
+    article = relationship("Article", back_populates="status")
+
+
+class StatusTranslate(Base):
+    __tablename__ = "status_translate"
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="check_name_len"),
+    )
+
+    status_id: Mapped[Integer] = mapped_column(
+        Integer,
+        ForeignKey("status.status_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    name: Mapped[VARCHAR] = mapped_column(
+        VARCHAR(255),
+        nullable=False,
+    )
+    language_id: Mapped[VARCHAR] = mapped_column(
+        VARCHAR(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    language = relationship("Language", back_populates="status_translate")
+    status = relationship("Status", back_populates="status_translate")
+
+
 class CountryDeleted(Base):
     __tablename__ = "country_deleted"
 
@@ -770,8 +1260,8 @@ class RegionTranslateDeleted(Base):
 class GrapeDeleted(Base, TimeStampMixin):
     __tablename__ = "grape_deleted"
 
-    grape_id: Mapped[int] = mapped_column(
-        UUID,
+    grape_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
     )
     region_id: Mapped[int] = mapped_column(
@@ -788,8 +1278,8 @@ class GrapeDeleted(Base, TimeStampMixin):
 class GrapeTranslateDeleted(Base):
     __tablename__ = "grape_translate_deleted"
 
-    grape_id: Mapped[UUID] = mapped_column(
-        UUID,
+    grape_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
@@ -813,7 +1303,6 @@ class ProductDeleted(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid7,
     )
     price: Mapped[decimal.Decimal] = mapped_column(
         MONEY,
@@ -979,8 +1468,8 @@ class AromaTranslateDeleted(Base):
 class SortDeleted(Base):
     __tablename__ = "sort_deleted"
 
-    grape_id: Mapped[UUID] = mapped_column(
-        UUID,
+    grape_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
     )
     product_id: Mapped[uuid.UUID] = mapped_column(
@@ -1103,9 +1592,17 @@ class MdUserDeleted(Base):
         UUID(as_uuid=True),
         primary_key=True,
     )
-    email: Mapped[str | None] = mapped_column(
-        VARCHAR(320),
-        nullable=True,
+    first_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    last_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    middle_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
     )
     profile_picture_link: Mapped[str | None] = mapped_column(
         VARCHAR(255),
@@ -1137,4 +1634,72 @@ class AromaWineDeleted(Base):
         TIMESTAMP(timezone=True),
         nullable=False,
         default=datetime.now,
+    )
+
+
+class ArticleDeleted(Base, TimeStampMixin):
+    __tablename__ = "article_deleted"
+
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    author_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=False,
+    )
+    slug: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    views_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+    __table_args__ = (
+        CheckConstraint("views_count >= 0", name="article_views_count_check"),
+    )
+
+
+class ArticleTranslateDeleted(Base):
+    __tablename__ = "article_translate_deleted"
+
+    article_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        VARCHAR(10),
+        primary_key=True,
+    )
+    image_src: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    title: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    content: Mapped[str | None] = mapped_column(
+        TEXT,
+        nullable=True,
+    )
+    tsv_content: Mapped[str | None] = mapped_column(
+        TSVECTOR,
+        nullable=True,
+    )
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=datetime.now,
+    )
+
+    __table_args__ = (
+        CheckConstraint("length(title) > 0", name="article_title_check"),
     )
