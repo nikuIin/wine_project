@@ -9,6 +9,7 @@ from repository.content_repository import (
     AbstractContentRepository,
     ContentRepository,
 )
+from schemas.content_schema import ContentCreateSchema
 
 
 @fixture
@@ -27,29 +28,18 @@ class TestContentRepository:
         async_session,
     ):
         # 1. Create content
-        async with async_session:
-            content_id = uuid4()
-            await async_session.execute(
-                text(
-                    f"""
-                    insert into content (
-                        content_id,
-                        language_id,
-                        md_title,
-                        md_description,
-                        content
-                    )
-                    values (
-                        '{content_id}',
-                        'ru-RU',
-                        'my_cute_title',
-                        'my_cute_description',
-                        '{{"a": 123}}'
-                    )
-                    """
-                )
-            )
-            await async_session.commit()
+        content_id = uuid4()
+        content_create = ContentCreateSchema(
+            content_id=content_id,
+            md_title="my_cute_title",
+            md_description="my_cute_description",
+            content={"a": 123},
+            language=LanguageEnum.RUSSIAN,
+        )
+
+        await content_repository.create_content(
+            create_content_data=content_create
+        )
 
         # 2. Get content by id
         content = await content_repository.get_content_by_id(
