@@ -99,3 +99,23 @@ class TestContentRepository:
         content_in.content = {"b": 24, "c": 1234}
 
         assert content == content_in
+
+        # 7. Add content on Russian again
+        await content_repository.create_content(
+            create_content_data=content_create
+        )
+
+        # 8. Delete content on English
+
+        rows_deleted = await content_repository.delete_translate_content(
+            content_id=content_id,
+            language=LanguageEnum.ENGLISH,
+        )
+
+        assert rows_deleted == 1
+
+        content = await content_repository.get_content_by_id(
+            content_id=content_id, language=LanguageEnum.ENGLISH
+        )
+
+        assert content is None
