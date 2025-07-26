@@ -1726,7 +1726,7 @@ class Content(Base, TimeStampMixin):
         ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
-    md_title: Mapped[str] = mapped_column(Text, nullable=False)
+    md_title: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     md_description: Mapped[str] = mapped_column(
         Text,
     )
