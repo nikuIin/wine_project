@@ -465,3 +465,17 @@ class SlugIsMissingError(Exception):
 
     def __init__(self, message="The slug of the article is missing."):
         super().__init__(message)
+
+
+# ===================================== #
+#            Content errors             #
+# ===================================== #
+
+
+class ContentDBError(Exception):
+    """The error occurs when database throw
+    DatabaseError after operation with content.
+    """
+
+    def __init__(self, message="DB error with operation of content"):
+        super().__init__(message)
