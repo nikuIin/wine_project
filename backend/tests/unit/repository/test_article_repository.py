@@ -1,4 +1,5 @@
 from contextlib import nullcontext as dont_raise
+from datetime import UTC, datetime, timezone
 from uuid import UUID, uuid4
 
 from pytest import fixture, mark, raises
@@ -21,8 +22,9 @@ from tests.unit.constants import (
     TAG_NAME,
 )
 
+from domain.entities.article import Article, Author
 from domain.entities.tag import Tag
-from domain.enums import ArticleStatus, LanguageEnum
+from domain.enums import ArticleCategory, ArticleStatus, LanguageEnum
 from domain.exceptions import (
     ArticleAlreadyExistsError,
     ArticleDoesNotExistsError,
@@ -52,6 +54,100 @@ def article_repository(async_session: AsyncSession):
 @mark.repository
 @mark.asyncio
 class TestArticleRepository:
+    @mark.parametrize(
+        "article_id, language, article_expectation, raise_excpecatation",
+        [
+            (
+                PINOT_ARTICLE_ID,
+                PINOT_ARTICLE_LANGUAGE,
+                Article(
+                    article_id=PINOT_ARTICLE_ID,
+                    title=PINOT_ARTICLE_TITLE,
+                    image_src="pinot_image.jpg",
+                    content="Pinot article content",
+                    language=PINOT_ARTICLE_LANGUAGE,
+                    author=Author(
+                        author_id=BASE_ARTICLE_AUTHOR_ID,
+                        first_name="John",
+                        last_name="Doe",
+                    ),
+                    category_id=BASE_ARTICLE_CATEGORY_ID,
+                    views_count=50,
+                    status=ArticleStatus.DRAFT,
+                    slug=PINOT_ARTICLE_SLUG,
+                    published_at=datetime(
+                        year=2020, month=1, day=1, tzinfo=UTC
+                    ),
+                    tags=[
+                        Tag(tag_id=102, name="new-tag2"),
+                        Tag(tag_id=103, name="new-tag3"),
+                    ],
+                ),
+                dont_raise(),
+            ),
+            (
+                "223e4567-e89b-12d3-a456-426614174002",  # New Merlot Article ID
+                LanguageEnum.RUSSIAN,
+                Article(
+                    article_id=UUID("223e4567-e89b-12d3-a456-426614174002"),
+                    title="Merlot Article",
+                    image_src="merlot_image.jpg",
+                    content="Merlot article content",
+                    language=LanguageEnum.RUSSIAN,
+                    author=Author(
+                        author_id=UUID("550e8400-e29b-41d4-a716-446655440000"),
+                        first_name="John",
+                        last_name="Doe",
+                    ),
+                    category_id=ArticleCategory.RED_WINE,
+                    views_count=75,
+                    status=ArticleStatus.DRAFT,
+                    slug="merlot-article",
+                    published_at=datetime(
+                        year=2021, month=2, day=1, tzinfo=UTC
+                    ),
+                    tags=[],  # No tags
+                ),
+                dont_raise(),
+            ),
+            (
+                "223e4567-e89b-12d3-a456-426614174006",
+                LanguageEnum.RUSSIAN,
+                None,
+                dont_raise(),
+            ),
+        ],
+        ids=[
+            "success_article_with_tags",
+            "success_article_without_tags",
+            "not_exists_article_with_",
+        ],
+    )
+    async def test_get_article(
+        self,
+        article_id: UUID,
+        language: LanguageEnum,
+        article_repository: ArticleRepository,
+        article_expectation,
+        raise_excpecatation,
+    ):
+        with raise_excpecatation:
+            article = await article_repository.get_article(
+                article_id=article_id, language=language
+            )
+
+            assert article is not None
+            assert article.article_id == article_expectation.article_id
+            assert article.title == article_expectation.title
+            assert article.content == article_expectation.content
+            assert article.slug == article_expectation.slug
+            assert article.published_at == article_expectation.published_at
+            assert article.category_id == article_expectation.category_id
+            assert article.tags == article_expectation.tags
+            assert article.author == article_expectation.author
+            assert article.image_src == article_expectation.image_src
+            assert article.views_count == article_expectation.views_count
+
     @mark.parametrize(
         "article, expectation",
         [
