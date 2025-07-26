@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from uuid import UUID
 
-from redis.typing import ConsumerT
-from sqlalchemy import and_, func, select, update
+from sqlalchemy import and_, delete, func, select, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -100,7 +99,9 @@ class AbstractContentRepository(ABC):
 
     @abstractmethod
     async def delete_translate_content(
-        self, contend_id: int, language: LanguageEnum
+        self,
+        content_id: UUID,
+        language: LanguageEnum,
     ) -> int:
         """
         Delete a specific translation of content.
@@ -274,10 +275,29 @@ class ContentRepository(AbstractContentRepository):
 
     async def delete_translate_content(
         self,
-        contend_id: int,
+        content_id: UUID,
         language: LanguageEnum,
     ) -> int:
-        raise NotImplementedError
+        stmt = delete(ContentModel).where(
+            and_(
+                ContentModel.content_id == content_id,
+                ContentModel.language_id == language,
+            )
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+                await session.commit()
+
+            return result.rowcount  # type: ignore
+
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when delete content translate",
+                exc_info=error,
+            )
+            raise ContentDBError from error
 
     async def delete_content(
         self,
