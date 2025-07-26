@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import UUID
 
 from redis.typing import ConsumerT
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,10 +15,13 @@ from domain.exceptions import (
     ContentAlreadyexistsError,
     ContentDBError,
     ContentIntegrityError,
-    ContentWithThisTitleAlreadyexistsError,
+    ContentWithThisTitleAlreadyExistsError,
     LanguageDoesNotExistsError,
 )
-from schemas.content_schema import ContentCreateSchema
+from schemas.content_schema import (
+    ContentCreateSchema,
+    ContentUpdateSchema,
+)
 
 C = ContentModel.__table__.alias("c")
 
@@ -65,8 +68,9 @@ class AbstractContentRepository(ABC):
     @abstractmethod
     async def update_content(
         self,
-        content_id: int,
+        content_id: UUID,
         language: LanguageEnum,
+        content_data: ContentUpdateSchema,
     ) -> int:
         """
         Update content for a given content ID and language.
@@ -187,10 +191,51 @@ class ContentRepository(AbstractContentRepository):
 
     async def update_content(
         self,
-        content_id: int,
+        content_id: UUID,
         language: LanguageEnum,
+        content_data: ContentUpdateSchema,
     ) -> int:
-        raise NotImplementedError
+        stmt = (
+            update(ContentModel)
+            .values(
+                md_title=content_data.md_title,
+                md_description=content_data.md_description,
+                content=content_data.content,
+                language_id=content_data.language,
+                updated_at=func.current_timestamp(),
+            )
+            .where(
+                and_(
+                    ContentModel.content_id == content_id,
+                    ContentModel.language_id == language,
+                )
+            )
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+                await session.commit()
+
+            return result.rowcount  # type: ignore
+
+        except IntegrityError as error:
+            if "content_language_id_fkey" in str(error):
+                raise LanguageDoesNotExistsError from error
+            elif "content_pkey" in str(error):
+                raise ContentAlreadyexistsError from error
+            elif "content_md_title_key" in str(error):
+                raise ContentWithThisTitleAlreadyExistsError from error
+
+            logger.error(
+                "Unexpected error occurred while creating content",
+                exc_info=error,
+            )
+            raise ContentIntegrityError from error
+
+        except DBAPIError as error:
+            logger.error("DBError with create content", exc_info=error)
+            raise ContentDBError from error
 
     async def create_content(
         self,
@@ -215,7 +260,7 @@ class ContentRepository(AbstractContentRepository):
             elif "content_pkey" in str(error):
                 raise ContentAlreadyexistsError from error
             elif "content_md_title_key" in str(error):
-                raise ContentWithThisTitleAlreadyexistsError from error
+                raise ContentWithThisTitleAlreadyExistsError from error
 
             logger.error(
                 "Unexpected error occurred while creating content",

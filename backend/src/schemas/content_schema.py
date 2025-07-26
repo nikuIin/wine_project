@@ -19,3 +19,6 @@ class ContentSchema(BaseModel):
 
 class ContentCreateSchema(ContentSchema, LanguageSchema):
     content_id: UUID
+
+
+class ContentUpdateSchema(ContentSchema, LanguageSchema): ...

@@ -488,7 +488,7 @@ class ContentAlreadyexistsError(Exception):
         super().__init__(message)
 
 
-class ContentWithThisTitleAlreadyexistsError(Exception):
+class ContentWithThisTitleAlreadyExistsError(Exception):
     """The error occurs when the content with this title already exists."""
 
     def __init__(self, message="The content with this title already exists."):
