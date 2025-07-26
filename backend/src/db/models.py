@@ -1715,9 +1715,10 @@ class ArticleTranslateDeleted(Base):
 
 
 class Content(Base, TimeStampMixin):
-    content_id: Mapped[int] = mapped_column(
-        Integer,
-        Identity(always=True),
+    __tablename__ = "content"
+
+    content_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
@@ -1740,9 +1741,10 @@ class Content(Base, TimeStampMixin):
 
 
 class ContentDeleted(Base, TimeStampMixin):
-    content_id: Mapped[int] = mapped_column(
-        Integer,
-        Identity(always=True),
+    __tablename__ = "content_deleted"
+
+    content_id: Mapped[uuid.UUID] = mapped_column(
+        UUID,
         primary_key=True,
     )
     language_id: Mapped[str] = mapped_column(
