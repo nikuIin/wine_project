@@ -9,7 +9,7 @@ from repository.content_repository import (
     AbstractContentRepository,
     ContentRepository,
 )
-from schemas.content_schema import ContentCreateSchema
+from schemas.content_schema import ContentCreateSchema, ContentUpdateSchema
 
 
 @fixture
@@ -71,3 +71,31 @@ class TestContentRepository:
         assert content.md_title == content_in.md_title
         assert content.md_description == content_in.md_description
         assert content.content == content_in.content
+
+        # 4. Update content
+        update_content = ContentUpdateSchema(
+            md_title="new_title",
+            md_description="new_description",
+            content={"b": 24, "c": 1234},
+            language=LanguageEnum.ENGLISH,
+        )
+
+        rows_updated = await content_repository.update_content(
+            content_id=content_id,
+            language=LanguageEnum.RUSSIAN,
+            content_data=update_content,
+        )
+
+        assert rows_updated == 1
+
+        # 6. Get updated content
+
+        content = await content_repository.get_content_by_id(
+            content_id=content_id, language=LanguageEnum.ENGLISH
+        )
+
+        content_in.md_title = "new_title"
+        content_in.md_description = "new_description"
+        content_in.content = {"b": 24, "c": 1234}
+
+        assert content == content_in
