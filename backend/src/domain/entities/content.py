@@ -14,6 +14,5 @@ class Content(BaseModel):
     md_description: str | None = Field(
         default=None,
         min_length=BASE_MIN_STR_LENGTH,
-        max_length=BASE_MAX_STR_LENGTH,
     )
     content: dict
