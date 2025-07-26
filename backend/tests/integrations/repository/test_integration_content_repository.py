@@ -51,7 +51,7 @@ class TestContentRepository:
             )
             await async_session.commit()
 
-        # 2. Get content
+        # 2. Get content by id
         content = await content_repository.get_content_by_id(
             content_id=content_id, language=LanguageEnum.RUSSIAN
         )
@@ -61,6 +61,18 @@ class TestContentRepository:
             md_title="my_cute_title",
             md_description="my_cute_description",
             content={"a": 123},
+        )
+
+        assert content is not None
+        assert content.content_id == content_in.content_id
+        assert content.content == content_in.content
+        assert content.md_title == content_in.md_title
+        assert content.md_description == content_in.md_description
+        assert content.content == content_in.content
+
+        # 3. Get content by name
+        content = await content_repository.get_content_by_name(
+            content_name="my_cute_title", language=LanguageEnum.RUSSIAN
         )
 
         assert content is not None
