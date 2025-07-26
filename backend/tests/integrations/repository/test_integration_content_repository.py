@@ -119,3 +119,18 @@ class TestContentRepository:
         )
 
         assert content is None
+
+        # 9. Add content on English again
+        content_create.md_title = "New english title"
+        content_create.language = LanguageEnum.ENGLISH
+        await content_repository.create_content(
+            create_content_data=content_create
+        )
+
+        # 10. Delete content on all languages
+
+        rows_deleted = await content_repository.delete_content(
+            content_id=content_id,
+        )
+
+        assert rows_deleted == 2
