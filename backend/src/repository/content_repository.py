@@ -4,14 +4,21 @@ from uuid import UUID
 
 from redis.typing import ConsumerT
 from sqlalchemy import and_, select
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.logger.logger import get_configure_logger
 from db.models import Content as ContentModel
 from domain.entities.content import Content
 from domain.enums import LanguageEnum
-from domain.exceptions import ContentDBError
+from domain.exceptions import (
+    ContentAlreadyexistsError,
+    ContentDBError,
+    ContentIntegrityError,
+    ContentWithThisTitleAlreadyexistsError,
+    LanguageDoesNotExistsError,
+)
+from schemas.content_schema import ContentCreateSchema
 
 C = ContentModel.__table__.alias("c")
 
@@ -77,7 +84,7 @@ class AbstractContentRepository(ABC):
     @abstractmethod
     async def create_content(
         self,
-        create_content_data: ...,
+        create_content_data: ContentCreateSchema,
     ) -> None:
         """
         Create new content.
@@ -187,9 +194,38 @@ class ContentRepository(AbstractContentRepository):
 
     async def create_content(
         self,
-        create_content_data: ...,
+        create_content_data: ContentCreateSchema,
     ) -> None:
-        raise NotImplementedError
+        content = ContentModel(
+            content_id=create_content_data.content_id,
+            md_title=create_content_data.md_title,
+            md_description=create_content_data.md_description,
+            content=create_content_data.content,
+            language_id=create_content_data.language,
+        )
+
+        try:
+            async with self.__session as session:
+                session.add(content)
+                await session.commit()
+
+        except IntegrityError as error:
+            if "content_language_id_fkey" in str(error):
+                raise LanguageDoesNotExistsError from error
+            elif "content_pkey" in str(error):
+                raise ContentAlreadyexistsError from error
+            elif "content_md_title_key" in str(error):
+                raise ContentWithThisTitleAlreadyexistsError from error
+
+            logger.error(
+                "Unexpected error occurred while creating content",
+                exc_info=error,
+            )
+            raise ContentIntegrityError from error
+
+        except DBAPIError as error:
+            logger.error("DBError with create content", exc_info=error)
+            raise ContentDBError from error
 
     async def delete_translate_content(
         self,
