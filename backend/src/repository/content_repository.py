@@ -118,7 +118,7 @@ class AbstractContentRepository(ABC):
     @abstractmethod
     async def delete_content(
         self,
-        content_id: int,
+        content_id: UUID,
     ) -> int:
         """
         Delete content entirely, including all its translations.
@@ -301,6 +301,24 @@ class ContentRepository(AbstractContentRepository):
 
     async def delete_content(
         self,
-        content_id: int,
+        content_id: UUID,
     ) -> int:
-        raise NotImplementedError
+        stmt = delete(ContentModel).where(
+            and_(
+                ContentModel.content_id == content_id,
+            )
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+                await session.commit()
+
+            return result.rowcount  # type: ignore
+
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when delete content translate",
+                exc_info=error,
+            )
+            raise ContentDBError from error
