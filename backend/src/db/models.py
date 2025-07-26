@@ -1739,6 +1739,8 @@ class Content(Base, TimeStampMixin):
         ),
     )
 
+    language = relationship("Language", back_populates="content")
+
 
 class ContentDeleted(Base, TimeStampMixin):
     __tablename__ = "content_deleted"
