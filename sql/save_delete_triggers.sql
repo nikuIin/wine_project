@@ -375,7 +375,7 @@ FOR EACH ROW EXECUTE FUNCTION move_to_article_translate_deleted();
 
 -- Content
 create or replace function move_to_content_deleted()
-return trigger as $$
+returns trigger as $$
 begin
     insert into content_deleted (content_id, language_id, md_title, md_description, content, created_at, updated_at, deleted_at)
     values (old.content_id, old.language_id, old.md_title, old.md_description, old.content, old.created_at, old.updated_at, current_timestamp)
@@ -386,7 +386,7 @@ begin
         content = excluded.content,
         created_at = excluded.created_at,
         updated_at = excluded.updated_at,
-        deleted_at = current_timestamp
+        deleted_at = current_timestamp;
     return old;
 end;
 $$ language plpgsql;
