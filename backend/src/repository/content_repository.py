@@ -2,27 +2,26 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from uuid import UUID
 
+from fastapi import Depends
 from sqlalchemy import and_, delete, func, select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.general_constants import DEFAULT_LIMIT
 from core.logger.logger import get_configure_logger
+from db.dependencies.postgres_helper import postgres_helper
 from db.models import Content as ContentModel
 from db.models import ContentDeleted as ContentDeletedModel
 from domain.entities.content import Content
 from domain.enums import LanguageEnum
 from domain.exceptions import (
-    ContentAlreadyexistsError,
+    ContentAlreadyExistsError,
     ContentDBError,
     ContentIntegrityError,
     ContentWithThisTitleAlreadyExistsError,
     LanguageDoesNotExistsError,
 )
-from schemas.content_schema import (
-    ContentCreateSchema,
-    ContentUpdateSchema,
-)
+from dto.content_dto import ContentCreateDTO, ContentUpdateDTO
 
 CD = ContentDeletedModel.__table__.alias("cd")
 C = ContentModel.__table__.alias("c")
@@ -68,11 +67,23 @@ class AbstractContentRepository(ABC):
         ...
 
     @abstractmethod
+    async def is_content_exists(self, content_id: UUID) -> bool:
+        """Check if content exists by its ID.
+
+        Args:
+            content_id: The ID of the content.
+
+        Returns:
+            True if content exists, otherwise False.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     async def update_content(
         self,
         content_id: UUID,
         language: LanguageEnum,
-        content_data: ContentUpdateSchema,
+        content_data: ContentUpdateDTO,
     ) -> int:
         """
         Update content for a given content ID and language.
@@ -90,7 +101,7 @@ class AbstractContentRepository(ABC):
     @abstractmethod
     async def create_content(
         self,
-        create_content_data: ContentCreateSchema,
+        create_content_data: ContentCreateDTO,
     ) -> None:
         """
         Create new content.
@@ -140,7 +151,17 @@ class AbstractContentRepository(ABC):
         limit: int = DEFAULT_LIMIT,
         offset: int = 0,
     ) -> list[Content]:
-        raise NotImplementedError
+        """
+        Get a list of deleted content.
+
+        Args:
+            limit: The maximum number of records to return.
+            offset: The number of records to skip.
+
+        Returns:
+            A list of deleted content.
+        """
+        ...
 
     @abstractmethod
     async def restore_content(
@@ -148,6 +169,13 @@ class AbstractContentRepository(ABC):
         content_id: UUID,
         language: LanguageEnum,
     ) -> None:
+        """
+        Restore a deleted content.
+
+        Args:
+            content_id: The ID of the content to restore.
+            language: The language of the content to restore.
+        """
         raise NotImplementedError
 
 
@@ -213,7 +241,7 @@ class ContentRepository(AbstractContentRepository):
         self,
         content_id: UUID,
         language: LanguageEnum,
-        content_data: ContentUpdateSchema,
+        content_data: ContentUpdateDTO,
     ) -> int:
         stmt = (
             update(ContentModel)
@@ -243,8 +271,8 @@ class ContentRepository(AbstractContentRepository):
             if "content_language_id_fkey" in str(error):
                 raise LanguageDoesNotExistsError from error
             elif "content_pkey" in str(error):
-                raise ContentAlreadyexistsError from error
-            elif "content_md_title_key" in str(error):
+                raise ContentAlreadyExistsError from error
+            elif "unique_md_title_language" in str(error):
                 raise ContentWithThisTitleAlreadyExistsError from error
 
             logger.error(
@@ -257,9 +285,25 @@ class ContentRepository(AbstractContentRepository):
             logger.error("DBError with create content", exc_info=error)
             raise ContentDBError from error
 
+    async def is_content_exists(self, content_id: UUID):
+        stmt = text(
+            "select true from content where content_id = :content_id limit 1"
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(
+                    stmt, params={"content_id": content_id}
+                )
+
+            return bool(result.scalar_one_or_none())
+
+        except DBAPIError as error:
+            logger.error("DBError with is_content_exists", exc_info=error)
+            raise ContentDBError from error
+
     async def create_content(
-        self,
-        create_content_data: ContentCreateSchema,
+        self, create_content_data: ContentCreateDTO
     ) -> None:
         content = ContentModel(
             content_id=create_content_data.content_id,
@@ -278,8 +322,8 @@ class ContentRepository(AbstractContentRepository):
             if "content_language_id_fkey" in str(error):
                 raise LanguageDoesNotExistsError from error
             elif "content_pkey" in str(error):
-                raise ContentAlreadyexistsError from error
-            elif "content_md_title_key" in str(error):
+                raise ContentAlreadyExistsError from error
+            elif "unique_md_title_language" in str(error):
                 raise ContentWithThisTitleAlreadyExistsError from error
 
             logger.error(
@@ -369,6 +413,7 @@ class ContentRepository(AbstractContentRepository):
                     md_title=content.md_title,
                     md_description=content.md_description,
                     content=content.content,
+                    language=content.language_id,
                 )
                 for content in result.mappings().all()
             ]
@@ -419,8 +464,19 @@ class ContentRepository(AbstractContentRepository):
                     + " not auto-generated.",
                     exc_info=error,
                 )
-                raise ContentAlreadyexistsError(
+                raise ContentAlreadyExistsError(
                     "Content with id already exists."
+                ) from error
+            elif "unique_md_title_language" in str(error):
+                logger.warning(
+                    "Attempt to restore content with title"
+                    + " thats already exists in the content table."
+                    + " This mean, that title created by hardcode,"
+                    + " not auto-generated.",
+                    exc_info=error,
+                )
+                raise ContentAlreadyExistsError(
+                    "Content with this title already exists."
                 ) from error
 
             logger.error(
@@ -436,3 +492,9 @@ class ContentRepository(AbstractContentRepository):
                 exc_info=error,
             )
             raise ContentDBError from error
+
+
+def content_repository_dependency(
+    async_session: AsyncSession = Depends(postgres_helper.session_dependency),
+) -> AbstractContentRepository:
+    return ContentRepository(async_session)
