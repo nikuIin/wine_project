@@ -1726,9 +1726,13 @@ class Content(Base, TimeStampMixin):
         ForeignKey("language.language_id", ondelete="CASCADE"),
         primary_key=True,
     )
-    md_title: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    md_title: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
     md_description: Mapped[str] = mapped_column(
         Text,
+        nullable=True,
     )
     content: Mapped[JSONB] = mapped_column(JSONB, nullable=False)
 
@@ -1736,6 +1740,9 @@ class Content(Base, TimeStampMixin):
         CheckConstraint("length(md_title) > 0", name="content_md_title_check"),
         CheckConstraint(
             "length(md_description) > 0", name="content_md_description_check"
+        ),
+        UniqueConstraint(
+            "md_title", "language_id", name="unique_md_title_language"
         ),
     )
 
@@ -1754,12 +1761,16 @@ class ContentDeleted(Base, TimeStampMixin):
         primary_key=True,
     )
     md_title: Mapped[str] = mapped_column(Text, nullable=False)
-    md_description: Mapped[str] = mapped_column(
-        Text,
-    )
+    md_description: Mapped[str] = mapped_column(Text, nullable=True)
     content: Mapped[JSONB] = mapped_column(JSONB, nullable=False)
     deleted_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,
         default=func.current_timestamp(),
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "md_title", "language_id", name="unique_md_title_language_deleted"
+        ),
     )
