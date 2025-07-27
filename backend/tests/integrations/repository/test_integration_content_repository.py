@@ -158,3 +158,15 @@ class TestContentRepository:
             content in deleted_content
             for content in [content_russian_in, content_english_in]
         )
+
+        # 12. Restore deleted content
+
+        await content_repository.restore_content(
+            content_id=content_id, language=LanguageEnum.RUSSIAN
+        )
+
+        restored_content = await content_repository.get_content_by_id(
+            content_id=content_id, language=LanguageEnum.RUSSIAN
+        )
+
+        assert content_russian_in == restored_content
