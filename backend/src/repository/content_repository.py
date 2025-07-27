@@ -6,8 +6,10 @@ from sqlalchemy import and_, delete, func, select, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.general_constants import DEFAULT_LIMIT
 from core.logger.logger import get_configure_logger
 from db.models import Content as ContentModel
+from db.models import ContentDeleted as ContentDeletedModel
 from domain.entities.content import Content
 from domain.enums import LanguageEnum
 from domain.exceptions import (
@@ -22,6 +24,7 @@ from schemas.content_schema import (
     ContentUpdateSchema,
 )
 
+CD = ContentDeletedModel.__table__.alias("cd")
 C = ContentModel.__table__.alias("c")
 
 logger = get_configure_logger(Path(__file__).stem)
@@ -130,6 +133,14 @@ class AbstractContentRepository(ABC):
             The number of deleted records.
         """
         ...
+
+    @abstractmethod
+    async def get_deleted_content(
+        self,
+        limit: int = DEFAULT_LIMIT,
+        offset: int = 0,
+    ) -> list[Content]:
+        raise NotImplementedError
 
 
 class ContentRepository(AbstractContentRepository):
@@ -322,3 +333,45 @@ class ContentRepository(AbstractContentRepository):
                 exc_info=error,
             )
             raise ContentDBError from error
+
+    async def get_deleted_content(
+        self,
+        limit: int = DEFAULT_LIMIT,
+        offset: int = 0,
+    ) -> list[Content]:
+        stmt = (
+            select(
+                CD.c.content_id,
+                CD.c.language_id,
+                CD.c.md_title,
+                CD.c.md_description,
+                CD.c.content,
+            )
+            .limit(limit)
+            .offset(offset)
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+
+            deleted_contents = [
+                Content(
+                    content_id=content.content_id,
+                    md_title=content.md_title,
+                    md_description=content.md_description,
+                    content=content.content,
+                )
+                for content in result.mappings().all()
+            ]
+
+            return deleted_contents
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when get deleted content",
+                exc_info=error,
+            )
+            raise ContentDBError from error
+
+    async def restore_content(self, content_id: UUID, language: LanguageEnum):
+        raise NotImplementedError
