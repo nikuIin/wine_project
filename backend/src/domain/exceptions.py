@@ -465,3 +465,49 @@ class SlugIsMissingError(Exception):
 
     def __init__(self, message="The slug of the article is missing."):
         super().__init__(message)
+
+
+# ===================================== #
+#            Content errors             #
+# ===================================== #
+
+
+class ContentDBError(Exception):
+    """The error occurs when database throw
+    DatabaseError after operation with content.
+    """
+
+    def __init__(self, message="DB error with operation of content"):
+        super().__init__(message)
+
+
+class ContentAlreadyExistsError(Exception):
+    """The error occurs when the content already exists."""
+
+    def __init__(self, message="The content already exists."):
+        super().__init__(message)
+
+
+class ContentWithThisTitleAlreadyExistsError(Exception):
+    """The error occurs when the content with this title already exists."""
+
+    def __init__(self, message="The content with this title already exists."):
+        super().__init__(message)
+
+
+class ContentIntegrityError(Exception):
+    """The error occurs when database throw
+    IntegrityError after operation with content
+    or content_translate data.
+    """
+
+    def __init__(self, message="The integrity error of content data."):
+        super().__init__(message)
+
+
+class ContentDoesNotExistsError(Exception):
+    """Ther error occurs when database return None
+    of get content request"""
+
+    def __init__(self, message="The content doesn't exists"):
+        super().__init__(message)

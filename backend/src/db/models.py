@@ -1,6 +1,6 @@
 import decimal
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import (
     TEXT,
@@ -9,11 +9,19 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     ForeignKey,
+    Identity,
     Integer,
     String,
+    Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import MONEY, NUMERIC, TIMESTAMP, TSVECTOR
+from sqlalchemy.dialects.postgresql import (
+    JSONB,
+    MONEY,
+    NUMERIC,
+    TIMESTAMP,
+    TSVECTOR,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy.types import DATE, SMALLINT
@@ -79,6 +87,7 @@ class Language(Base):
     status_translate = relationship(
         "StatusTranslate", back_populates="language"
     )
+    content = relationship("Content", back_populates="language")
 
 
 class Flag(Base):
@@ -1702,4 +1711,66 @@ class ArticleTranslateDeleted(Base):
 
     __table_args__ = (
         CheckConstraint("length(title) > 0", name="article_title_check"),
+    )
+
+
+class Content(Base, TimeStampMixin):
+    __tablename__ = "content"
+
+    content_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        String(10),
+        ForeignKey("language.language_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    md_title: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    md_description: Mapped[str] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    content: Mapped[JSONB] = mapped_column(JSONB, nullable=False)
+
+    __table_args__ = (
+        CheckConstraint("length(md_title) > 0", name="content_md_title_check"),
+        CheckConstraint(
+            "length(md_description) > 0", name="content_md_description_check"
+        ),
+        UniqueConstraint(
+            "md_title", "language_id", name="unique_md_title_language"
+        ),
+    )
+
+    language = relationship("Language", back_populates="content")
+
+
+class ContentDeleted(Base, TimeStampMixin):
+    __tablename__ = "content_deleted"
+
+    content_id: Mapped[uuid.UUID] = mapped_column(
+        UUID,
+        primary_key=True,
+    )
+    language_id: Mapped[str] = mapped_column(
+        String(10),
+        primary_key=True,
+    )
+    md_title: Mapped[str] = mapped_column(Text, nullable=False)
+    md_description: Mapped[str] = mapped_column(Text, nullable=True)
+    content: Mapped[JSONB] = mapped_column(JSONB, nullable=False)
+    deleted_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=func.current_timestamp(),
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "md_title", "language_id", name="unique_md_title_language_deleted"
+        ),
     )
