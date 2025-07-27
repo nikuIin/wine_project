@@ -47,7 +47,7 @@ class AbstractContentRepository(ABC):
         Returns:
             The Content object if found, otherwise None.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def get_content_by_name(
@@ -64,7 +64,7 @@ class AbstractContentRepository(ABC):
         Returns:
             The Content object if found, otherwise None.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def is_content_exists(self, content_id: UUID) -> bool:
@@ -96,7 +96,7 @@ class AbstractContentRepository(ABC):
         Returns:
             The number of updated records.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def create_content(
@@ -109,7 +109,7 @@ class AbstractContentRepository(ABC):
         Args:
             create_content_data: The data required to create new content.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def delete_translate_content(
@@ -127,7 +127,7 @@ class AbstractContentRepository(ABC):
         Returns:
             The number of deleted records.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def delete_content(
@@ -143,7 +143,7 @@ class AbstractContentRepository(ABC):
         Returns:
             The number of deleted records.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def get_deleted_content(
@@ -161,7 +161,7 @@ class AbstractContentRepository(ABC):
         Returns:
             A list of deleted content.
         """
-        ...
+        raise NotImplementedError
 
     @abstractmethod
     async def restore_content(
