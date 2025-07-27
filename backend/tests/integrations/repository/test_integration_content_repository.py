@@ -134,3 +134,27 @@ class TestContentRepository:
         )
 
         assert rows_deleted == 2
+
+        # 11. Get information of deleted content
+
+        content_russian_in = Content(
+            content_id=content_id,
+            md_title="my_cute_title",
+            md_description="my_cute_description",
+            content={"a": 123},
+        )
+
+        content_english_in = Content(
+            content_id=content_id,
+            md_title="New english title",
+            md_description="my_cute_description",
+            content={"a": 123},
+        )
+
+        deleted_content = await content_repository.get_deleted_content()
+        assert len(deleted_content) == 2
+
+        assert all(
+            content in deleted_content
+            for content in [content_russian_in, content_english_in]
+        )
