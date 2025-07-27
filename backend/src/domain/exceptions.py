@@ -481,7 +481,7 @@ class ContentDBError(Exception):
         super().__init__(message)
 
 
-class ContentAlreadyexistsError(Exception):
+class ContentAlreadyExistsError(Exception):
     """The error occurs when the content already exists."""
 
     def __init__(self, message="The content already exists."):
@@ -502,4 +502,12 @@ class ContentIntegrityError(Exception):
     """
 
     def __init__(self, message="The integrity error of content data."):
+        super().__init__(message)
+
+
+class ContentDoesNotExistsError(Exception):
+    """Ther error occurs when database return None
+    of get content request"""
+
+    def __init__(self, message="The content doesn't exists"):
         super().__init__(message)
