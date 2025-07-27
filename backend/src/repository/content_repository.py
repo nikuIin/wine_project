@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from uuid import UUID
 
-from sqlalchemy import and_, delete, func, select, update
+from sqlalchemy import and_, delete, func, select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -140,6 +140,14 @@ class AbstractContentRepository(ABC):
         limit: int = DEFAULT_LIMIT,
         offset: int = 0,
     ) -> list[Content]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def restore_content(
+        self,
+        content_id: UUID,
+        language: LanguageEnum,
+    ) -> None:
         raise NotImplementedError
 
 
@@ -374,4 +382,57 @@ class ContentRepository(AbstractContentRepository):
             raise ContentDBError from error
 
     async def restore_content(self, content_id: UUID, language: LanguageEnum):
-        raise NotImplementedError
+        stmt = text(
+            """
+            with restoring_deleted_content as
+            (
+                delete from content_deleted
+                where content_id = :content_id and language_id = :language_id
+                returning *
+            )
+            insert into content select
+                content_id,
+                language_id,
+                md_title,
+                md_description,
+                content,
+                created_at,
+                updated_at
+            from restoring_deleted_content;
+            """
+        )
+
+        try:
+            async with self.__session as session:
+                await session.execute(
+                    stmt,
+                    params={"content_id": content_id, "language_id": language},
+                )
+                await session.commit()
+
+        except IntegrityError as error:
+            if "content_pkey" in str(error):
+                logger.warning(
+                    "Attempt to restore content with id"
+                    + " thats already exists in the content table."
+                    + " This mean, that id created by hardcode,"
+                    + " not auto-generated.",
+                    exc_info=error,
+                )
+                raise ContentAlreadyexistsError(
+                    "Content with id already exists."
+                ) from error
+
+            logger.error(
+                "Untraceable integrity error when restore deleted content",
+                exc_info=error,
+            )
+
+            raise ContentIntegrityError from error
+
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when restore deleted content",
+                exc_info=error,
+            )
+            raise ContentDBError from error
