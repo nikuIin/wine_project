@@ -3,6 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from core.general_constants import BASE_MAX_STR_LENGTH, BASE_MIN_STR_LENGTH
+from domain.enums import LanguageEnum
 
 
 class Content(BaseModel):
@@ -16,3 +17,4 @@ class Content(BaseModel):
         min_length=BASE_MIN_STR_LENGTH,
     )
     content: dict
+    language: LanguageEnum | None = None
