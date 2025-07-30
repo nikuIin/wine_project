@@ -27,14 +27,6 @@ class AbstractContentService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_by_name_and_language(
-        self,
-        content_name: str,
-        language: LanguageEnum,
-    ) -> Content | None:
-        raise NotImplementedError
-
-    @abstractmethod
     async def update(
         self,
         content_id: UUID,
