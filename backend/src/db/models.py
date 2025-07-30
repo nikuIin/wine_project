@@ -6,6 +6,7 @@ from sqlalchemy import (
     TEXT,
     UUID,
     VARCHAR,
+    BigInteger,
     Boolean,
     CheckConstraint,
     ForeignKey,
@@ -180,6 +181,11 @@ class User(Base, TimeStampMixin):
         back_populates="users",
     )
     articles = relationship("Article", back_populates="author")
+
+    leads = relationship("Lead", back_populates="user")
+    managed_deals = relationship("Deal", back_populates="manager")
+    deal_histories = relationship("DealHistory", back_populates="manager")
+    deal_messages = relationship("DealMessage", back_populates="user")
 
 
 class Permission(Base):
@@ -1774,3 +1780,339 @@ class ContentDeleted(Base, TimeStampMixin):
             "md_title", "language_id", name="unique_md_title_language_deleted"
         ),
     )
+
+
+class SaleStage(Base, TimeStampMixin):
+    __tablename__ = "sale_stage"
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="sale_stage_name_check"),
+    )
+
+    sale_stage_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        server_default=Identity(always=True),
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    next_sale_stage_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("sale_stage.sale_stage_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    next_sale_stage = relationship(
+        "SaleStage",
+        remote_side=[sale_stage_id],
+        back_populates="previous_sale_stages",
+    )
+    previous_sale_stages = relationship(
+        "SaleStage",
+        remote_side=[next_sale_stage_id],
+        back_populates="next_sale_stage",
+    )
+    deals = relationship("Deal", back_populates="sale_stage")
+    deal_histories = relationship("DealHistory", back_populates="sale_stage")
+    source_to_sale_stages = relationship(
+        "SourceToSaleStage", back_populates="sale_stage"
+    )
+
+
+class Source(Base, TimeStampMixin):
+    __tablename__ = "source"
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="source_name_check"),
+        CheckConstraint(
+            "length(utm_source) > 0", name="source_utm_source_check"
+        ),
+        CheckConstraint(
+            "length(utm_medium) > 0", name="source_utm_medium_check"
+        ),
+        CheckConstraint(
+            "length(utm_campaign) > 0", name="source_utm_campaign_check"
+        ),
+        CheckConstraint("length(utm_term) > 0", name="source_utm_term_check"),
+        CheckConstraint(
+            "length(utm_content) > 0", name="source_utm_content_check"
+        ),
+        UniqueConstraint(
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "utm_term",
+            "utm_content",
+            name="source_utm_unique",
+        ),
+    )
+
+    source_id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        server_default=Identity(always=True),
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    utm_source: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    utm_medium: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    utm_campaign: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    utm_term: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    utm_content: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    leads = relationship("Lead", back_populates="source")
+    source_to_sale_stages = relationship(
+        "SourceToSaleStage", back_populates="source"
+    )
+
+
+class SourceToSaleStage(Base):
+    __tablename__ = "source_to_sale_stage"
+
+    source_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("source.source_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    sale_stage_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("sale_stage.sale_stage_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    source = relationship("Source", back_populates="source_to_sale_stages")
+    sale_stage = relationship(
+        "SaleStage", back_populates="source_to_sale_stages"
+    )
+
+
+class Lead(Base, TimeStampMixin):
+    __tablename__ = "lead"
+
+    lead_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    source_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("source.source_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    source = relationship("Source", back_populates="leads")
+    user = relationship("User", back_populates="leads")
+    deals = relationship("Deal", back_populates="lead")
+
+
+class LostReason(Base):
+    __tablename__ = "lost_reason"
+    __table_args__ = (
+        CheckConstraint("length(name) > 0", name="lost_reason_name_check"),
+    )
+
+    lost_reason_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        server_default=Identity(always=True),
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    deals = relationship("Deal", back_populates="lost_reason")
+    deal_histories = relationship("DealHistory", back_populates="lost_reason")
+
+
+class Deal(Base, TimeStampMixin):
+    __tablename__ = "deal"
+    __table_args__ = (
+        CheckConstraint(
+            "deal_value::numeric >= 0", name="deal_value_positive"
+        ),
+        CheckConstraint(
+            "probability between 0 and 1", name="deal_probability_range"
+        ),
+        CheckConstraint(
+            "priority between -1 and 10", name="deal_priority_range"
+        ),
+    )
+
+    deal_id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        server_default=Identity(always=True),
+    )
+    sale_stage_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("sale_stage.sale_stage_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    lead_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("lead.lead_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    deal_value: Mapped[decimal.Decimal] = mapped_column(
+        MONEY,
+        nullable=False,
+    )
+    probability: Mapped[decimal.Decimal] = mapped_column(
+        NUMERIC(3, 2),
+        nullable=False,
+        default=0,
+    )
+    deal_fields: Mapped[dict | None] = mapped_column(
+        JSONB,
+        nullable=True,
+    )
+    priority: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True,
+    )
+    lost_reason_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("lost_reason.lost_reason_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    lost_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    manager_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    close_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
+
+    sale_stage = relationship("SaleStage", back_populates="deals")
+    lead = relationship("Lead", back_populates="deals")
+    lost_reason = relationship("LostReason", back_populates="deals")
+    manager = relationship("User", back_populates="managed_deals")
+    deal_histories = relationship("DealHistory", back_populates="deal")
+    deal_messages = relationship("DealMessage", back_populates="deal")
+
+
+class DealHistory(Base):
+    __tablename__ = "deal_history"
+    __table_args__ = (
+        CheckConstraint(
+            "probability between 0 and 1",
+            name="deal_history_probability_range",
+        ),
+    )
+
+    deal_history_id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        server_default=Identity(always=True),
+    )
+    deal_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("deal.deal_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    sale_stage_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("sale_stage.sale_stage_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    probability: Mapped[decimal.Decimal] = mapped_column(
+        NUMERIC(3, 2),
+        nullable=False,
+        default=0,
+    )
+    lost_reason_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("lost_reason.lost_reason_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    lost_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    manager_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    changed_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=func.current_timestamp(),
+    )
+
+    deal = relationship("Deal", back_populates="deal_histories")
+    sale_stage = relationship("SaleStage", back_populates="deal_histories")
+    lost_reason = relationship("LostReason", back_populates="deal_histories")
+    manager = relationship("User", back_populates="deal_histories")
+
+
+class DealMessage(Base):
+    __tablename__ = "deal_message"
+    __table_args__ = (
+        CheckConstraint("length(message) > 0", name="deal_message_check"),
+    )
+
+    deal_message_id: Mapped[int] = mapped_column(
+        BigInteger,
+        primary_key=True,
+        server_default=Identity(always=True),
+    )
+    deal_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("deal.deal_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("user.user_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    message: Mapped[str] = mapped_column(
+        String(4096),
+        nullable=False,
+    )
+    is_updated: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    viewed_at: Mapped[datetime | None] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
+    sent_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        default=func.current_timestamp(),
+    )
+
+    deal = relationship("Deal", back_populates="deal_messages")
+    user = relationship("User", back_populates="deal_messages")
