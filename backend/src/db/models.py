@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Identity,
     Integer,
+    Numeric,
     String,
     Text,
     func,
@@ -182,8 +183,14 @@ class User(Base, TimeStampMixin):
     )
     articles = relationship("Article", back_populates="author")
 
-    leads = relationship("Lead", back_populates="user")
-    managed_deals = relationship("Deal", back_populates="manager")
+    lead_link = relationship(
+        "Deal", back_populates="lead", foreign_keys=lambda: [Deal.lead_id]
+    )
+    managed_deals = relationship(
+        "Deal",
+        back_populates="manager",
+        foreign_keys=lambda: [Deal.manager_id],
+    )
     deal_histories = relationship("DealHistory", back_populates="manager")
     deal_messages = relationship("DealMessage", back_populates="user")
 
@@ -1881,7 +1888,6 @@ class Source(Base, TimeStampMixin):
         nullable=True,
     )
 
-    leads = relationship("Lead", back_populates="source")
     source_to_sale_stages = relationship(
         "SourceToSaleStage", back_populates="source"
     )
@@ -1905,25 +1911,6 @@ class SourceToSaleStage(Base):
     sale_stage = relationship(
         "SaleStage", back_populates="source_to_sale_stages"
     )
-
-
-class Lead(Base, TimeStampMixin):
-    __tablename__ = "lead"
-
-    lead_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("user.user_id", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    source_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("source.source_id", ondelete="CASCADE"),
-        nullable=False,
-    )
-
-    source = relationship("Source", back_populates="leads")
-    user = relationship("User", back_populates="leads")
-    deals = relationship("Deal", back_populates="lead")
 
 
 class LostReason(Base):
@@ -1960,10 +1947,9 @@ class Deal(Base, TimeStampMixin):
         ),
     )
 
-    deal_id: Mapped[int] = mapped_column(
-        BigInteger,
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        server_default=Identity(always=True),
     )
     sale_stage_id: Mapped[int] = mapped_column(
         Integer,
@@ -1972,19 +1958,20 @@ class Deal(Base, TimeStampMixin):
     )
     lead_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("lead.lead_id", ondelete="CASCADE"),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    cost: Mapped[Numeric] = mapped_column(
+        NUMERIC,
         nullable=False,
     )
-    deal_value: Mapped[decimal.Decimal] = mapped_column(
-        MONEY,
-        nullable=False,
-    )
-    probability: Mapped[decimal.Decimal] = mapped_column(
+    probability: Mapped[Numeric] = mapped_column(
         NUMERIC(3, 2),
         nullable=False,
         default=0,
     )
-    deal_fields: Mapped[dict | None] = mapped_column(
+    fields: Mapped[dict | None] = mapped_column(
         JSONB,
         nullable=True,
     )
@@ -2012,10 +1999,14 @@ class Deal(Base, TimeStampMixin):
     )
 
     sale_stage = relationship("SaleStage", back_populates="deals")
-    lead = relationship("Lead", back_populates="deals")
     lost_reason = relationship("LostReason", back_populates="deals")
-    manager = relationship("User", back_populates="managed_deals")
+    manager = relationship(
+        "User", back_populates="managed_deals", foreign_keys=[manager_id]
+    )
     deal_histories = relationship("DealHistory", back_populates="deal")
+    lead = relationship(
+        "User", back_populates="lead_link", foreign_keys=[lead_id]
+    )
     deal_messages = relationship("DealMessage", back_populates="deal")
 
 
@@ -2033,8 +2024,8 @@ class DealHistory(Base):
         primary_key=True,
         server_default=Identity(always=True),
     )
-    deal_id: Mapped[int] = mapped_column(
-        BigInteger,
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("deal.deal_id", ondelete="CASCADE"),
         nullable=False,
     )
@@ -2085,8 +2076,8 @@ class DealMessage(Base):
         primary_key=True,
         server_default=Identity(always=True),
     )
-    deal_id: Mapped[int] = mapped_column(
-        BigInteger,
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("deal.deal_id", ondelete="CASCADE"),
         nullable=False,
     )

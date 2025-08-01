@@ -1,8 +1,8 @@
-"""feat: add crm tables
+"""feat: add crm table
 
-Revision ID: 53945805aa08
+Revision ID: efb51b17def0
 Revises: 18a9ae60dfff
-Create Date: 2025-07-30 14:45:53.087925
+Create Date: 2025-07-30 15:25:59.560554
 
 """
 from collections.abc import Sequence
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '53945805aa08'
+revision: str = 'efb51b17def0'
 down_revision: str | Sequence[str] | None = '18a9ae60dfff'
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -75,7 +75,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('lead_id')
     )
     op.create_table('deal',
-    sa.Column('deal_id', sa.BigInteger(), sa.Identity(always=True), nullable=False),
+    sa.Column('deal_id', sa.UUID(), nullable=False),
     sa.Column('sale_stage_id', sa.Integer(), nullable=False),
     sa.Column('lead_id', sa.UUID(), nullable=False),
     sa.Column('deal_value', postgresql.MONEY(), nullable=False),
@@ -98,7 +98,7 @@ def upgrade() -> None:
     )
     op.create_table('deal_history',
     sa.Column('deal_history_id', sa.BigInteger(), sa.Identity(always=True), nullable=False),
-    sa.Column('deal_id', sa.BigInteger(), nullable=False),
+    sa.Column('deal_id', sa.UUID(), nullable=False),
     sa.Column('sale_stage_id', sa.Integer(), nullable=False),
     sa.Column('probability', sa.NUMERIC(precision=3, scale=2), nullable=False),
     sa.Column('lost_reason_id', sa.Integer(), nullable=True),
@@ -113,7 +113,7 @@ def upgrade() -> None:
     )
     op.create_table('deal_message',
     sa.Column('deal_message_id', sa.BigInteger(), sa.Identity(always=True), nullable=False),
-    sa.Column('deal_id', sa.BigInteger(), nullable=False),
+    sa.Column('deal_id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=True),
     sa.Column('message', sa.String(length=4096), nullable=False),
     sa.Column('is_updated', sa.Boolean(), nullable=False),
