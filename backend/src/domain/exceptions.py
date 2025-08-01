@@ -482,9 +482,7 @@ class ContentDBError(Exception):
 
 
 class ContentAlreadyExistsError(Exception):
-    """The error occurs when the content already exists."""
-
-    def __init__(self, message="The content already exists."):
+    def __init__(self, message="Content already exists with this fields."):
         super().__init__(message)
 
 
@@ -510,4 +508,44 @@ class ContentDoesNotExistsError(Exception):
     of get content request"""
 
     def __init__(self, message="The content doesn't exists"):
+        super().__init__(message)
+
+
+# ===================================== #
+#             Deal errors               #
+# ===================================== #
+
+
+class DealError(Exception):
+    def __init__(self, message="Undefined error with deal"):
+        super().__init__(message)
+
+
+class DealAlreadyExistsError(Exception):
+    def __init__(self, message="Deal already exists"):
+        super().__init__(message)
+
+
+class DealLeadNotFoundError(Exception):
+    def __init__(self, message="Deal lead not found"):
+        super().__init__(message)
+
+
+class DealManagerNotFoundError(Exception):
+    def __init__(self, message="Deal manager not found"):
+        super().__init__(message)
+
+
+class DealSaleStageNotFoundError(Exception):
+    def __init__(self, message="Deal sale stage not found"):
+        super().__init__(message)
+
+
+class DealLostReasonNotFoundError(Exception):
+    def __init__(self, message="Deal lost reason not found"):
+        super().__init__(message)
+
+
+class DealDBError(Exception):
+    def __init__(self, message="Internal server error"):
         super().__init__(message)

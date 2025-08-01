@@ -34,3 +34,8 @@ class TSQUERYRules(StrEnum):
     AND = "&"
     OR = "|"
     NOT = "!"
+
+
+class Priority(IntEnum):
+    NO_PRIORITY = -1
+    HIGHEST_PRIORIRY = 10

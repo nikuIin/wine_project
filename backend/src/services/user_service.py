@@ -14,12 +14,13 @@ from domain.exceptions import (
     ValidateVerificationKeyError,
 )
 from repository.user_repository import UserRepository
+from services.abc.user_service_abc import AbstractUserService
 from services.email_verification_service import EmailVerificationService
 
 logger = get_configure_logger(Path(__file__).stem)
 
 
-class UserService:
+class UserService(AbstractUserService):
     def __init__(
         self,
         user_repository: UserRepository,
@@ -31,7 +32,7 @@ class UserService:
     async def get_user_creds(self, login: str) -> UserCreds | None:
         return await self.__user_repository.get_user_creds(login=login)
 
-    async def _is_user_exists(self, email: EmailStr, login: str) -> bool:
+    async def is_user_exists(self, email: EmailStr, login: str) -> bool:
         try:
             return await self.__user_repository.is_user_exists(
                 email=email,
@@ -44,7 +45,7 @@ class UserService:
         try:
             # === main logic ===
             # check is email exists
-            if await self._is_user_exists(
+            if await self.is_user_exists(
                 login=user.login,
                 email=user.email,
             ):
