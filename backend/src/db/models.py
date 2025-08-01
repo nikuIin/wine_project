@@ -1936,9 +1936,7 @@ class LostReason(Base):
 class Deal(Base, TimeStampMixin):
     __tablename__ = "deal"
     __table_args__ = (
-        CheckConstraint(
-            "deal_value::numeric >= 0", name="deal_value_positive"
-        ),
+        CheckConstraint("cost::numeric >= 0", name="deal_cost_positive"),
         CheckConstraint(
             "probability between 0 and 1", name="deal_probability_range"
         ),
