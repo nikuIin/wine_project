@@ -30,7 +30,7 @@ async def create_deal(
         await deal_service.create(deal_create_data)
         return {
             "status": "success",
-            "detail": "The deal create succesfully!",
+            "detail": "The deal create successfully!",
         }
 
     except (
