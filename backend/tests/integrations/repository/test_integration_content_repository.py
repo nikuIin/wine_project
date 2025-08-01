@@ -2,14 +2,16 @@ from uuid import uuid4
 
 from pytest import fixture, mark
 from sqlalchemy import text
+from uuid_extensions import uuid7
 
 from domain.entities.content import Content
 from domain.enums import LanguageEnum
+from dto.content_dto import ContentCreateDTO, ContentUpdateDTO
 from repository.content_repository import (
     AbstractContentRepository,
     ContentRepository,
 )
-from schemas.content_schema import ContentCreateSchema, ContentUpdateSchema
+from schemas.content_schema import ContentUpdateSchema
 
 
 @fixture
@@ -28,8 +30,8 @@ class TestContentRepository:
         async_session,
     ):
         # 1. Create content
-        content_id = uuid4()
-        content_create = ContentCreateSchema(
+        content_id = uuid7()
+        content_create = ContentCreateDTO(
             content_id=content_id,
             md_title="my_cute_title",
             md_description="my_cute_description",
@@ -73,7 +75,7 @@ class TestContentRepository:
         assert content.content == content_in.content
 
         # 4. Update content
-        update_content = ContentUpdateSchema(
+        update_content = ContentUpdateDTO(
             md_title="new_title",
             md_description="new_description",
             content={"b": 24, "c": 1234},
@@ -97,6 +99,7 @@ class TestContentRepository:
         content_in.md_title = "new_title"
         content_in.md_description = "new_description"
         content_in.content = {"b": 24, "c": 1234}
+        content_in.language = LanguageEnum.ENGLISH
 
         assert content == content_in
 
@@ -142,6 +145,7 @@ class TestContentRepository:
             md_title="my_cute_title",
             md_description="my_cute_description",
             content={"a": 123},
+            language=LanguageEnum.RUSSIAN,
         )
 
         content_english_in = Content(
@@ -149,6 +153,7 @@ class TestContentRepository:
             md_title="New english title",
             md_description="my_cute_description",
             content={"a": 123},
+            language=LanguageEnum.ENGLISH,
         )
 
         deleted_content = await content_repository.get_deleted_content()
