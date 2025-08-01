@@ -106,6 +106,10 @@ class DatabaseHelper:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.commit()
 
+    async def close_connection(self) -> None:
+        if self.engine:
+            await self.engine.dispose()
+
 
 # Create a global instance of the DatabaseHelper using settings from core.config
 postgres_helper = DatabaseHelper(
