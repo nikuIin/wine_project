@@ -18,7 +18,7 @@ from core.logger.logger import get_configure_logger
 from db.models import *  # noqa
 from db.base_models import Base
 from db.statement import Statement
-from db.trigers import TRIGGERS
+from db.triggers import TRIGGERS
 
 logger = get_configure_logger(Path(__file__).stem)
 

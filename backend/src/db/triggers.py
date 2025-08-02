@@ -397,4 +397,40 @@ TRIGGERS = [
     before delete on content
     for each row execute function move_to_content_deleted();
     """),
+    # Deal history
+    text(
+        """
+        create or replace function save_deal_state()
+        returns trigger as $$
+        begin
+            insert into deal_history
+            (
+                deal_id, sale_stage_id,
+                probability, lost_reason_id,
+                manager_id, lost_reason_additional_text,
+                changed_at
+            )
+            values
+            (
+                old.deal_id, old.sale_stage_id,
+                old.probability, old.lost_reason_id,
+                old.manager_id, old.lost_reason_additional_text,
+                current_timestamp
+            );
+            if tg_op = 'UPDATE' then
+                return new;
+            elsif tg_op = 'DELETE' then
+                return old;
+            end if;
+        end;
+        $$ language plpgsql;
+        """
+    ),
+    text(
+        """
+        create trigger trigger_save_deal_state_version
+        before update or delete on deal
+        for each row execute function save_deal_state();
+        """
+    ),
 ]

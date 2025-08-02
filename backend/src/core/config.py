@@ -173,6 +173,10 @@ class RedisSettings(ModelConfig):
         return f"redis://{self.host}:{self.port}/{self.db}"
 
 
+class CRMSettings(ModelConfig):
+    max_deal_saves: int = Field(default=5, validation_alias="MAX_DEAL_SAVES")
+
+
 # create config instances
 host_settings = HostSettings()
 auth_settings = AuthSettings()
@@ -181,3 +185,4 @@ log_settings = LoggingSettings()
 app_settings = AppSettings()
 mail_settings = MailSettings()
 redis_settings = RedisSettings()
+crm_settings = CRMSettings()

@@ -1982,7 +1982,7 @@ class Deal(Base, TimeStampMixin):
         ForeignKey("lost_reason.lost_reason_id", ondelete="SET NULL"),
         nullable=True,
     )
-    lost_reason: Mapped[str | None] = mapped_column(
+    lost_reason_additional_text: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
     )
@@ -2042,7 +2042,7 @@ class DealHistory(Base):
         ForeignKey("lost_reason.lost_reason_id", ondelete="SET NULL"),
         nullable=True,
     )
-    lost_reason: Mapped[str | None] = mapped_column(
+    lost_reason_additional_text: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
     )

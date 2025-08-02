@@ -11,10 +11,8 @@ from core.general_constants import (
 from domain.enums import Priority
 
 
-class Lost(BaseModel):
-    lost_reason: str = Field(
-        min_length=BASE_MIN_STR_LENGTH, max_length=BASE_MAX_STR_LENGTH
-    )
+class LostBaseSchema(BaseModel):
+    lost_reason_id: int = Field(ge=1, le=MAX_DB_INT)
     description: str | None = None
 
 
@@ -40,6 +38,6 @@ class DealResponseSchema(BaseModel):
         ge=Priority.NO_PRIORITY,
         le=Priority.HIGHEST_PRIORIRY,
     )
-    lost: Lost | None = None
+    lost: LostBaseSchema | None = None
     created_at: datetime
     close_at: datetime
