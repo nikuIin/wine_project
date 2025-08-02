@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from schemas.deal_schema import LostBaseSchema
+from domain.entities.deal import Deal
+from schemas.deal_schema import DealUpdateSchema, LostCreateSchema
 
 
 class AbstractDealService(ABC):
@@ -10,5 +11,11 @@ class AbstractDealService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def close_deal(self, deal_id: UUID, lost: LostBaseSchema) -> int:
+    async def update(
+        self, deal_id: UUID, deal_update_schema: DealUpdateSchema
+    ) -> Deal | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def close_deal(self, deal_id: UUID, lost: LostCreateSchema) -> int:
         raise NotImplementedError

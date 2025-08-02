@@ -9,15 +9,18 @@ from domain.enums import Priority
 
 class Deal(BaseModel):
     deal_id: UUID
+    lead_id: UUID
     sale_stage_id: int
-    manager_id: UUID
-    fields: dict
-    probality: float = Field(ge=0, le=1)
+    manager_id: UUID | None
+    fields: dict | None
+    probability: float = Field(ge=0, le=1)
+    cost: float = Field(ge=0)
     priority: int = Field(
         ge=Priority.NO_PRIORITY,
         le=Priority.HIGHEST_PRIORIRY,
     )
     lost_reason: str | None = None
+    lost_reason_description: str | None = None
     created_at: datetime
     close_at: None | datetime = None
 

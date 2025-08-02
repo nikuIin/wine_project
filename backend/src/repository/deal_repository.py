@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import text, update
+from sqlalchemy import select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,8 @@ from core.config import crm_settings
 from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Deal as DealModel
+from db.models import LostReason
+from domain.entities.deal import Deal
 from domain.exceptions import (
     DealAlreadyExistsError,
     DealDBError,
@@ -100,7 +102,65 @@ class DealRepository(AbstractDealRepository):
             )
             raise DealDBError from error
 
-    async def update(self, deal_id: UUID, deal_update: DealUpdateDTO): ...
+    @delete_old_deal_versions
+    async def update(
+        self, deal_id: UUID, deal_update: DealUpdateDTO
+    ) -> Deal | None:
+        update_stmt = (
+            update(DealModel)
+            .where(DealModel.deal_id == deal_id)
+            .values(
+                sale_stage_id=deal_update.sale_stage_id,
+                manager_id=deal_update.manager_id,
+                fields=deal_update.fields,
+                cost=deal_update.cost,
+                probability=deal_update.probability,
+                priority=deal_update.priority,
+                close_at=deal_update.close_at,
+            )
+        )
+
+        if deal_update.lost:
+            update_stmt = update_stmt.values(
+                lost_reason_id=deal_update.lost.lost_reason_id,
+                lost_reason_additional_text=deal_update.lost.description,
+            )
+
+        update_cte = update_stmt.returning(DealModel).cte("updated_deal")
+
+        select_stmt = select(
+            update_cte, LostReason.name.label("lost_reason_name")
+        ).outerjoin(
+            LostReason,
+            update_cte.c.lost_reason_id == LostReason.lost_reason_id,
+        )
+
+        try:
+            async with self.__session as session:
+                deal_row = await session.execute(select_stmt)
+                deal_row = deal_row.mappings().one_or_none()
+                await session.commit()
+
+            if not deal_row:
+                return None
+
+            deal_data = dict(deal_row)
+            deal_data["lost_reason"] = deal_row.lost_reason_name
+            deal_data["lost_reason_description"] = (
+                deal_row.lost_reason_additional_text
+            )
+
+            return Deal(
+                **deal_data,
+            )
+
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+        except DBAPIError as error:
+            logger.error(
+                "DBAPI error when update deal %s", deal_id, exc_info=error
+            )
+            raise DealDBError from error
 
     @delete_old_deal_versions
     async def close_deal(

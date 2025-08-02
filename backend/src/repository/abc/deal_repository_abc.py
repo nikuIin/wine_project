@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.entities.deal import Deal
-from dto.deal_dto import DealCreateDTO, LostReasonDTO
+from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
 
 
 class AbstractDealRepository(ABC):
@@ -18,9 +18,11 @@ class AbstractDealRepository(ABC):
     ) -> int:
         raise NotImplementedError
 
-    # @abstractmethod
-    # async def update(self, deal_id: UUID):
-    #     raise NotImplementedError
+    @abstractmethod
+    async def update(
+        self, deal_id: UUID, deal_update: DealUpdateDTO
+    ) -> Deal | None:
+        raise NotImplementedError
 
     # @abstractmethod
     # async def get_info(self, deal_id: UUID) -> Deal:
