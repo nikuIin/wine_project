@@ -272,6 +272,65 @@ class DealRepository(AbstractDealRepository):
             )
             raise DealDBError from error
 
+    @delete_old_deal_versions
+    async def change_fields(
+        self,
+        deal_id: UUID,
+        fields: dict,
+    ) -> int:
+        """Update specific fields of an existing deal.
+
+        This method merges the provided `fields` dictionary with the existing
+        `fields` column in the database for the specified deal,
+        using the PostgreSQL JSONB concatenation operator (||).
+
+        Args:
+            deal_id: The unique identifier of the deal to update.
+            fields: A dictionary of fields to merge into the deal's existing
+                    `fields` JSONB column.
+
+        Returns:
+            The number of rows updated (1 if deal exists, 0 otherwise).
+
+        Raises:
+            DealLeadNotFoundError: If the associated lead ID does not
+                                   exist.
+            DealAlreadyExistsError: If a deal with the same ID or
+                                    lead ID exists.
+            DealManagerNotFoundError: If the associated manager ID is
+                                      not found.
+            DealSaleStageNotFoundError: If the associated sale stage
+                                        ID is not found.
+            DealLostReasonNotFoundError: If the associated lost reason
+                                         ID is not found.
+            DealError: For other integrity errors not specifically handled.
+            DealDBError: For general database API errors during the update.
+        """
+
+        stmt = (
+            update(DealModel)
+            .where(DealModel.deal_id == deal_id)
+            .values(fields=DealModel.fields.op("||")(fields))
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+                await session.commit()
+
+            return result.rowcount
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when update fields in the %s deal."
+                + " (Fields: %s)",
+                deal_id,
+                fields,
+                exc_info=error,
+            )
+            raise DealDBError from error
+
 
 def deal_repository_dependency(
     async_session: AsyncSession = Depends(postgres_helper.session_dependency),

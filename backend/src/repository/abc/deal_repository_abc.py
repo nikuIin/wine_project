@@ -36,14 +36,31 @@ class AbstractDealRepository(ABC):
     ) -> int:
         raise NotImplementedError
 
+    @abstractmethod
+    async def change_fields(
+        self,
+        deal_id: UUID,
+        fields: dict,
+    ) -> int:
+        """Update specific fields of an existing deal.
+
+        This method merges the provided `fields` dictionary with the existing
+        `fields` column in the database for the specified deal.
+
+        Args:
+            deal_id: The unique identifier of the deal to update.
+            fields: A dictionary of fields to merge into the deal's existing
+                    `fields`.
+
+        Returns:
+            The number of rows updated.
+        """
+        raise NotImplementedError
+
     # @abstractmethod
     # async def get_messages(self):
     #     raise NotImplementedError
 
     # @abstractmethod
     # async def write_message(self):
-    #     raise NotImplementedError
-
-    # @abstractmethod
-    # async def insert_new_field(self):
     #     raise NotImplementedError

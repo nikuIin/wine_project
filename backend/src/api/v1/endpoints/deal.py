@@ -120,6 +120,29 @@ async def change_sale_stage(
         )
 
 
+@router.patch("/change_deal_fields/{deal_id}")
+@handle_deal_errors
+async def change_deal_fields(
+    deal_id: UUID,
+    fields: dict = Body(embed=True),
+    deal_service: AbstractDealService = Depends(deal_service_dependency),
+):
+    updated_deals = await deal_service.change_fields(
+        deal_id=deal_id, fields=fields
+    )
+
+    if updated_deals:
+        return {
+            "status": "success",
+            "detail": "The deal fields updated successfully!",
+            "updated_quantity": updated_deals,
+        }
+    else:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail="Deal not found"
+        )
+
+
 @router.patch("/{deal_id}")
 async def close_deal(
     deal_id: UUID,

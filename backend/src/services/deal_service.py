@@ -67,6 +67,15 @@ class DealService(AbstractDealService):
             deal_id=deal_id, sale_stage_id=sale_stage_id
         )
 
+    async def change_fields(
+        self,
+        deal_id: UUID,
+        fields: dict,
+    ) -> int:
+        return await self.__deal_repository.change_fields(
+            deal_id=deal_id, fields=fields
+        )
+
 
 def deal_service_dependency(
     deal_repository: AbstractDealRepository = Depends(
