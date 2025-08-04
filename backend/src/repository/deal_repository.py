@@ -102,7 +102,6 @@ class DealRepository(AbstractDealRepository):
             )
             raise DealDBError from error
 
-    @delete_old_deal_versions
     async def update(
         self, deal_id: UUID, deal_update: DealUpdateDTO
     ) -> Deal | None:
@@ -190,6 +189,50 @@ class DealRepository(AbstractDealRepository):
         except DBAPIError as error:
             logger.error(
                 "DBAPIError when update a deal with id %s",
+                deal_id,
+                exc_info=error,
+            )
+            raise DealDBError from error
+
+    async def get(self, deal_id: UUID) -> Deal | None:
+        select_stmt = (
+            select(
+                DealModel.deal_id,
+                DealModel.sale_stage_id,
+                DealModel.lead_id,
+                DealModel.probability,
+                DealModel.priority,
+                DealModel.lost_reason_additional_text.label(
+                    "lost_reason_description"
+                ),
+                DealModel.fields,
+                DealModel.cost,
+                DealModel.created_at,
+                DealModel.close_at,
+                DealModel.manager_id,
+                LostReason.name.label("lost_reason"),
+            )
+            .where(DealModel.deal_id == deal_id)
+            .outerjoin(
+                LostReason,
+                DealModel.lost_reason_id == LostReason.lost_reason_id,
+            )
+        )
+
+        try:
+            async with self.__session as session:
+                deal_row = await session.execute(select_stmt)
+
+            deal_row = deal_row.mappings().fetchone()
+
+            deal = Deal.model_validate(deal_row) if deal_row else None
+            return deal
+
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when get a deal with id %s",
                 deal_id,
                 exc_info=error,
             )

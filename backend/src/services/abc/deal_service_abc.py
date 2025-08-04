@@ -17,5 +17,12 @@ class AbstractDealService(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    async def get(
+        self,
+        deal_id: UUID,
+    ) -> Deal | None:
+        raise NotImplementedError
+
+    @abstractmethod
     async def close_deal(self, deal_id: UUID, lost: LostCreateSchema) -> int:
         raise NotImplementedError

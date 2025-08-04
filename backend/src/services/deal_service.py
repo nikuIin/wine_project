@@ -43,6 +43,11 @@ class DealService(AbstractDealService):
             deal_update=DealUpdateDTO(**deal_update_schema.model_dump()),
         )
 
+    async def get(self, deal_id: UUID) -> Deal | None:
+        return await self.__deal_repository.get(
+            deal_id=deal_id,
+        )
+
 
 def deal_service_dependency(
     deal_repository: AbstractDealRepository = Depends(

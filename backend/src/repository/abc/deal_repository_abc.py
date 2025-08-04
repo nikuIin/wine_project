@@ -24,17 +24,17 @@ class AbstractDealRepository(ABC):
     ) -> Deal | None:
         raise NotImplementedError
 
-    # @abstractmethod
-    # async def get_info(self, deal_id: UUID) -> Deal:
-    #     raise NotImplementedError
+    @abstractmethod
+    async def get(self, deal_id: UUID) -> Deal | None:
+        raise NotImplementedError
 
-    # @abstractmethod
-    # async def change_sale_stage(
-    #     self,
-    #     deal_id: UUID,
-    #     sale_stage: int,
-    # ) -> None:
-    #     raise NotImplementedError
+    @abstractmethod
+    async def change_sale_stage(
+        self,
+        deal_id: UUID,
+        sale_stage_id: int,
+    ) -> int:
+        raise NotImplementedError
 
     # @abstractmethod
     # async def get_messages(self):
