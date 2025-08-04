@@ -48,6 +48,15 @@ class DealService(AbstractDealService):
             deal_id=deal_id,
         )
 
+    async def change_sale_stage(
+        self,
+        deal_id: UUID,
+        sale_stage_id: int,
+    ) -> int:
+        return await self.__deal_repository.change_sale_stage(
+            deal_id=deal_id, sale_stage_id=sale_stage_id
+        )
+
 
 def deal_service_dependency(
     deal_repository: AbstractDealRepository = Depends(

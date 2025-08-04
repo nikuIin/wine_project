@@ -8,6 +8,7 @@ from starlette.status import (
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
+from core.general_constants import MAX_DB_INT
 from domain.entities.deal import Deal
 from domain.exceptions import (
     DealAlreadyExistsError,
@@ -93,6 +94,29 @@ async def create_deal(
         "status": "success",
         "detail": "The deal create successfully!",
     }
+
+
+@router.patch("/change_sale_stage/{deal_id}")
+@handle_deal_errors
+async def change_sale_stage(
+    deal_id: UUID,
+    sale_stage_id: int = Body(ge=1, le=MAX_DB_INT, embed=True),
+    deal_service: AbstractDealService = Depends(deal_service_dependency),
+):
+    updated_deals = await deal_service.change_sale_stage(
+        deal_id=deal_id, sale_stage_id=sale_stage_id
+    )
+
+    if updated_deals:
+        return {
+            "status": "success",
+            "detail": "The deal stage updated successfully!",
+            "updated_quantity": updated_deals,
+        }
+    else:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail="Deal not found"
+        )
 
 
 @router.patch("/{deal_id}")

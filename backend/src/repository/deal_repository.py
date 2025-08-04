@@ -102,6 +102,7 @@ class DealRepository(AbstractDealRepository):
             )
             raise DealDBError from error
 
+    @delete_old_deal_versions
     async def update(
         self, deal_id: UUID, deal_update: DealUpdateDTO
     ) -> Deal | None:
@@ -123,6 +124,11 @@ class DealRepository(AbstractDealRepository):
             update_stmt = update_stmt.values(
                 lost_reason_id=deal_update.lost.lost_reason_id,
                 lost_reason_additional_text=deal_update.lost.description,
+            )
+        else:
+            update_stmt = update_stmt.values(
+                lost_reason_id=None,
+                lost_reason_additional_text=None,
             )
 
         update_cte = update_stmt.returning(DealModel).cte("updated_deal")
@@ -234,6 +240,34 @@ class DealRepository(AbstractDealRepository):
             logger.error(
                 "DBAPIError when get a deal with id %s",
                 deal_id,
+                exc_info=error,
+            )
+            raise DealDBError from error
+
+    @delete_old_deal_versions
+    async def change_sale_stage(
+        self, deal_id: UUID, sale_stage_id: int
+    ) -> int:
+        stmt = (
+            update(DealModel)
+            .where(DealModel.deal_id == deal_id)
+            .values(sale_stage_id=sale_stage_id)
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+                await session.commit()
+
+            return result.rowcount
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when update sale sale stage in the %s deal."
+                + " (To sale_stage_id=%s)",
+                deal_id,
+                sale_stage_id,
                 exc_info=error,
             )
             raise DealDBError from error
