@@ -1,13 +1,18 @@
 from uuid import UUID
 
 from fastapi import Depends
+from uuid_extensions import uuid7
 
 from domain.entities.deal import Deal
 from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
 from repository.article_repository import L
 from repository.deal_repository import deal_repository_dependency
-from schemas.deal_schema import DealUpdateSchema, LostCreateSchema
+from schemas.deal_schema import (
+    DealCreateSchema,
+    DealUpdateSchema,
+    LostCreateSchema,
+)
 from services.abc.deal_service_abc import AbstractDealService
 
 
@@ -18,12 +23,17 @@ class DealService(AbstractDealService):
     ):
         self.__deal_repository = deal_repository
 
-    async def create(self, deal_create_schema: ...):
-        return await self.__deal_repository.create(
+    async def create(self, deal_create_schema: DealCreateSchema) -> UUID:
+        deal_id = uuid7()
+
+        await self.__deal_repository.create(
             deal_create=DealCreateDTO(
                 **deal_create_schema.model_dump(),
+                deal_id=deal_id,
             )
         )
+
+        return deal_id
 
     async def close_deal(
         self, deal_id: UUID, lost: LostCreateSchema | None = None

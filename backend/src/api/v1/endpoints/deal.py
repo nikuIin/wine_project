@@ -89,10 +89,11 @@ async def create_deal(
     deal_create_data: DealCreateSchema = Body(),
     deal_service: AbstractDealService = Depends(deal_service_dependency),
 ):
-    await deal_service.create(deal_create_data)
+    deal_id = await deal_service.create(deal_create_data)
     return {
         "status": "success",
         "detail": "The deal create successfully!",
+        "deal_id": deal_id,
     }
 
 

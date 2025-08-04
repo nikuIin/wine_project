@@ -2,12 +2,16 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.entities.deal import Deal
-from schemas.deal_schema import DealUpdateSchema, LostCreateSchema
+from schemas.deal_schema import (
+    DealCreateSchema,
+    DealUpdateSchema,
+    LostCreateSchema,
+)
 
 
 class AbstractDealService(ABC):
     @abstractmethod
-    async def create(self, deal_create_schema: ...):
+    async def create(self, deal_create_schema: DealCreateSchema) -> UUID:
         raise NotImplementedError
 
     @abstractmethod
