@@ -8,10 +8,12 @@ from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import crm_settings
+from core.general_constants import DEFAULT_LIMIT
 from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Deal as DealModel
 from db.models import LostReason
+from db.models import MdUser as MdUserModel
 from domain.entities.deal import Deal
 from domain.exceptions import (
     DealAlreadyExistsError,
@@ -330,6 +332,31 @@ class DealRepository(AbstractDealRepository):
                 exc_info=error,
             )
             raise DealDBError from error
+
+    async def get_deals(
+        self, limit: int = DEFAULT_LIMIT, offset: int = 0
+    ) -> list[Deal]:
+        stmt = select(
+            DealModel.deal_id,
+            DealModel.sale_stage_id,
+            DealModel.lead_id,
+            MdUserModel.first_name,
+        )
+
+        stmt = text(
+            """
+            select
+                d.deal_id,
+                d.sale_stage_id,
+                d.lead_id,
+                (mdu.first_name || ' ' || mdu.last_name) as lead_name,
+                mdu.profile_picture_link
+            from deal d
+            join md_user on md_user.user_id=d.lead_id
+            limit :limit
+            offset :offset;
+            """
+        )
 
 
 def deal_repository_dependency(

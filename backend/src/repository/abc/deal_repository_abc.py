@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from core.general_constants import DEFAULT_LIMIT
 from domain.entities.deal import Deal
 from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
 
@@ -55,6 +56,14 @@ class AbstractDealRepository(ABC):
         Returns:
             The number of rows updated.
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_deals(
+        self,
+        limit: int,
+        offset: int,
+    ) -> list[Deal]:
         raise NotImplementedError
 
     # @abstractmethod
