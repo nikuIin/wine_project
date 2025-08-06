@@ -3,13 +3,16 @@ from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from starlette.status import (
+    HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
+from api.v1.depends import auth_dependency
 from core.general_constants import MAX_DB_INT
 from domain.entities.deal import Deal
+from domain.entities.token import TokenPayload
 from domain.exceptions import (
     DealAlreadyExistsError,
     DealDBError,
@@ -17,7 +20,10 @@ from domain.exceptions import (
     DealLeadNotFoundError,
     DealLostReasonNotFoundError,
     DealManagerNotFoundError,
+    DealNotFoundError,
     DealSaleStageNotFoundError,
+    MessageAlreadyExistsError,
+    UserNotFoundError,
 )
 from dto.deal_dto import DealShortDTO
 from schemas.deal_schema import (
@@ -28,7 +34,7 @@ from schemas.deal_schema import (
     LostCreateSchema,
     LostResponseSchema,
 )
-from schemas.message_schema import MessageResponseSchema
+from schemas.message_schema import MessageCreateSchema, MessageResponseSchema
 from schemas.support_schemas import LimitSchema, OffsetSchema
 from services.abc.deal_service_abc import AbstractDealService
 from services.deal_service import deal_service_dependency
@@ -71,11 +77,13 @@ def handle_deal_errors(func):
             DealManagerNotFoundError,
             DealSaleStageNotFoundError,
             DealLostReasonNotFoundError,
+            DealNotFoundError,
+            UserNotFoundError,
         ) as error:
             raise HTTPException(
                 status_code=HTTP_404_NOT_FOUND, detail=str(error)
             ) from error
-        except DealAlreadyExistsError as error:
+        except (DealAlreadyExistsError, MessageAlreadyExistsError) as error:
             raise HTTPException(
                 status_code=HTTP_409_CONFLICT, detail=str(error)
             ) from error
@@ -140,6 +148,19 @@ async def get_deal_messages(
 
     # TODO: change to schema
     return messages
+
+
+@router.post("/message", status_code=HTTP_201_CREATED)
+@handle_deal_errors
+async def write_deal_message(
+    message: MessageCreateSchema = Depends(),
+    jwt: TokenPayload = Depends(auth_dependency),
+    deal_service: AbstractDealService = Depends(deal_service_dependency),
+):
+    await deal_service.write_message(
+        message=message, user_id=UUID(jwt.user_id)
+    )
+    return {"message": "Message written successfully"}
 
 
 @router.patch("/change_sale_stage/{deal_id}")

@@ -12,6 +12,7 @@ from dto.deal_dto import (
     DealUpdateDTO,
     LostReasonDTO,
 )
+from dto.message_dto import MessageCreateDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
 from repository.article_repository import L
 from repository.deal_repository import deal_repository_dependency
@@ -20,6 +21,7 @@ from schemas.deal_schema import (
     DealUpdateSchema,
     LostCreateSchema,
 )
+from schemas.message_schema import MessageCreateSchema
 from services.abc.deal_service_abc import AbstractDealService
 
 
@@ -103,6 +105,18 @@ class DealService(AbstractDealService):
             deal_id,
             limit,
             offset,
+        )
+
+    async def write_message(
+        self,
+        user_id: UUID,
+        message: MessageCreateSchema,
+    ):
+        return await self.__deal_repository.write_message(
+            message_data=MessageCreateDTO(
+                **message.model_dump(),
+                user_id=user_id,
+            )
         )
 
 

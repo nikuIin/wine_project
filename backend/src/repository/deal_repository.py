@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import select, text, update
+from sqlalchemy import insert, select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,7 +23,10 @@ from domain.exceptions import (
     DealLeadNotFoundError,
     DealLostReasonNotFoundError,
     DealManagerNotFoundError,
+    DealNotFoundError,
     DealSaleStageNotFoundError,
+    MessageAlreadyExistsError,
+    UserNotFoundError,
 )
 from dto.deal_dto import (
     DealCreateDTO,
@@ -31,6 +34,7 @@ from dto.deal_dto import (
     DealUpdateDTO,
     LostReasonDTO,
 )
+from dto.message_dto import MessageCreateDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
 
 logger = get_configure_logger(Path(__file__).stem)
@@ -44,6 +48,12 @@ class DealRepository(AbstractDealRepository):
         logger.debug("Integrity error of deal operation", exc_info=error)
         if "deal_lead_id_fkey" in str(error):
             raise DealLeadNotFoundError from error
+        elif "deal_message_user_id_fkey" in str(error):
+            raise UserNotFoundError from error
+        elif "deal_message_id_pkey" in str(error):
+            raise MessageAlreadyExistsError from error
+        elif "deal_message_deal_id_fkey" in str(error):
+            raise DealNotFoundError from error
         elif "deal_pkey" in str(error) or "deal_lead_id_key" in str(error):
             raise DealAlreadyExistsError from error
         elif "deal_manager_id_fkey" in str(error):
@@ -406,6 +416,52 @@ class DealRepository(AbstractDealRepository):
             logger.error(
                 "DBAPIError when getting message of deal whith id %s",
                 deal_id,
+                exc_info=error,
+            )
+            raise DealDBError from error
+
+    async def write_message(
+        self,
+        message_data: MessageCreateDTO,
+    ):
+        insert_stmt_message = (
+            insert(DealMessage)
+            .values(
+                message=message_data.message,
+                deal_id=message_data.deal_id,
+                user_id=message_data.user_id,
+                sent_at=message_data.sent_at,
+            )
+            .returning(DealMessage.deal_message_id)
+        )
+        update_deal_stmt = (
+            update(DealModel)
+            .where(DealModel.deal_id == message_data.deal_id)
+            .values(updated_at=datetime.now(tz=UTC))
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(insert_stmt_message)
+                await session.execute(update_deal_stmt)
+                await session.commit()
+
+            message_id = result.scalar_one_or_none()
+
+            if not message_id:
+                logger.error(
+                    "The create message request doesn't return message_id"
+                )
+                raise DealDBError(
+                    f"Can't create message in the deal {message_data.deal_id}"
+                )
+
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when writing message of deal whith id %s",
+                message_data.deal_id,
                 exc_info=error,
             )
             raise DealDBError from error

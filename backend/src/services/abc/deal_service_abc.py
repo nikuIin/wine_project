@@ -9,6 +9,7 @@ from schemas.deal_schema import (
     DealUpdateSchema,
     LostCreateSchema,
 )
+from schemas.message_schema import MessageCreateSchema
 
 
 class AbstractDealService(ABC):
@@ -75,4 +76,12 @@ class AbstractDealService(ABC):
         limit: int,
         offset: int,
     ) -> list[Message]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def write_message(
+        self,
+        user_id: UUID,
+        message: MessageCreateSchema,
+    ):
         raise NotImplementedError

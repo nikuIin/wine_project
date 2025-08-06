@@ -536,6 +536,11 @@ class DealManagerNotFoundError(Exception):
         super().__init__(message)
 
 
+class UserNotFoundError(Exception):
+    def __init__(self, message="User has'n been founded."):
+        super().__init__(message)
+
+
 class DealSaleStageNotFoundError(Exception):
     def __init__(self, message="Deal sale stage not found"):
         super().__init__(message)
@@ -548,4 +553,14 @@ class DealLostReasonNotFoundError(Exception):
 
 class DealDBError(Exception):
     def __init__(self, message="Internal server error"):
+        super().__init__(message)
+
+
+class MessageAlreadyExistsError(Exception):
+    def __init__(self, message="Message with this id already exists"):
+        super().__init__(message)
+
+
+class DealNotFoundError(Exception):
+    def __init__(self, message="The deal has't been founded."):
         super().__init__(message)

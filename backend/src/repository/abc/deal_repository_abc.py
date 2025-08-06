@@ -9,6 +9,7 @@ from dto.deal_dto import (
     DealUpdateDTO,
     LostReasonDTO,
 )
+from dto.message_dto import MessageCreateDTO
 
 
 class AbstractDealRepository(ABC):
@@ -77,10 +78,9 @@ class AbstractDealRepository(ABC):
     ) -> list[Message]:
         raise NotImplementedError
 
-    # @abstractmethod
-    # async def get_messages(self):
-    #     raise NotImplementedError
-
-    # @abstractmethod
-    # async def write_message(self):
-    #     raise NotImplementedError
+    @abstractmethod
+    async def write_message(
+        self,
+        message_data: MessageCreateDTO,
+    ):
+        raise NotImplementedError
