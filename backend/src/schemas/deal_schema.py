@@ -64,3 +64,24 @@ class DealUpdateSchema(BaseModel):
     )
     lost: LostCreateSchema | None = None
     close_at: datetime | None = None
+
+
+class DealShortResponseSchema(BaseModel):
+    deal_id: UUID
+    sale_stage_id: int = Field(ge=1, le=MAX_DB_INT)
+    lead_id: UUID
+    lead_name: str | None = Field(
+        default=None,
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+    )
+    lead_last_name: str | None = Field(
+        default=None,
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+    )
+    profile_picture_link: str | None = Field(
+        default=None,
+        min_length=BASE_MIN_STR_LENGTH,
+        max_length=BASE_MAX_STR_LENGTH,
+    )

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.entities.deal import Deal
+from dto.deal_dto import DealShortDTO
 from schemas.deal_schema import (
     DealCreateSchema,
     DealUpdateSchema,
@@ -56,4 +57,12 @@ class AbstractDealService(ABC):
         Returns:
             The number of affected entities (typically 1 if the deal exists).
         """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_deals(
+        self,
+        limit: int,
+        offset: int,
+    ) -> list[DealShortDTO]:
         raise NotImplementedError

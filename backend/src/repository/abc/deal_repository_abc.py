@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from core.general_constants import DEFAULT_LIMIT
 from domain.entities.deal import Deal
-from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
+from dto.deal_dto import (
+    DealCreateDTO,
+    DealShortDTO,
+    DealUpdateDTO,
+    LostReasonDTO,
+)
 
 
 class AbstractDealRepository(ABC):
@@ -63,7 +67,7 @@ class AbstractDealRepository(ABC):
         self,
         limit: int,
         offset: int,
-    ) -> list[Deal]:
+    ) -> list[DealShortDTO]:
         raise NotImplementedError
 
     # @abstractmethod

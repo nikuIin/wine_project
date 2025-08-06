@@ -1,7 +1,7 @@
 from functools import wraps
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from starlette.status import (
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
@@ -19,13 +19,16 @@ from domain.exceptions import (
     DealManagerNotFoundError,
     DealSaleStageNotFoundError,
 )
+from dto.deal_dto import DealShortDTO
 from schemas.deal_schema import (
     DealCreateSchema,
     DealResponseSchema,
+    DealShortResponseSchema,
     DealUpdateSchema,
     LostCreateSchema,
     LostResponseSchema,
 )
+from schemas.support_schemas import LimitSchema, OffsetSchema
 from services.abc.deal_service_abc import AbstractDealService
 from services.deal_service import deal_service_dependency
 
@@ -95,6 +98,24 @@ async def create_deal(
         "detail": "The deal create successfully!",
         "deal_id": deal_id,
     }
+
+
+@router.get("/all", response_model=list[DealShortResponseSchema])
+async def get_deals(
+    limit: LimitSchema = Depends(),
+    offset: OffsetSchema = Depends(),
+    deal_service: AbstractDealService = Depends(deal_service_dependency),
+):
+    deals: list[DealShortDTO] = await deal_service.get_deals(
+        limit=int(limit),
+        offset=int(offset),
+    )
+
+    deals_response = [
+        DealShortResponseSchema(**deal.model_dump()) for deal in deals
+    ]
+
+    return deals_response
 
 
 @router.patch("/change_sale_stage/{deal_id}")

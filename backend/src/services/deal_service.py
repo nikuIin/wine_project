@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import Depends
 from uuid_extensions import uuid7
 
+from core.general_constants import DEFAULT_LIMIT
 from domain.entities.deal import Deal
 from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
@@ -74,6 +75,16 @@ class DealService(AbstractDealService):
     ) -> int:
         return await self.__deal_repository.change_fields(
             deal_id=deal_id, fields=fields
+        )
+
+    async def get_deals(
+        self,
+        limit: int = DEFAULT_LIMIT,
+        offset: int = 0,
+    ):
+        return await self.__deal_repository.get_deals(
+            limit=limit,
+            offset=offset,
         )
 
 

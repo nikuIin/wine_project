@@ -24,7 +24,12 @@ from domain.exceptions import (
     DealManagerNotFoundError,
     DealSaleStageNotFoundError,
 )
-from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
+from dto.deal_dto import (
+    DealCreateDTO,
+    DealShortDTO,
+    DealUpdateDTO,
+    LostReasonDTO,
+)
 from repository.abc.deal_repository_abc import AbstractDealRepository
 
 logger = get_configure_logger(Path(__file__).stem)
@@ -335,28 +340,38 @@ class DealRepository(AbstractDealRepository):
 
     async def get_deals(
         self, limit: int = DEFAULT_LIMIT, offset: int = 0
-    ) -> list[Deal]:
-        stmt = select(
-            DealModel.deal_id,
-            DealModel.sale_stage_id,
-            DealModel.lead_id,
-            MdUserModel.first_name,
+    ) -> list[DealShortDTO]:
+        stmt = (
+            select(
+                DealModel.deal_id,
+                DealModel.sale_stage_id,
+                DealModel.lead_id,
+                MdUserModel.first_name.label("lead_name"),
+                MdUserModel.last_name.label("lead_last_name"),
+                MdUserModel.profile_picture_link,
+            )
+            .outerjoin(MdUserModel, MdUserModel.user_id == DealModel.lead_id)
+            .order_by(DealModel.updated_at)
+            .limit(limit)
+            .offset(offset)
         )
 
-        stmt = text(
-            """
-            select
-                d.deal_id,
-                d.sale_stage_id,
-                d.lead_id,
-                (mdu.first_name || ' ' || mdu.last_name) as lead_name,
-                mdu.profile_picture_link
-            from deal d
-            join md_user on md_user.user_id=d.lead_id
-            limit :limit
-            offset :offset;
-            """
-        )
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+                deals_rows = result.mappings().all()
+
+            return [DealShortDTO.model_validate(row) for row in deals_rows]
+
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when getting deals",
+                exc_info=error,
+            )
+            raise DealDBError from error
 
 
 def deal_repository_dependency(

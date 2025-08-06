@@ -42,3 +42,12 @@ class DealUpdateDTO(BaseModel):
     )
     lost: LostReasonDTO | None = None
     close_at: datetime | None = None
+
+
+class DealShortDTO(BaseModel):
+    deal_id: UUID
+    sale_stage_id: int
+    lead_id: UUID
+    lead_name: str | None = None
+    lead_last_name: str | None = None
+    profile_picture_link: str | None = None
