@@ -164,7 +164,7 @@ async def change_deal_fields(
         )
 
 
-@router.patch("/{deal_id}")
+@router.patch("/close/{deal_id}")
 async def close_deal(
     deal_id: UUID,
     lost: LostCreateSchema = Body(),
