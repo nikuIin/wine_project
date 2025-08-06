@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.entities.deal import Deal
+from domain.entities.message import Message
 from dto.deal_dto import DealShortDTO
 from schemas.deal_schema import (
     DealCreateSchema,
@@ -65,4 +66,13 @@ class AbstractDealService(ABC):
         limit: int,
         offset: int,
     ) -> list[DealShortDTO]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_messages(
+        self,
+        deal_id: UUID,
+        limit: int,
+        offset: int,
+    ) -> list[Message]:
         raise NotImplementedError

@@ -28,6 +28,7 @@ from schemas.deal_schema import (
     LostCreateSchema,
     LostResponseSchema,
 )
+from schemas.message_schema import MessageResponseSchema
 from schemas.support_schemas import LimitSchema, OffsetSchema
 from services.abc.deal_service_abc import AbstractDealService
 from services.deal_service import deal_service_dependency
@@ -116,6 +117,29 @@ async def get_deals(
     ]
 
     return deals_response
+
+
+@router.get("/{deal_id}/messages")
+@handle_deal_errors
+async def get_deal_messages(
+    deal_id: UUID,
+    limit: LimitSchema = Depends(),
+    offset: OffsetSchema = Depends(),
+    deal_service: AbstractDealService = Depends(deal_service_dependency),
+):
+    messages = await deal_service.get_messages(
+        deal_id=deal_id,
+        limit=int(limit),
+        offset=int(offset),
+    )
+
+    if not messages:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND, detail="Messages not found."
+        )
+
+    # TODO: change to schema
+    return messages
 
 
 @router.patch("/change_sale_stage/{deal_id}")
@@ -236,7 +260,7 @@ async def update_deal(
         ) from error
 
 
-@router.get("/{deal_id}")
+@router.get("/{deal_id}", response_model=MessageResponseSchema)
 async def get_deal(
     deal_id: UUID,
     deal_service: AbstractDealService = Depends(deal_service_dependency),

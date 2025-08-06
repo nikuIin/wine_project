@@ -12,9 +12,10 @@ from core.general_constants import DEFAULT_LIMIT
 from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Deal as DealModel
-from db.models import LostReason
+from db.models import DealMessage, LostReason
 from db.models import MdUser as MdUserModel
 from domain.entities.deal import Deal
+from domain.entities.message import Message
 from domain.exceptions import (
     DealAlreadyExistsError,
     DealDBError,
@@ -369,6 +370,42 @@ class DealRepository(AbstractDealRepository):
         except DBAPIError as error:
             logger.error(
                 "DBAPIError when getting deals",
+                exc_info=error,
+            )
+            raise DealDBError from error
+
+    async def get_messages(
+        self,
+        deal_id: UUID,
+        limit: int = DEFAULT_LIMIT,
+        offset: int = 0,
+    ) -> list[Message]:
+        stmt = (
+            select(
+                DealMessage.deal_message_id.label("message_id"),
+                DealMessage.message,
+                DealMessage.sent_at,
+                DealMessage.user_id,
+                DealMessage.deal_id,
+            )
+            .where(DealMessage.deal_id == deal_id)
+            .limit(limit)
+            .offset(offset)
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+
+            messages = [Message(**row) for row in result.mappings().all()]
+            return messages
+
+        except IntegrityError as error:
+            self._validate_integrity_errors(error)
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when getting message of deal whith id %s",
+                deal_id,
                 exc_info=error,
             )
             raise DealDBError from error

@@ -5,7 +5,13 @@ from uuid_extensions import uuid7
 
 from core.general_constants import DEFAULT_LIMIT
 from domain.entities.deal import Deal
-from dto.deal_dto import DealCreateDTO, DealUpdateDTO, LostReasonDTO
+from domain.entities.message import Message
+from dto.deal_dto import (
+    DealCreateDTO,
+    DealShortDTO,
+    DealUpdateDTO,
+    LostReasonDTO,
+)
 from repository.abc.deal_repository_abc import AbstractDealRepository
 from repository.article_repository import L
 from repository.deal_repository import deal_repository_dependency
@@ -81,10 +87,22 @@ class DealService(AbstractDealService):
         self,
         limit: int = DEFAULT_LIMIT,
         offset: int = 0,
-    ):
+    ) -> list[DealShortDTO]:
         return await self.__deal_repository.get_deals(
             limit=limit,
             offset=offset,
+        )
+
+    async def get_messages(
+        self,
+        deal_id: UUID,
+        limit: int,
+        offset: int,
+    ) -> list[Message]:
+        return await self.__deal_repository.get_messages(
+            deal_id,
+            limit,
+            offset,
         )
 
 
