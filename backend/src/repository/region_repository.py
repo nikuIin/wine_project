@@ -277,14 +277,14 @@ class RegionRepository:
 
         except DBAPIError as error:
             logger.error(
-                "DBError when geting region list with"
+                "DBError when getting region list with"
                 + " country_id = %s and language_id = %s",
                 country_id,
                 language_id,
                 exc_info=error,
             )
             raise RegionDatabaseError(
-                "Internal error when geting region list."
+                "Internal error when getting region list."
             ) from error
 
 

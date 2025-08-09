@@ -58,7 +58,7 @@ class TestArticleService:
         input_text: str,
         expectation_set: set[str],
     ):
-        sut = article_service_without_repo._get_seached_words
+        sut = article_service_without_repo._get_searched_words
 
         words_set = sut(input_text)
 

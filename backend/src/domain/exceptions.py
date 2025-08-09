@@ -321,10 +321,10 @@ class DeleteVerificationKeyError(Exception):
 
 
 class RateLimitingError(Exception):
-    """The error occurs with a lot of attepts of auth with the same data
+    """The error occurs with a lot of attempts of auth with the same data
     in the one time period"""
 
-    def __init__(self, message="A lot of attemts to auth."):
+    def __init__(self, message="A lot of attempts to auth."):
         super().__init__(message)
 
 
@@ -342,7 +342,7 @@ class NextCodeAttemptNotPassedError(Exception):
 
     def __init__(
         self,
-        message="Attemt to get new code not allowed yet."
+        message="Attempt to get new code not allowed yet."
         + " Please wait a bit more",
     ):
         super().__init__(message)
@@ -504,7 +504,7 @@ class ContentIntegrityError(Exception):
 
 
 class ContentDoesNotExistsError(Exception):
-    """Ther error occurs when database return None
+    """The error occurs when database return None
     of get content request"""
 
     def __init__(self, message="The content doesn't exists"):
