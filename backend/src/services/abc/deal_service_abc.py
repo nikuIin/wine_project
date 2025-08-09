@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from fastapi import WebSocket
+
 from domain.entities.deal import Deal
 from domain.entities.message import Message
 from dto.deal_dto import DealShortDTO
@@ -83,5 +85,14 @@ class AbstractDealService(ABC):
         self,
         user_id: UUID,
         message: MessageCreateSchema,
+    ):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def connect_to_chat(
+        self,
+        web_socket: WebSocket,
+        deal_id: UUID,
+        user_id: UUID,
     ):
         raise NotImplementedError

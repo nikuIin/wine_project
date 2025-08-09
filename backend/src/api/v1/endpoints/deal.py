@@ -1,7 +1,7 @@
 from functools import wraps
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, WebSocket
 from starlette.status import (
     HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,
@@ -150,17 +150,32 @@ async def get_deal_messages(
     return messages
 
 
-@router.post("/message", status_code=HTTP_201_CREATED)
-@handle_deal_errors
-async def write_deal_message(
-    message: MessageCreateSchema = Depends(),
+@router.websocket("/chat/{deal_id}")
+async def connect_to_deal_chat(
+    web_socket: WebSocket,
+    deal_id: UUID,
     jwt: TokenPayload = Depends(auth_dependency),
     deal_service: AbstractDealService = Depends(deal_service_dependency),
 ):
-    await deal_service.write_message(
-        message=message, user_id=UUID(jwt.user_id)
+    user_id = UUID(jwt.user_id)
+
+    await deal_service.connect_to_chat(
+        web_socket=web_socket,
+        deal_id=deal_id,
+        user_id=UUID(jwt.user_id),
     )
-    return {"message": "Message written successfully"}
+    try:
+        while True:
+            data = await web_socket.receive_text()
+            await deal_service.write_message(
+                user_id=user_id,
+                message=MessageCreateSchema(
+                    deal_id=deal_id,
+                    message=data,
+                ),
+            )
+    except Exception as error:
+        return error
 
 
 @router.patch("/change_sale_stage/{deal_id}")

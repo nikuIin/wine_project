@@ -564,3 +564,8 @@ class MessageAlreadyExistsError(Exception):
 class DealNotFoundError(Exception):
     def __init__(self, message="The deal has't been founded."):
         super().__init__(message)
+
+
+class ChatNotActiveError(Exception):
+    def __init__(self, message="Chat is not active"):
+        super().__init__(message)

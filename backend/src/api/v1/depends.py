@@ -10,7 +10,6 @@ from fastapi import Depends, HTTPException, Request
 # project configuration file
 from core.config import auth_settings
 from core.logger.logger import get_configure_logger
-from domain.entities.auth_master import AuthMaster
 from domain.entities.token import TokenPayload
 from domain.enums import LanguageEnum
 from domain.exceptions import (
@@ -26,6 +25,7 @@ from repository.user_repository import (
     UserRepository,
     user_repository_dependency,
 )
+from services.auth_master import AuthMaster
 from services.email_verification_service import (
     EmailVerificationService,
     email_verification_service_dependency,

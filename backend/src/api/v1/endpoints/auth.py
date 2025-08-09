@@ -17,7 +17,6 @@ from api.v1.depends import (
     user_service_dependency,
 )
 from core.logger.logger import get_configure_logger
-from domain.entities.auth_master import AuthMaster
 from domain.entities.token import TokenPayload
 from domain.entities.user import UserBase, UserCreate, UserCreds
 from domain.exceptions import (
@@ -40,6 +39,7 @@ from schemas.user_schema import (
     UserCredsRequest,
     UserVerifyCode,
 )
+from services.auth_master import AuthMaster
 from services.email_verification_service import (
     EmailVerificationService,
     email_verification_service_dependency,
