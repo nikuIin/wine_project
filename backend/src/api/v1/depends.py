@@ -5,7 +5,7 @@ The file of the dependecies, that are using by these endpoints
 from http import HTTPStatus
 from pathlib import Path
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, WebSocket
 
 # project configuration file
 from core.config import auth_settings
@@ -74,7 +74,9 @@ def auth_master_dependency(
 
 
 def auth_dependency(
-    request: Request, auth_master: AuthMaster = Depends(auth_master_dependency)
+    request: Request = None,  # type: ignore
+    websocket: WebSocket = None,  # type: ignore
+    auth_master: AuthMaster = Depends(auth_master_dependency),
 ) -> TokenPayload:
     """FastAPI dependency that provides auth checking
 
@@ -84,8 +86,18 @@ def auth_dependency(
     Returns:
         AuthMaster function for checking auth.
     """
+    if request:
+        connection = request
+    elif websocket:
+        connection = websocket
+    else:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail="Allowed only HTTP and WS requests",
+        )
+
     try:
-        return auth_master.auth_check(request=request)
+        return auth_master.auth_check(request=connection)
     except (
         AccessTokenAbsenceError,
         InvalidTokenDataError,

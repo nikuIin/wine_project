@@ -1,9 +1,13 @@
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import WebSocket
 
+from core.logger.logger import get_configure_logger
 from domain.exceptions import ChatNotActiveError
+
+logger = get_configure_logger(Path(__file__).stem)
 
 
 class WebSocketManager:
@@ -23,6 +27,10 @@ class WebSocketManager:
         """
         await websocket.accept()
         if room_id not in self.active_connections:
+            logger.debug(
+                "New room registered in the websocket channels: %s",
+                room_id,
+            )
             self.active_connections[room_id] = {}
         self.active_connections[room_id][user_id] = websocket
 
@@ -52,14 +60,21 @@ class WebSocketManager:
         """
         Рассылает сообщение всем пользователям в комнате.
         """
+        room_id = room_id
+        sender_id = sender_id
         if room_id in self.active_connections:
             for user_id, connection in self.active_connections[
                 room_id
             ].items():
+                logger.debug(
+                    "Message received from user %s in the %s room",
+                    user_id,
+                    room_id,
+                )
                 message_with_class = {
                     "text": message,
                     "is_self": user_id == sender_id,
-                    "sent_at": datetime.now(tz=UTC),
+                    "sent_at": str(datetime.now(tz=UTC)),
                 }
                 await connection.send_json(message_with_class)
         else:
@@ -69,8 +84,8 @@ class WebSocketManager:
 
 
 # create the instance
-web_socket_manager = WebSocketManager()
+websocket_manager = WebSocketManager()
 
 
-def web_socket_maganer_dependency() -> WebSocketManager:
-    return web_socket_manager
+def websocket_maganer_dependency() -> WebSocketManager:
+    return websocket_manager

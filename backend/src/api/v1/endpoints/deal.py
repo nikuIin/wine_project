@@ -1,12 +1,21 @@
 from functools import wraps
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, WebSocket
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    WebSocketException,
+)
 from starlette.status import (
-    HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
     HTTP_500_INTERNAL_SERVER_ERROR,
+    WS_1000_NORMAL_CLOSURE,
+    WS_1002_PROTOCOL_ERROR,
 )
 
 from api.v1.depends import auth_dependency
@@ -14,6 +23,7 @@ from core.general_constants import MAX_DB_INT
 from domain.entities.deal import Deal
 from domain.entities.token import TokenPayload
 from domain.exceptions import (
+    ChatNotActiveError,
     DealAlreadyExistsError,
     DealDBError,
     DealError,
@@ -152,30 +162,37 @@ async def get_deal_messages(
 
 @router.websocket("/chat/{deal_id}")
 async def connect_to_deal_chat(
-    web_socket: WebSocket,
+    websocket: WebSocket,
     deal_id: UUID,
     jwt: TokenPayload = Depends(auth_dependency),
     deal_service: AbstractDealService = Depends(deal_service_dependency),
 ):
     user_id = UUID(jwt.user_id)
-
-    await deal_service.connect_to_chat(
-        web_socket=web_socket,
-        deal_id=deal_id,
-        user_id=UUID(jwt.user_id),
-    )
     try:
+        await deal_service.connect_to_chat(
+            websocket=websocket,
+            deal_id=deal_id,
+            user_id=user_id,
+        )
+
         while True:
-            data = await web_socket.receive_text()
+            data = await websocket.receive_text()
             await deal_service.write_message(
                 user_id=user_id,
                 message=MessageCreateSchema(
-                    deal_id=deal_id,
                     message=data,
+                    deal_id=deal_id,
                 ),
             )
-    except Exception as error:
-        return error
+    except WebSocketDisconnect as error:
+        deal_service.disconect(deal_id, user_id)
+        raise WebSocketException(
+            code=WS_1000_NORMAL_CLOSURE, reason=str(error)
+        ) from error
+    except ChatNotActiveError as error:
+        raise WebSocketException(
+            code=WS_1002_PROTOCOL_ERROR, reason=str(error)
+        ) from error
 
 
 @router.patch("/change_sale_stage/{deal_id}")

@@ -24,7 +24,7 @@ from schemas.message_schema import MessageCreateSchema
 from services.abc.deal_service_abc import AbstractDealService
 from services.connection_manager import (
     WebSocketManager,
-    web_socket_maganer_dependency,
+    websocket_maganer_dependency,
 )
 
 
@@ -32,10 +32,10 @@ class DealService(AbstractDealService):
     def __init__(
         self,
         deal_repository: AbstractDealRepository,
-        web_socket_manager: WebSocketManager,
+        websocket_manager: WebSocketManager,
     ):
         self.__deal_repository = deal_repository
-        self.__web_socket_manager = web_socket_manager
+        self.__websocket_manager = websocket_manager
 
     async def create(self, deal_create_schema: DealCreateSchema) -> UUID:
         deal_id = uuid7()
@@ -113,10 +113,16 @@ class DealService(AbstractDealService):
         )
 
     async def connect_to_chat(
-        self, web_socket: WebSocket, deal_id: UUID, user_id: UUID
+        self, websocket: WebSocket, deal_id: UUID, user_id: UUID
     ):
-        await self.__web_socket_manager.connect(
-            websocket=web_socket, room_id=deal_id, user_id=user_id
+        await self.__websocket_manager.connect(
+            websocket=websocket, room_id=deal_id, user_id=user_id
+        )
+
+    def disconect(self, deal_id: UUID, user_id: UUID):
+        self.__websocket_manager.disconnect(
+            room_id=deal_id,
+            user_id=user_id,
         )
 
     async def write_message(
@@ -127,7 +133,7 @@ class DealService(AbstractDealService):
         # TODO: check is user hass access to the deal.
         # (the user_role must be higher or equal than manager
         # or user_id=lead_id)
-        await self.__web_socket_manager.broadcast(
+        await self.__websocket_manager.broadcast(
             message=message.message,
             room_id=message.deal_id,
             sender_id=user_id,
@@ -144,11 +150,11 @@ def deal_service_dependency(
     deal_repository: AbstractDealRepository = Depends(
         deal_repository_dependency
     ),
-    web_socket_manager: WebSocketManager = Depends(
-        web_socket_maganer_dependency
+    websocket_manager: WebSocketManager = Depends(
+        websocket_maganer_dependency
     ),
 ) -> AbstractDealService:
     return DealService(
         deal_repository=deal_repository,
-        web_socket_manager=web_socket_manager,
+        websocket_manager=websocket_manager,
     )

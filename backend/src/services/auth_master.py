@@ -3,7 +3,7 @@ from pathlib import Path
 from time import time
 from uuid import UUID
 
-from fastapi import Request, Response
+from fastapi import Request, Response, WebSocket
 from jwt import encode as jwt_encode
 from passlib.context import CryptContext
 from uuid_extensions import uuid7
@@ -278,7 +278,7 @@ class AuthMaster:
             raise RefreshTokenBlackListError("Refresh token is blacklisted")
         return token_payload
 
-    def auth_check(self, request: Request) -> TokenPayload:
+    def auth_check(self, request: Request | WebSocket) -> TokenPayload:
         token = self._get_token_from_cookies(
             request=request, cookie_key=auth_settings.access_cookie_name
         )
@@ -329,7 +329,7 @@ class AuthMaster:
         logger.debug("JWT cookies cleared")
 
     def _get_token_from_cookies(
-        self, request: Request, cookie_key: str
+        self, request: Request | WebSocket, cookie_key: str
     ) -> Token:
         """Retrieve a token from cookies.
 

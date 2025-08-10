@@ -91,8 +91,12 @@ class AbstractDealService(ABC):
     @abstractmethod
     async def connect_to_chat(
         self,
-        web_socket: WebSocket,
+        websocket: WebSocket,
         deal_id: UUID,
         user_id: UUID,
     ):
+        raise NotImplementedError
+
+    @abstractmethod
+    def disconect(self, deal_id: UUID, user_id: UUID):
         raise NotImplementedError
