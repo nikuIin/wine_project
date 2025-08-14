@@ -4,7 +4,6 @@ from uuid import UUID
 from pydantic import EmailStr
 
 from core.logger.logger import get_configure_logger
-from domain.entities.user import UserBase, UserCreate, UserCreds
 from domain.exceptions import (
     EmailDBError,
     UserAlreadyExistsError,
@@ -13,6 +12,7 @@ from domain.exceptions import (
     UserIntegrityError,
     ValidateVerificationKeyError,
 )
+from dto.user_dto import UserBase, UserCreate, UserCreds
 from repository.user_repository import UserRepository
 from services.abc.user_service_abc import AbstractUserService
 from services.email_verification_service import EmailVerificationService

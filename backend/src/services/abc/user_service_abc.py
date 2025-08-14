@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import EmailStr
 
-from domain.entities.user import UserBase, UserCreate
+from dto.user_dto import UserBase, UserCreate
 
 
 class AbstractUserService(ABC):

@@ -1,6 +1,6 @@
 from sqlalchemy import insert, text
 
-from db.models import Country, LostReason, SaleStage
+from db.models import Country, LostReason, Role, SaleStage
 from db.statement import Statement
 
 SCHEMAS_LIST = (
@@ -32,9 +32,32 @@ INSERT_SALE_STAGE = text(
     """
 )
 
+INSERT_ROLE_STMT = text(
+    """
+    insert into role (role_id, name) values (:role_id, :name)
+    on conflict (role_id) do nothing;
+    """
+)
+
 # Tuple of insert statements for initial data loading
 # TODO: add statuses, roles and reformat insert country data.
 BASE_STATEMENTS: tuple[Statement, ...] = (
+    Statement(
+        description="Add role 'admin'",
+        statement=INSERT_ROLE_STMT,
+        data={"role_id": 2, "name": "admin"},
+        check_query=lambda session: session.query(Role).filter_by(
+            role_id=2,
+        ),
+    ),
+    Statement(
+        description="Add role 'user'",
+        statement=INSERT_ROLE_STMT,
+        data={"role_id": 1, "name": "lead"},
+        check_query=lambda session: session.query(Role).filter_by(
+            role_id=1,
+        ),
+    ),
     Statement(
         description="Add lost reason 'High price'",
         statement=INSERT_LOST_REASON,

@@ -1,16 +1,16 @@
 from pathlib import Path
 from uuid import UUID
 
-from asyncpg.exceptions import ForeignKeyViolationError, UniqueViolationError
 from fastapi import Depends
 from pydantic import EmailStr
-from sqlalchemy import text
+from sqlalchemy import insert, select, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.general_constants import USER_ROLE
 from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
-from domain.entities.user import USER_ROLE_ID, UserBase, UserCreate, UserCreds
+from db.models import MdUser, User
 from domain.exceptions import (
     EmailDBError,
     UserAlreadyExistsError,
@@ -18,72 +18,87 @@ from domain.exceptions import (
     UserDoesNotExistsError,
     UserIntegrityError,
 )
-from repository.sql_queries.user_queries import GET_USER_CREDS
+from dto.user_dto import UserBase, UserCreate, UserCreds
+from repository.abc.user_repository_abc import UserRepositoryABC
 
 logger = get_configure_logger(Path(__file__).stem)
 
 
-class UserRepository:
+class UserRepository(UserRepositoryABC):
+    """
+    Manage user-related database operations.
+
+    This repository handles interactions with the `User` and `MdUser` models,
+    providing methods for user creation, retrieval, and updates.
+    """
+
     def __init__(self, session: AsyncSession):
+        """
+        Initialize the user repository with an asynchronous database session.
+
+        Args:
+            session: The SQLAlchemy asynchronous session.
+        """
         self.__session = session
 
     async def get_user_creds(self, login: str) -> UserCreds | None:
+        """
+        Retrieve user credentials by login.
+
+        Args:
+            login: The user's login string.
+
+        Returns:
+            UserCreds: A DTO containing user ID, login, password, and role ID
+                if found, otherwise None.
+        """
+        stmt = select(
+            User.user_id,
+            User.login,
+            User.password,
+            User.role_id,
+        ).where(User.login == login)
+
         async with self.__session as session:
-            result = await session.execute(
-                GET_USER_CREDS, params={"login": login}
-            )
+            result = await session.execute(stmt)
         result = result.mappings().fetchone()
 
         return UserCreds(**result) if result else None
 
     async def create_user(self, user: UserCreate) -> UserBase:
-        insert_user_data = text(
-            """
-            insert into
-            "user"(
-                user_id,
-                login,
-                password,
-                email,
-                role_id,
-                created_at,
-                is_registered
-            )
-            values(
-                :user_id,
-                :login,
-                :password,
-                :email,
-                :role_id,
-                current_timestamp,
-                false
-            )
-            """
+        """
+        Create a new user and associated metadata in the database.
+
+        Atomically inserts records into both the `user` and `md_user` tables.
+
+        Args:
+            user: A UserCreate DTO containing user details.
+
+        Returns:
+            UserBase: A DTO representing the newly created user.
+
+        Raises:
+            UserAlreadyExistsError: If a user with the given ID already exists.
+            UserDoesNotExistsError: If a foreign key constraint issue occurs
+                during `md_user` insertion, implying the user doesn't exist.
+            UserIntegrityError: For other integrity constraint violations.
+            UserDBError: For general database operational errors.
+        """
+        insert_user_stmt = insert(User).values(
+            user_id=user.user_id,
+            login=user.login,
+            password=user.password,
+            email=user.email,
+            role_id=USER_ROLE,
         )
-        insert_md_data_stmt = text(
-            """
-            insert into md_user (user_id)
-            values (:user_id)
-            """
+        insert_md_data_stmt = insert(MdUser).values(
+            user_id=user.user_id,
         )
+
         try:
             async with self.__session as session:
-                await session.execute(
-                    insert_user_data,
-                    params={
-                        "user_id": user.user_id,
-                        "login": user.login,
-                        "email": user.email,
-                        "password": user.password,
-                        "role_id": USER_ROLE_ID,
-                    },
-                )
-                await session.execute(
-                    insert_md_data_stmt,
-                    params={
-                        "user_id": user.user_id,
-                    },
-                )
+                await session.execute(insert_user_stmt)
+                await session.execute(insert_md_data_stmt)
                 await session.commit()
 
             return UserBase(**user.model_dump())
@@ -95,16 +110,14 @@ class UserRepository:
                 exc_info=error,
             )
 
-            if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore  # noqa: SIM102
-                if "md_user_pkey" in str(error):
-                    raise UserDoesNotExistsError(
-                        f"User with id {user.user_id} does't exists."
-                    ) from error
-            elif isinstance(error.orig.__cause__, UniqueViolationError):  # type: ignore  # noqa: SIM102
-                if "user_pkey" in str(error):
-                    raise UserAlreadyExistsError(
-                        f"User with id {user.user_id} already exists"
-                    ) from error
+            if "md_user_pkey" in str(error):
+                raise UserDoesNotExistsError(
+                    f"User with id {user.user_id} does't exists."
+                ) from error
+            if "user_pkey" in str(error):
+                raise UserAlreadyExistsError(
+                    f"User with id {user.user_id} already exists"
+                ) from error
 
             raise UserIntegrityError from error
 
@@ -117,73 +130,55 @@ class UserRepository:
             raise UserDBError from error
 
     async def get_user_email(self, user_id: UUID) -> EmailStr | None:
-        stmt = text('select email from "user" where user_id = :user_id')
+        """
+        Retrieve a user's email address by user ID.
 
-        try:
-            # === main logic ===
-            async with self.__session as session:
-                result = await session.execute(
-                    stmt,
-                    params={"user_id": user_id},
-                )
+        Args:
+            user_id: The UUID of the user.
 
-            return result.scalar_one_or_none()
+        Returns:
+            EmailStr: The user's email address if found, otherwise None.
+        """
+        stmt = select(User.email).where(User.user_id == user_id)
 
-        # === errors handling ===
-        except IntegrityError as error:
-            logger.debug(
-                "IntegrityError while get email of user with id %s",
-                user_id,
-                exc_info=error,
-            )
+        async with self.__session as session:
+            result = await session.scalar(stmt)
 
-            if isinstance(error.orig.__cause__, ForeignKeyViolationError):  # type: ignore  # noqa: SIM102
-                if "md_user_pkey" in str(error):
-                    raise UserDoesNotExistsError(
-                        f"User with id {user_id} does't exists."
-                    ) from error
-
-            raise UserIntegrityError(
-                f"Integrity error of getting email of user with id {user_id}"
-            ) from error
-
-        except DBAPIError as error:
-            logger.error(
-                "DBError while getting email of user with id %s",
-                user_id,
-                exc_info=error,
-            )
-            raise UserDBError(
-                f"DBError of getting email of user with id {user_id}"
-            ) from error
+        return result
 
     async def is_user_exists(self, email: EmailStr, login: str) -> bool:
-        stmt = text(
-            """
-            select true
-            from md_user
-            join "user" using(user_id)
-            where email = :email
-                  or login = :login
-            limit 1;
-            """
+        """
+        Check if a user exists based on email or login.
+
+        Args:
+            email: The user's email address.
+            login: The user's login string.
+
+        Returns:
+            bool: True if a user with the given email or login exists,
+                False otherwise.
+
+        Raises:
+            EmailDBError: For database operational errors during the check.
+        """
+        stmt = (
+            select(User.user_id)
+            .where((User.email == email) | (User.login == login))
+            .limit(1)
         )
 
         try:
             async with self.__session as session:
-                result = await session.execute(
-                    stmt,
-                    params={
-                        "email": email,
-                        "login": login,
-                    },
-                )
+                result = await session.execute(stmt)
 
             result = result.scalar_one_or_none()
             logger.debug(
-                "Is user with data (%s, %s) exists: %s", email, login, result
+                "Is user with data (%s, %s) exists: %s",
+                email,
+                login,
+                result is not None,
             )
-            return bool(result)
+            return result is not None
 
         except DBAPIError as error:
             logger.error(
@@ -191,23 +186,37 @@ class UserRepository:
             )
             raise EmailDBError from error
 
-    async def register_user(self, user_id: UUID):
-        """Set is_register in the user table to True"""
+    async def register_user(self, user_id: UUID) -> int:
+        """
+        Set `is_registered` to True for a specific user.
 
-        stmt = text(
-            """
-            update "user" set is_registered = True where user_id = :user_id
-            """
+        Updates the `is_registered` field in the `user` table to `True` for
+        the given user ID.
+
+        Args:
+            user_id: The UUID of the user to register.
+
+        Returns:
+            int: The number of rows updated (0 or 1).
+
+        Raises:
+            UserIntegrityError: For integrity constraint violations during
+                the update.
+            UserDBError: For general database operational errors.
+        """
+
+        stmt = (
+            update(User)
+            .where(User.user_id == user_id)
+            .values(is_registered=True)
         )
 
         try:
             async with self.__session as session:
-                result = await session.execute(
-                    stmt, params={"user_id": user_id}
-                )
+                result = await session.execute(stmt)
                 await session.commit()
 
-            update_rows_quantity = result.rowcount  # type: ignore
+            update_rows_quantity = result.rowcount
 
             return update_rows_quantity
 
@@ -231,5 +240,17 @@ class UserRepository:
 
 def user_repository_dependency(
     session: AsyncSession = Depends(postgres_helper.session_dependency),
-):
+) -> UserRepository:
+    """
+    Provide a dependency for `UserRepository`.
+
+    This function sets up `UserRepository` with an asynchronous database
+    session for dependency injection.
+
+    Args:
+        session: An `AsyncSession` provided by `postgres_helper.session_dependency`.
+
+    Returns:
+        UserRepository: An instance of `UserRepository`.
+    """
     return UserRepository(session=session)

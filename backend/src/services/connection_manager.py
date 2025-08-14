@@ -6,6 +6,7 @@ from fastapi import WebSocket
 
 from core.logger.logger import get_configure_logger
 from domain.exceptions import ChatNotActiveError
+from schemas.message_schema import MessageResponseSchema
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -71,12 +72,13 @@ class WebSocketManager:
                     user_id,
                     room_id,
                 )
-                message_with_class = {
-                    "text": message,
-                    "is_self": user_id == sender_id,
-                    "sent_at": str(datetime.now(tz=UTC)),
-                }
-                await connection.send_json(message_with_class)
+                message_schema = MessageResponseSchema(
+                    deal_id=room_id,
+                    message=message,
+                    user_id=sender_id,
+                    sent_at=datetime.now(tz=UTC),
+                )
+                await connection.send_json(message_schema)
         else:
             raise ChatNotActiveError(
                 f"Chat with id {room_id} does not active."

@@ -31,6 +31,13 @@ class InvalidTokenDataError(Exception):
         )
 
 
+class TokenDatabaseError(Exception):
+    """The error occurs, while the refresh token is in the black list"""
+
+    def __init__(self, message="The database error during token operations"):
+        super().__init__(message)
+
+
 class AccessTokenAbsenceError(Exception):
     """The error occurs, while the access token wasn't finds in the cookies"""
 

@@ -35,3 +35,6 @@ CODE_REQUEST_LOCK_TIME_IN_SECONDS = 60
 
 
 RUSSIAN_LOWERCASE_LETTERS = set("абвгдеёжзийклмнопрстуфхцчшщъыьэюя")
+
+# Roles
+USER_ROLE = 1

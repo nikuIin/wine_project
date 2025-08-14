@@ -21,7 +21,6 @@ from starlette.status import (
 from api.v1.depends import auth_dependency
 from core.general_constants import MAX_DB_INT
 from domain.entities.deal import Deal
-from domain.entities.token import TokenPayload
 from domain.exceptions import (
     ChatNotActiveError,
     DealAlreadyExistsError,
@@ -44,9 +43,10 @@ from schemas.deal_schema import (
     LostCreateSchema,
     LostResponseSchema,
 )
-from schemas.message_schema import MessageCreateSchema, MessageResponseSchema
+from schemas.message_schema import MessageCreateSchema
 from schemas.support_schemas import LimitSchema, OffsetSchema
 from services.abc.deal_service_abc import AbstractDealService
+from services.classes.token import TokenPayload
 from services.deal_service import deal_service_dependency
 
 router = APIRouter(prefix="/deal", tags=["deal"])
@@ -161,6 +161,7 @@ async def get_deal_messages(
 
 
 @router.websocket("/chat/{deal_id}")
+@handle_deal_errors
 async def connect_to_deal_chat(
     websocket: WebSocket,
     deal_id: UUID,
@@ -242,104 +243,50 @@ async def change_deal_fields(
 
 
 @router.patch("/close/{deal_id}")
+@handle_deal_errors
 async def close_deal(
     deal_id: UUID,
     lost: LostCreateSchema = Body(),
     deal_service: AbstractDealService = Depends(deal_service_dependency),
 ):
-    try:
-        deals_closed = await deal_service.close_deal(deal_id, lost)
-        if deals_closed:
-            return {
-                "status": "success",
-                "detail": "The deal closed successfully!",
-                "closed_quantity": deals_closed,
-            }
-        else:
-            raise HTTPException(
-                status_code=HTTP_404_NOT_FOUND,
-                detail=f"Deal with id {deal_id} doesn't exists",
-            )
-
-    except (
-        DealLeadNotFoundError,
-        DealManagerNotFoundError,
-        DealSaleStageNotFoundError,
-        DealLostReasonNotFoundError,
-    ) as error:
+    deals_closed = await deal_service.close_deal(deal_id, lost)
+    if deals_closed:
+        return {
+            "status": "success",
+            "detail": "The deal closed successfully!",
+            "closed_quantity": deals_closed,
+        }
+    else:
         raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail=str(error)
-        ) from error
-    except DealAlreadyExistsError as error:
-        raise HTTPException(
-            status_code=HTTP_409_CONFLICT, detail=str(error)
-        ) from error
-    except (DealError, DealDBError) as error:
-        raise HTTPException(
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
-        ) from error
+            status_code=HTTP_404_NOT_FOUND,
+            detail=f"Deal with id {deal_id} doesn't exists",
+        )
 
 
 @router.put("/{deal_id}")
+@handle_deal_errors
 async def update_deal(
     deal_id: UUID,
     deal_update: DealUpdateSchema = Body(),
     deal_service: AbstractDealService = Depends(deal_service_dependency),
 ):
-    try:
-        deal = await deal_service.update(
-            deal_id=deal_id, deal_update_schema=deal_update
-        )
+    deal = await deal_service.update(
+        deal_id=deal_id, deal_update_schema=deal_update
+    )
 
-        deal_response = get_deal_response(deal)
-        return deal_response
-
-    except (
-        DealLeadNotFoundError,
-        DealManagerNotFoundError,
-        DealSaleStageNotFoundError,
-        DealLostReasonNotFoundError,
-    ) as error:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail=str(error)
-        ) from error
-    except DealAlreadyExistsError as error:
-        raise HTTPException(
-            status_code=HTTP_409_CONFLICT, detail=str(error)
-        ) from error
-    except (DealError, DealDBError) as error:
-        raise HTTPException(
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
-        ) from error
+    deal_response = get_deal_response(deal)
+    return deal_response
 
 
-@router.get("/{deal_id}", response_model=MessageResponseSchema)
+@router.get("/{deal_id}", response_model=DealResponseSchema)
+@handle_deal_errors
 async def get_deal(
     deal_id: UUID,
     deal_service: AbstractDealService = Depends(deal_service_dependency),
 ):
-    try:
-        deal = await deal_service.get(
-            deal_id=deal_id,
-        )
+    deal = await deal_service.get(
+        deal_id=deal_id,
+    )
 
-        deal_response = get_deal_response(deal)
-        return deal_response
-
-    except (
-        DealLeadNotFoundError,
-        DealManagerNotFoundError,
-        DealSaleStageNotFoundError,
-        DealLostReasonNotFoundError,
-    ) as error:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND, detail=str(error)
-        ) from error
-    except DealAlreadyExistsError as error:
-        raise HTTPException(
-            status_code=HTTP_409_CONFLICT, detail=str(error)
-        ) from error
-    except (DealError, DealDBError) as error:
-        raise HTTPException(
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
-        ) from error
+    deal_response = get_deal_response(deal)
+    return deal_response

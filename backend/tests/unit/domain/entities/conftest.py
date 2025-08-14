@@ -7,7 +7,7 @@ from uuid import UUID
 from pytest import fixture
 from tests.unit.constants import USER_ROLE
 
-from domain.entities.user import UserBase
+from dto.user_dto import UserBase
 
 
 # the user_base data for testing

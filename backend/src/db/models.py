@@ -652,47 +652,31 @@ class RefreshToken(Base, TimeStampMixin):
     refresh_token_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid7,
-        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
-    expire_at: Mapped[datetime] = mapped_column(
+    fingerprint: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    ip: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    is_blocked: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    expire_at: Mapped[float] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,
-        default=lambda: (
-            datetime.now()
-            + timedelta(minutes=auth_settings.refresh_token_expire_minutes)
-        ),
     )
 
     user = relationship("User", back_populates="refresh_tokens")
-    blacklisted = relationship(
-        "BlackRefreshTokenList",
-        back_populates="refresh_token",
-        uselist=False,
-    )
-
-
-class BlackRefreshTokenList(Base):
-    __tablename__ = "black_refresh_token_list"
-
-    refresh_token_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("refresh_token.refresh_token_id", ondelete="CASCADE"),
-        primary_key=True,
-        nullable=False,
-    )
-    ban_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True),
-        nullable=False,
-        default=datetime.now,
-    )
-
-    refresh_token = relationship("RefreshToken", back_populates="blacklisted")
 
 
 class PresentationType(Base):

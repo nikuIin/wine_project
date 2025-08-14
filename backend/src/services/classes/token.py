@@ -23,12 +23,17 @@ base_expire_date = lambda: (
 
 
 class TokenPayload(BaseModel):
+    token_id: str
     user_id: str = Field(
         description="The user UUID. Type str because JWT supports only string."
     )
-    login: str
     role_id: (
         int  # TODO: create enum, that contains information about user roles
+    )
+    fingerprint: str = Field(
+        description="The browser fingerprint."
+        + " Use for identify (this data builds relying on"
+        + " specific user data) users"
     )
     exp: float = Field(
         default_factory=base_expire_date,
@@ -37,7 +42,8 @@ class TokenPayload(BaseModel):
 
 
 class RefreshTokenPayload(TokenPayload):
-    token_id: str | None = None
+    login: str
+    ip: str | None
 
 
 class Token:
