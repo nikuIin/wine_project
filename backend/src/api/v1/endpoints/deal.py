@@ -186,7 +186,7 @@ async def connect_to_deal_chat(
                 ),
             )
     except WebSocketDisconnect as error:
-        deal_service.disconect(deal_id, user_id)
+        deal_service.disconnect(deal_id, user_id)
         raise WebSocketException(
             code=WS_1000_NORMAL_CLOSURE, reason=str(error)
         ) from error

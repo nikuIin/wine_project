@@ -119,7 +119,7 @@ class DealService(AbstractDealService):
             websocket=websocket, room_id=deal_id, user_id=user_id
         )
 
-    def disconect(self, deal_id: UUID, user_id: UUID):
+    def disconnect(self, deal_id: UUID, user_id: UUID):
         self.__websocket_manager.disconnect(
             room_id=deal_id,
             user_id=user_id,

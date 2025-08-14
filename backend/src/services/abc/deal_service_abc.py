@@ -98,5 +98,5 @@ class AbstractDealService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def disconect(self, deal_id: UUID, user_id: UUID):
+    def disconnect(self, deal_id: UUID, user_id: UUID):
         raise NotImplementedError
