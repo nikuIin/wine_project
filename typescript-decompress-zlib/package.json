@@ -1,0 +1,29 @@
+{
+  "name": "typescript-decompress-zlib",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "zlib",
+    "decompress",
+    "typescript",
+    "python"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/cheerio": "^0.22.35",
+    "@types/marked": "^5.0.2",
+    "@types/node": "^24.0.15",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "cheerio": "^1.1.0",
+    "marked": "^16.1.1"
+  }
+}
