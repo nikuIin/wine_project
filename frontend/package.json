@@ -10,12 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "effector": "^23.4.2",
+    "fingerprintjs": "^0.5.3",
+    "get-browser-fingerprint": "^4.1.0",
+    "gsap": "^3.13.0",
+    "i18next": "^25.3.6",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "path": "^0.12.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router": "^7.8.0"
+    "react-i18next": "^15.6.1",
+    "react-router": "^7.8.0",
+    "react-router-dom": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
