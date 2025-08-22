@@ -17,10 +17,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (theme === "system") {
       const systemTheme = getSystemTheme();
       document.documentElement.setAttribute("data-theme", systemTheme);
-      document.documentElement.style.backgroundColor = systemTheme === "dark" ? "black" : "white";
     } else {
       document.documentElement.setAttribute("data-theme", theme);
-      document.documentElement.style.backgroundColor = theme === "dark" ? "black" : "white";
 
       localStorage.setItem("theme", theme);
     }
