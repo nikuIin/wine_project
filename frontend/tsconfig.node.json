@@ -12,7 +12,10 @@
       "@shared/*": ["shared/*"],
       "@shared": ["shared"],
       "@entities/*": ["entities/*"],
-      "@entities": ["entities"]
+      "@entities": ["entities"],
+      "@widgets/*": ["widgets/*"],
+      "@pages/*": ["pages/*"],
+      "@pages": ["pages"]
     },
 
     "moduleResolution": "bundler",
