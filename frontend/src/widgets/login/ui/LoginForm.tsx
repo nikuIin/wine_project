@@ -131,8 +131,8 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
             <UserIcon />
           </div>
           <div>
-            <p className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">{t("welcomeBack")}</p>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">{t("enterCreds")}</p>
+            <p className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-200">{t("welcomeBack")}</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-200 mt-1">{t("enterCreds")}</p>
           </div>
         </div>
 
@@ -159,11 +159,11 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
         </div>*/}
 
         {/* Form - Shadcn style */}
-        <form className="space-y-4">
+        <form className="space-y-4 text-zinc-600 dark:text-zinc-50">
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900 dark:text-zinc-50"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               {t("loginForm.email")}
             </label>
@@ -179,7 +179,7 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
           <div className="space-y-2">
             <label
               htmlFor="password"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-900 dark:text-zinc-50"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
               {t("loginForm.password")}
             </label>
