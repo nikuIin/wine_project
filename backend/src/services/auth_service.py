@@ -74,7 +74,7 @@ class AuthService(AuthServicABC):
     def _generate_jwt_payloads(
         self,
         user: UserBase,
-        fingerprint: str,
+        fingerprint: int,
         ip: str | None,
     ) -> tuple[TokenPayload, RefreshTokenPayload]:
         """Generate access and refresh token payloads for a user.
@@ -176,7 +176,7 @@ class AuthService(AuthServicABC):
         self,
         ip: str | None,
         user: UserBase,
-        fingerprint: str,
+        fingerprint: int,
     ) -> dict:
         """Generate JWT tokens.
 

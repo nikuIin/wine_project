@@ -30,7 +30,7 @@ class TokenPayload(BaseModel):
     role_id: (
         int  # TODO: create enum, that contains information about user roles
     )
-    fingerprint: str = Field(
+    fingerprint: int = Field(
         description="The browser fingerprint."
         + " Use for identify (this data builds relying on"
         + " specific user data) users"

@@ -22,7 +22,7 @@ class UserCredsRequest(BaseModel):
         exclude=True,
         examples=["d@CI=ULd**E;6[LT)+yv"],
     )
-    fingerprint: str = Field(examples=["7abD83fEfa123b49c2345e67894daf12"])
+    fingerprint: int = Field(examples=[1395809657])
 
 
 class UserCreateSchema(BaseModel):
@@ -35,7 +35,7 @@ class UserCreateSchema(BaseModel):
         min_length=MIN_PASSWORD_LENGTH, examples=["d@CI=ULd**E;6[LT)+yv"]
     )
     email: EmailStr
-    fingerprint: str = Field(examples=["7abD83fEfa123b49c2345e67894daf12"])
+    fingerprint: int = Field(examples=[1395809657])
 
 
 class UserVerifyCode(BaseModel):

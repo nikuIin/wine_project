@@ -61,7 +61,7 @@ def access_token(user_base) -> Token:
     token = jwt_encode(
         payload=TokenPayload(
             token_id=str(uuid4()),
-            fingerprint="test",
+            fingerprint=123,
             user_id=str(user_base.user_id),
             role_id=1,
         ).model_dump(),
@@ -77,7 +77,7 @@ def refresh_token(user_base) -> Token:
     token = jwt_encode(
         payload=RefreshTokenPayload(
             token_id=str(uuid4()),
-            fingerprint="test",
+            fingerprint=123,
             user_id=str(user_base.user_id),
             login=user_base.login,
             ip="100.100.100.100",
@@ -95,7 +95,7 @@ def access_token_with_expired_date(user_base) -> Token:
     token = jwt_encode(
         payload=TokenPayload(
             token_id=str(uuid4()),
-            fingerprint="123",
+            fingerprint=345,
             user_id=str(user_base.user_id),
             role_id=1,
             exp=0,
@@ -113,7 +113,7 @@ def refresh_token_with_expired_date(user_base) -> Token:
         payload=RefreshTokenPayload(
             token_id=str(uuid4()),
             ip="127.0.0.1",
-            fingerprint="123",
+            fingerprint=345,
             user_id=str(user_base.user_id),
             login=user_base.login,
             role_id=1,
@@ -130,7 +130,7 @@ def wrong_access_token_data(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=TokenPayload(
-            fingerprint="123",
+            fingerprint=345,
             token_id=str(uuid4()),
             user_id=str(user_base.user_id),
             role_id=1,
@@ -152,7 +152,7 @@ def wrong_refresh_token_data(user_base) -> Token:
         payload=RefreshTokenPayload(
             token_id=str(uuid4()),
             ip="127.0.0.1",
-            fingerprint="123",
+            fingerprint=345,
             user_id=str(user_base.user_id),
             login=user_base.login,
             role_id=1,
