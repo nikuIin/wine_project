@@ -20,15 +20,15 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
       },
       "& + .MuiSwitch-track": {
         opacity: 1,
-        backgroundColor: "#aab4be", // Gray track in checked state (light mode)
+        backgroundColor: "#302d2e", // Gray track in checked state (light mode)
         ...theme.applyStyles("dark", {
-          backgroundColor: "#8796A5", // Gray track in checked state (dark mode)
+          backgroundColor: "#302d2e", // Gray track in checked state (dark mode)
         }),
       },
     },
   },
   "& .MuiSwitch-thumb": {
-    backgroundColor: "#fff", // Thumb is white in unchecked state (moon)
+    backgroundColor: "#ffda22", // Thumb is white in unchecked state (moon)
     width: 32,
     height: 32,
     "&::before": {
@@ -45,21 +45,21 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
       )}" d="M9.305 1.667V3.75h1.389V1.667h-1.39zm-4.707 1.95l-.982.982L5.09 6.072l.982-.982-1.473-1.473zm10.802 0L13.927 5.09l.982.982 1.473-1.473-.982-.982zM10 5.139a4.872 4.872 0 00-4.862 4.86A4.872 4.872 0 0010 14.862 4.872 4.872 0 0014.86 10 4.872 4.872 0 0010 5.139zm0 1.389A3.462 3.462 0 0113.471 10a3.462 3.462 0 01-3.473 3.472A3.462 3.462 0 016.527 10 3.462 3.462 0 0110 6.528zM1.665 9.305v1.39h2.083v-1.39H1.666zm14.583 0v1.39h2.084v-1.39h-2.084zM5.09 13.928L3.616 15.4l.982.982 1.473-1.473-.982-.982zm9.82 0l-.982.982 1.473 1.473.982-.982-1.473-1.473zM9.305 16.25v2.083h1.389V16.25h-1.39z"/></svg>')`,
     },
     ...theme.applyStyles("dark", {
-      backgroundColor: "#fff", // Thumb remains white in unchecked state (dark mode)
+      backgroundColor: "#302d2e", // Thumb remains white in unchecked state (dark mode)
     }),
   },
   "& .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb": {
-    backgroundColor: "#000", // Thumb is black in checked state (sun)
+    backgroundColor: "#b866ff", // Thumb is cream in checked state (moon)
     ...theme.applyStyles("dark", {
-      backgroundColor: "#000", // Thumb remains black in checked state (dark mode)
+      backgroundColor: "#302d2e", // Thumb remains black in checked state (dark mode)
     }),
   },
   "& .MuiSwitch-track": {
     opacity: 1,
-    backgroundColor: "#aab4be", // Gray track in unchecked state (light mode)
+    backgroundColor: "#4a4a4a", // Gray track in unchecked state (light mode)
     borderRadius: 20 / 2,
     ...theme.applyStyles("dark", {
-      backgroundColor: "#8796A5", // Gray track in unchecked state (dark mode)
+      backgroundColor: "#302d2e", // Gray track in unchecked state (dark mode)
     }),
   },
 }));

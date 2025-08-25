@@ -1,0 +1,1 @@
+export { Locales } from "./locales";

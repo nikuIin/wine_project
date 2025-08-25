@@ -9,6 +9,12 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 import { ruBaseDictionary, enBaseDictionary, kzBaseDictionary, Languages } from "@shared/index";
+import { ruLoginDictionary, enLoginDictionary, kzLoginDictionary } from "@widgets/login";
+import {
+  ruLanguageSwitcherDictionary,
+  enLanguageSwitcherDictionary,
+  kzLanguageSwitcherDictionary,
+} from "@widgets/languageSwitcher";
 
 // Multingualism configuration
 i18n
@@ -16,9 +22,15 @@ i18n
   .use(LanguageDetector)
   .init({
     resources: {
-      [Languages.RUSSIAN]: { translation: { ...ruBaseDictionary } },
-      [Languages.ENGLISH]: { translation: { ...enBaseDictionary } },
-      [Languages.KAZAKHSTAN]: { translation: { ...kzBaseDictionary } },
+      [Languages.RUSSIAN]: {
+        translation: { ...ruBaseDictionary, ...ruLoginDictionary, ...ruLanguageSwitcherDictionary },
+      },
+      [Languages.ENGLISH]: {
+        translation: { ...enBaseDictionary, ...enLoginDictionary, ...enLanguageSwitcherDictionary },
+      },
+      [Languages.KAZAKHSTAN]: {
+        translation: { ...kzBaseDictionary, ...kzLoginDictionary, ...kzLanguageSwitcherDictionary },
+      },
     },
     fallbackLng: Languages.RUSSIAN,
     interpolation: {
