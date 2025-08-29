@@ -6,7 +6,7 @@ export { ValidationError } from "@shared/errors/validationErrors";
 export { asUUID } from "@shared/uuid";
 export type { UUID } from "@shared/uuid";
 export { apiFetch } from "@shared/api/baseFetch";
-export type { Role } from "@shared/enums/roles";
+export { type Role as RoleType, Role } from "@shared/enums/roles";
 export { HTTPCode } from "@shared/enums/httpCodes";
 export { Languages, type Language } from "@shared/enums/languages";
 export {

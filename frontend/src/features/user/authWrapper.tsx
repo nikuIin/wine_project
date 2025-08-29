@@ -1,10 +1,12 @@
+import { clearUser } from "@entities/user/model";
 import { HTTPCode } from "@shared/enums/httpCodes";
 import { UnauthorizedError } from "@shared/errors/htttpErrors";
+import type { AppDispatch } from "@shared/store";
 import { refreshTokens } from "@shared/tokens";
 
 type AsyncMethod = (...args: unknown[]) => Promise<Response>;
 
-export async function authWrapper() {
+export async function authWrapper(dispatch: AppDispatch) {
   return function (_target: object, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod: AsyncMethod = descriptor.value;
 
@@ -18,6 +20,7 @@ export async function authWrapper() {
           // Attempt to refresh tokens asynchronously
           const isTokensRefreshed = await refreshTokens();
           if (!isTokensRefreshed) {
+            dispatch(clearUser());
             throw new UnauthorizedError("User unauthorized");
           }
           response = await originalMethod.apply(this, args);

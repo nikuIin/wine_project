@@ -1,8 +1,8 @@
-import type { Role } from "@shared";
+import type { RoleType } from "@shared";
 
 export type User = {
   user_id: string;
   name: string;
-  role: Role;
+  role: RoleType;
   avatarUrl?: string;
 };

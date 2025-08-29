@@ -1,11 +1,13 @@
-import { clearUser, setUser, type User } from "@entities/user";
-import { UnauthorizedError } from "@shared/index";
+import { type User } from "@entities/user";
+import { clearUser, setUser } from "@entities/user/model";
+import { UnauthorizedError, type Language } from "@shared/index";
+import type { AppDispatch } from "@shared/store";
 import { getTokens, type AccessTokenPayload, type RefreshTokenPayload } from "@shared/tokens";
 import { decodeAccessToken, decodeRefreshToken } from "@shared/tokens";
 
-export const login = async (login: string, password: string) => {
+export const LoginFeat = async (login: string, password: string, language: Language, dispatch: AppDispatch) => {
   try {
-    const [accessToken, refreshToken] = await getTokens(login, password);
+    const [accessToken, refreshToken] = await getTokens(login, password, language);
 
     const decodedAccessToken: AccessTokenPayload = decodeAccessToken(accessToken);
     const decodedRefreshToken: RefreshTokenPayload = decodeRefreshToken(refreshToken);
@@ -16,12 +18,14 @@ export const login = async (login: string, password: string) => {
       role: decodedAccessToken.role_id,
       avatarUrl: "TODO: set avatar in access token",
     };
-    setUser(user);
+
+    dispatch(setUser(user));
+    return user;
   } catch (error) {
     if (!(error instanceof UnauthorizedError)) {
       throw error;
     } else {
-      clearUser();
+      dispatch(clearUser());
       console.error("Error when authorize", error);
       throw error;
     }

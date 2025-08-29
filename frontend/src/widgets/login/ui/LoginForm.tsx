@@ -1,7 +1,16 @@
-"use client";
 import { CloseButton } from "@shared/ui/buttons/closeButton";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { LoginFeat } from "@features/user";
 import { useTranslation } from "react-i18next";
+import { Languages, UnauthorizedError } from "@shared/index";
+import { DotsLoader } from "@shared/ui/loaders";
+import { Message } from "@shared/ui/messages";
+
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@shared/store";
+import { useToast } from "@shared/ui/notifications";
+
+export const MIN_PASSWORD_LENGTH = 8;
 
 const UserIcon = () => (
   <svg
@@ -59,73 +68,128 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const AppleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-6 w-6">
-    {/* Apple Icon SVG - uses currentColor to adapt to theme */}
-    <path
-      fill="currentColor"
-      d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.09997 22C7.78997 22.05 6.79997 20.68 5.95997 19.47C4.24997 17 2.93997 12.45 4.69997 9.39C5.56997 7.87 7.12997 6.91 8.81997 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"
-    />
-  </svg>
-);
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const GoogleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
-    {/* Colorful Google Icon using official brand colors */}
-    <path
-      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-      fill="#4285F4"
-    ></path>
-    <path
-      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-      fill="#34A853"
-    ></path>
-    <path
-      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-      fill="#FBBC05"
-    ></path>
-    <path
-      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-      fill="#EA4335"
-    ></path>
-    <path d="M1 1h22v22H1z" fill="none"></path>
-  </svg>
-);
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const XIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className="h-5 w-5 text-zinc-900 dark:text-white"
-  >
-    {/* X Corp icon - uses currentColor to adapt to theme */}
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-// --- Main App Component ---
 export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { t } = useTranslation();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [shake, setShake] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordLenError, setPasswordLenError] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
+  const { i18n, t } = useTranslation();
+  const { success } = useToast();
+
+  const dispatch = useDispatch<AppDispatch>();
+
+  const resetForm = () => {
+    setEmail("");
+    setPassword("");
+    setError(null);
+    setEmailError(false);
+    setPasswordError(false);
+    setShowPassword(false);
+    setPasswordLenError(false);
+    setIsLoading(false);
+    setShake(false);
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  useEffect(() => {
+    if (error || emailError || passwordError || passwordLenError) {
+      setShake(true);
+      const timer = setTimeout(() => setShake(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [error, emailError, passwordError, passwordLenError]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setEmailError(false);
+    setPasswordError(false);
+    setPasswordLenError(false);
+
+    if (!email) {
+      setEmailError(true);
+    }
+
+    const passwordLengthConstraint = password.length >= MIN_PASSWORD_LENGTH;
+    if (!password) {
+      setPasswordError(true);
+    } else if (!passwordLengthConstraint) {
+      setPasswordLenError(true);
+    }
+
+    if (!email || !password || !passwordLengthConstraint) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const user = await LoginFeat(email, password, i18n.language || Languages.DEFAULT, dispatch);
+      if (user) {
+        success("Вход успешен", "лалалаалал");
+        onClose();
+      }
+    } catch (err) {
+      if (err instanceof UnauthorizedError) {
+        setError(t("loginForm.unauthorizedError"));
+      } else {
+        setError(t("baseErrors.internalError"));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    // Main container with a custom background pattern and flexbox for centering. This setup is inherently responsive.
     <div className="relative w-full flex items-center justify-center font-sans overflow-hidden">
-      {/* Login Card - More compact and shadcn-like */}
-      <div className="relative w-full max-w-sm p-6 space-y-6 bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-lg dark:shadow-zinc-900/50">
-        {/* Header section with icon and title - More compact */}
-        <div className="relative text-center space-y-3">
+      <div
+        ref={formRef}
+        className={`relative w-full max-w-sm p-6 space-y-6 bg-white dark:bg-black rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-lg dark:shadow-zinc-900/50 transition-all duration-300 ease-in-out ${
+          shake ? "animate-[shake_0.5s_cubic-bezier(0.36,0.07,0.19,0.97)_both]" : ""
+        }`}
+      >
+        <style>
+          {`
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+              20%, 40%, 60%, 80% { transform: translateX(2px); }
+            }
+            .animate-height {
+              transition: height 0.3s ease-in-out, opacity 0.3s ease-in-out, margin 0.3s ease-in-out;
+              overflow: hidden;
+            }
+            .error-enter {
+              height: 0;
+              opacity: 0;
+              margin-bottom: 0;
+            }
+            .error-visible {
+              opacity: 1;
+              margin-bottom: 1rem;
+            }
+            @keyframes blink {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.5; }
+            }
+            .blink {
+              animation: blink 1s infinite;
+            }
+          `}
+        </style>
+        <div className="relative text-center space-y-3 transition-all duration-300 ease-in-out">
           <div className="absolute top-0 right-0">
-            {/* Close window button */}
-            <CloseButton onClick={onClose} color="gray" />
+            <CloseButton onClick={handleClose} color="gray" />
           </div>
           <div className="inline-flex p-2 bg-zinc-100 dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800">
             <UserIcon />
@@ -135,35 +199,17 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
             <p className="text-sm text-zinc-600 dark:text-zinc-200 mt-1">{t("enterCreds")}</p>
           </div>
         </div>
-
-        {/* Social login buttons - More compact shadcn style */}
-        {/* <div className="grid grid-cols-3 gap-2">
-          {[{ icon: <AppleIcon /> }, { icon: <GoogleIcon /> }, { icon: <XIcon /> }].map((item, index) => (
-            <button
-              key={index}
-              className="flex items-center justify-center h-9 px-3 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black hover:bg-zinc-50 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300"
-            >
-              {item.icon}
-            </button>
-          ))}
-        </div> /}
-
-        {/* OR Divider - More subtle */}
-        {/*<div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-zinc-200 dark:border-zinc-800" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500 dark:text-zinc-400">Or continue with</span>
-          </div>
-        </div>*/}
-
-        {/* Form - Shadcn style */}
-        <form className="space-y-4 text-zinc-600 dark:text-zinc-50">
-          <div className="space-y-2">
+        <div className={`animate-height ${error ? "error-visible" : "error-enter"}`}>
+          {error && <Message message={error} styleType="error" />}
+        </div>
+        <form
+          className="space-y-4 text-zinc-600 dark:text-zinc-50 transition-all duration-300 ease-in-out"
+          onSubmit={handleSubmit}
+        >
+          <div className="space-y-2 transition-all duration-300 ease-in-out">
             <label
               htmlFor="email"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${emailError ? "blink" : ""}`}
             >
               {t("loginForm.email")}
             </label>
@@ -173,13 +219,14 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t("loginForm.emailPlaceholder")}
-              className="flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50"
+              className={`flex h-9 w-full rounded-md border ${emailError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
             />
+            {emailError && <p className="text-xs text-red-500 mt-1">{t("loginForm.requiredField")}</p>}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 transition-all duration-300 ease-in-out">
             <label
               htmlFor="password"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${passwordError ? "blink" : ""}`}
             >
               {t("loginForm.password")}
             </label>
@@ -190,7 +237,7 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t("loginForm.passwordPlaceholder")}
-                className="flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 py-5 pr-10 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className={`flex h-9 w-full rounded-md border ${passwordError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 pr-10 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
               />
               <button
                 type="button"
@@ -201,16 +248,31 @@ export const Login = ({ onClose }: { onClose: () => void }): React.ReactNode => 
               </button>
             </div>
           </div>
+          {passwordError && <p className="text-xs text-red-500 mt-1">{t("loginForm.requiredField")}</p>}
+          {passwordLenError && <p className="text-xs text-red-500 mt-1">{t("loginForm.passwordLengthError")}</p>}
           <button
             type="submit"
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:pointer-events-none disabled:opacity-50 bg-zinc-900 text-zinc-50 shadow hover:bg-zinc-900/90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-50/90 h-9 px-4 py-2 w-full"
+            disabled={isLoading}
+            className="
+              inline-flex items-center
+              justify-center whitespace-nowrap
+              rounded-md text-sm font-medium
+              transition-colors focus-visible:outline-none
+              focus-visible:ring-1 focus-visible:ring-zinc-950
+              dark:focus-visible:ring-zinc-300
+              bg-zinc-900 shadow
+              hover:bg-zinc-900/90 dark:bg-zinc-900 dark:text-white
+              dark:hover:bg-zinc-900/90 h-9 px-4 py-2 w-full
+            "
           >
-            {t("loginForm.signIn")}
+            {isLoading ? (
+              <DotsLoader className="text-zinc-100" />
+            ) : (
+              <p className="text-zinc-100">{t("loginForm.signIn")}</p>
+            )}
           </button>
         </form>
-
-        {/* Footer links - More compact */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 transition-all duration-300 ease-in-out">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {t("loginForm.dontHaveAccount")}{" "}
             <a

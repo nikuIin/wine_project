@@ -1,5 +1,3 @@
-// User for HTTP requests, (not for lacales)
-
 export const Languages = {
   DEFAULT: "ru-RU",
   RUSSIAN: "ru-RU",

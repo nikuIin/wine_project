@@ -16,10 +16,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (theme === "system") {
       const systemTheme = getSystemTheme();
+      setTheme(systemTheme);
       document.documentElement.setAttribute("data-theme", systemTheme);
     } else {
       document.documentElement.setAttribute("data-theme", theme);
-
       localStorage.setItem("theme", theme);
     }
   }, [theme]);

@@ -1,19 +1,27 @@
-import { apiFetch, HTTPCode } from "@shared";
+import { apiFetch, HTTPCode, type Language } from "@shared";
 import { UnauthorizedError, InternalServerError, UnprocessableContentError } from "@shared";
 import getBrowserFingerprint from "get-browser-fingerprint";
 import { TokenValidationError } from "../model/errors";
 
-export const getTokens = async (userLogin: string, password: string): Promise<[string, string]> => {
+export const getTokens = async (userLogin: string, password: string, language: Language): Promise<[string, string]> => {
   const user_creds = {
-    login: userLogin,
+    email: userLogin,
     password: password,
-    fingerprint: getBrowserFingerprint(),
+    fingerprint: await getBrowserFingerprint(),
   };
 
-  const response = await apiFetch("/api/v1/token", {
-    method: "POST",
-    body: JSON.stringify(user_creds),
-  });
+  const response = await apiFetch(
+    "/api/v1/auth/token/",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(user_creds),
+    },
+    language,
+  );
 
   if (!response.ok) {
     if (response.status === HTTPCode.UNAUTHORIZED_401) {

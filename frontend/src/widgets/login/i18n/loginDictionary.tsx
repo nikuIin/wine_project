@@ -1,3 +1,5 @@
+import { MIN_PASSWORD_LENGTH } from "@widgets/login/ui/LoginForm";
+
 export const ruLoginDictionary = {
   welcomeBack: "С возвращением!",
   enterCreds: "Введите свои данные для входа.",
@@ -11,6 +13,9 @@ export const ruLoginDictionary = {
     dontHaveAccount: "Ещё не зарегистрированы?",
     signUp: "Зарегистрироваться",
     forgotPassword: "Забыли пароль?",
+    unauthorizedError: "Неверный email или пароль",
+    requiredField: "Поле обязательно к заполнению",
+    passwordLengthError: `Минимальная длина пароля ${MIN_PASSWORD_LENGTH} символов`,
   },
 };
 export const enLoginDictionary = {
@@ -26,6 +31,9 @@ export const enLoginDictionary = {
     dontHaveAccount: "Don't have an account?",
     signUp: "Sign Up",
     forgotPassword: "Forgot your password?",
+    unauthorizedError: "Invalid email or password",
+    requiredField: "This field is required",
+    passwordLengthError: `Minimum password length is ${MIN_PASSWORD_LENGTH} characters`,
   },
 };
 export const kzLoginDictionary = {
@@ -41,5 +49,8 @@ export const kzLoginDictionary = {
     dontHaveAccount: "Тіркелмегенсіз бе?",
     signUp: "Тіркелу",
     forgotPassword: "Құпия сөзді ұмыттыңыз ба?",
+    unauthorizedError: "Дұрыс емес email немесе құпия сөз",
+    requiredField: "Бұл өріс міндетті",
+    passwordLengthError: `Құпия сөздің ең аз ұзындығы ${MIN_PASSWORD_LENGTH} таңба`,
   },
 };

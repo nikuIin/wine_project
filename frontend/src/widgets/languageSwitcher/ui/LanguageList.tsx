@@ -4,7 +4,7 @@ import { BaseModal } from "@shared/ui/modal";
 import { useTranslation } from "react-i18next";
 import { changeLanguage } from "i18next";
 import { Languages } from "@shared/index";
-import { Notification, useToast } from "@shared/ui/notifications";
+import { useToast } from "@shared/ui/notifications";
 import { LanguageIcon } from "@shared/ui/icons";
 import { CloseButton } from "@shared/ui/buttons/closeButton";
 
@@ -15,7 +15,7 @@ export const LanguageList = ({ open, onClose }: { open: boolean; onClose: () => 
     flagEmoji: locale.flagEmoji,
   }));
 
-  const { notifications, success, warning, removeToast } = useToast();
+  const { success, warning } = useToast();
 
   const { t } = useTranslation();
 
@@ -51,7 +51,6 @@ export const LanguageList = ({ open, onClose }: { open: boolean; onClose: () => 
                 }
                 onClose();
               }}
-              className="w-[75]"
               enableArrowNavigation={true}
               displayScrollbar={false}
               showGradients={false}
@@ -59,12 +58,6 @@ export const LanguageList = ({ open, onClose }: { open: boolean; onClose: () => 
           </div>
         </div>
       </BaseModal>
-      {/* Toast Container */}
-      <div className="fixed bottom-4 right-4 z-50 space-y-2">
-        {notifications.map((toast) => (
-          <Notification key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
-        ))}
-      </div>
     </div>
   );
 };

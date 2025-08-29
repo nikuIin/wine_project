@@ -6,3 +6,5 @@ export {
 } from "@widgets/login/i18n/loginDictionary";
 export { Login } from "@widgets/login/ui/LoginForm";
 export { LoginModal } from "@widgets/login/ui/LoginModal";
+
+export { MIN_PASSWORD_LENGTH } from "@widgets/login/ui/LoginForm";

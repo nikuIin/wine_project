@@ -1,7 +1,10 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { type NotificationType } from "./toast";
+import { useDispatch } from "react-redux";
+import { type AppDispatch } from "@shared/store";
+import { setNotification } from "@shared/ui/notifications";
 
-type Toast = {
+export type Toast = {
   id: number;
   type: NotificationType;
   title: string;
@@ -12,10 +15,10 @@ type Toast = {
 
 export function useToast() {
   const [notifications, setNotifications] = useState<Toast[]>([]);
-  const nextIdRef = useRef(1);
+  const dispatch = useDispatch<AppDispatch>();
 
   const addToast = (type: NotificationType, title: string, message?: string, duration?: number) => {
-    const id = nextIdRef.current++;
+    const id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
     const newToast = {
       id,
       type,
@@ -25,7 +28,8 @@ export function useToast() {
       duration,
     };
 
-    setNotifications((prev) => [...prev, newToast]);
+    dispatch(setNotification(newToast));
+    // setNotifications((prev) => [...prev, newToast]);
   };
 
   const removeToast = (id: number) => {
