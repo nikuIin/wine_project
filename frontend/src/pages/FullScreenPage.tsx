@@ -1,5 +1,9 @@
 import { type AppDispatch, type RootState } from "@shared/store";
-import { Notification, removeNotification, type Toast } from "@shared/ui/notifications";
+import {
+  Notification,
+  removeNotification,
+  type Toast,
+} from "@shared/ui/notifications";
 import { Header } from "@widgets/header";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,7 +21,11 @@ export const FullScreenPage: React.FC = () => {
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
         {notificationList
           ? notificationList.map((toast: Toast) => (
-              <Notification key={toast.id} {...toast} onClose={() => dispatch(removeNotification(toast.id))} />
+              <Notification
+                key={toast.id}
+                {...toast}
+                onClose={() => dispatch(removeNotification(toast.id))}
+              />
             ))
           : null}
       </div>
