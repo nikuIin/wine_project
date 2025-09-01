@@ -43,7 +43,6 @@ class TokenPayload(BaseModel):
 
 class RefreshTokenPayload(TokenPayload):
     login: str
-    ip: str | None
 
 
 class Token:

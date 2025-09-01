@@ -2,6 +2,7 @@ import decimal
 import uuid
 from datetime import UTC, date, datetime, timedelta
 
+from pydantic.networks import EmailStr
 from sqlalchemy import (
     TEXT,
     UUID,
@@ -658,8 +659,8 @@ class RefreshToken(Base, TimeStampMixin):
         ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
-    fingerprint: Mapped[str] = mapped_column(
-        String(255),
+    fingerprint: Mapped[int] = mapped_column(
+        BigInteger,
         nullable=False,
     )
     ip: Mapped[str | None] = mapped_column(
@@ -1572,6 +1573,10 @@ class UserDeleted(Base):
         String(255),
         nullable=False,
     )
+    email: Mapped[EmailStr] = mapped_column(
+        String(400),
+        nullable=False,
+    )
     password: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
@@ -1600,15 +1605,15 @@ class MdUserDeleted(Base):
     )
     first_name: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     last_name: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     middle_name: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     profile_picture_link: Mapped[str | None] = mapped_column(
         VARCHAR(255),

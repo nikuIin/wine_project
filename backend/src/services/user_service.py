@@ -2,6 +2,7 @@ from pathlib import Path
 from uuid import UUID
 
 from pydantic import EmailStr
+from sqlalchemy.exc import DBAPIError
 
 from core.logger.logger import get_configure_logger
 from domain.exceptions import (
@@ -29,8 +30,15 @@ class UserService(AbstractUserService):
         self.__user_repository = user_repository
         self._email_verification_service = email_verification_service
 
-    async def get_user_creds(self, login: str) -> UserCreds | None:
-        return await self.__user_repository.get_user_creds(login=login)
+    async def get_user_creds(
+        self, login: str | None, email: str | None
+    ) -> UserCreds | None:
+        if not email and not login:
+            raise ValueError("Either email or login must be provided")
+        return await self.__user_repository.get_user_creds(
+            login=login,
+            email=email,
+        )
 
     async def is_user_exists(self, email: EmailStr, login: str) -> bool:
         try:
@@ -38,7 +46,7 @@ class UserService(AbstractUserService):
                 email=email,
                 login=login,
             )
-        except EmailDBError as error:
+        except (DBAPIError, UserIntegrityError) as error:
             raise error
 
     async def create_user(self, user: UserCreate) -> UserBase:

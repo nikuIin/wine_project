@@ -75,7 +75,6 @@ class AuthService(AuthServicABC):
         self,
         user: UserBase,
         fingerprint: int,
-        ip: str | None,
     ) -> tuple[TokenPayload, RefreshTokenPayload]:
         """Generate access and refresh token payloads for a user.
 
@@ -107,7 +106,6 @@ class AuthService(AuthServicABC):
             token_id=token_id,
             role_id=user.role_id,
             login=user.login,
-            ip=ip,
             exp=refresh_expire.timestamp(),
         )
         logger.debug("Generated payloads for user %s", user.login)
@@ -174,7 +172,6 @@ class AuthService(AuthServicABC):
 
     async def _generate_tokens(
         self,
-        ip: str | None,
         user: UserBase,
         fingerprint: int,
     ) -> dict:
@@ -189,7 +186,6 @@ class AuthService(AuthServicABC):
         jwt_access_payload, jwt_refresh_payload = self._generate_jwt_payloads(
             user=user,
             fingerprint=fingerprint,
-            ip=ip,
         )
         access_token = self._generate_access_token(
             token_payload=jwt_access_payload
@@ -294,7 +290,7 @@ class AuthService(AuthServicABC):
         ip: str | None,
     ) -> dict | None:
         user_creds = await self._user_service.get_user_creds(
-            login=user_in.login
+            login=user_in.login, email=user_in.email
         )
 
         if not user_creds:
@@ -305,7 +301,6 @@ class AuthService(AuthServicABC):
         ):
             return await self._generate_tokens(
                 user=UserBase(**user_creds.model_dump()),
-                ip=ip,
                 fingerprint=user_in.fingerprint,
             )
 
@@ -319,7 +314,6 @@ class AuthService(AuthServicABC):
 
         return await self._generate_tokens(
             user=UserBase(**refresh_token_payload.model_dump()),
-            ip=refresh_token_payload.ip,
             fingerprint=refresh_token_payload.fingerprint,
         )
 
@@ -339,7 +333,6 @@ class AuthService(AuthServicABC):
 
         return await self._generate_tokens(
             user=user_base,
-            ip=ip,
             fingerprint=user_in.fingerprint,
         )
 

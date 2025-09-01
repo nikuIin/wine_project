@@ -80,7 +80,6 @@ def refresh_token(user_base) -> Token:
             fingerprint=123,
             user_id=str(user_base.user_id),
             login=user_base.login,
-            ip="100.100.100.100",
             role_id=1,
         ).model_dump(),
         key=auth_settings.refresh_secret_key,
@@ -112,7 +111,6 @@ def refresh_token_with_expired_date(user_base) -> Token:
     token = jwt_encode(
         payload=RefreshTokenPayload(
             token_id=str(uuid4()),
-            ip="127.0.0.1",
             fingerprint=345,
             user_id=str(user_base.user_id),
             login=user_base.login,
@@ -151,7 +149,6 @@ def wrong_refresh_token_data(user_base) -> Token:
     token = jwt_encode(
         payload=RefreshTokenPayload(
             token_id=str(uuid4()),
-            ip="127.0.0.1",
             fingerprint=345,
             user_id=str(user_base.user_id),
             login=user_base.login,

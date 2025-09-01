@@ -25,9 +25,10 @@ from api.v1.depends import (
     auth_master_dependency,
     user_service_dependency,
 )
-from core.config import app_settings, auth_settings
+from core.config import auth_settings
 from core.logger.logger import get_configure_logger
 from domain.exceptions import (
+    EmailDBError,
     InvalidTokenDataError,
     RateLimitingError,
     RefreshTokenAbsenceError,
@@ -44,6 +45,8 @@ from domain.exceptions import (
 )
 from schemas.token_schema import TokensResponse
 from schemas.user_schema import (
+    IsEmailBusy,
+    IsUserLoginBusy,
     UserCreateSchema,
     UserCredsRequest,
     UserVerifyCode,
@@ -530,4 +533,38 @@ async def close_session(
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error when close session.",
+        ) from error
+
+
+@router.get("/is-user-exists/{login}", response_model=IsUserLoginBusy)
+async def is_user_exists(
+    login: str,
+    user_service: UserService = Depends(user_service_dependency),
+):
+    try:
+        login_busy = await user_service.is_user_exists(login=login, email="")
+
+        return IsUserLoginBusy(login_busy=login_busy)
+
+    except UserDBError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        ) from error
+
+
+@router.get("/is-email-busy/{email}", response_model=IsEmailBusy)
+async def is_email_busy(
+    email: EmailStr,
+    user_service: UserService = Depends(user_service_dependency),
+):
+    try:
+        email_busy = await user_service.is_user_exists(email=email, login="")
+
+        return IsEmailBusy(email_busy=email_busy)
+
+    except UserDBError as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         ) from error

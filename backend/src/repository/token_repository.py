@@ -140,7 +140,6 @@ class TokenRepository(TokenRepositoryABC):
             refresh_token_id=token.token_id,
             user_id=token.user_id,
             fingerprint=token.fingerprint,
-            ip=token.ip,
             expire_at=datetime.fromtimestamp(token.exp, tz=UTC),
         )
 

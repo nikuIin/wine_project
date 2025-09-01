@@ -22,9 +22,9 @@ class TestAuthCodeRepository:
         self,
         auth_code_repository: AuthCodeRepository,
     ):
-        await auth_code_repository.set_user_rate_limit("test_user", 10)
+        await auth_code_repository.set_user_rate_limit("test_user", 10)  # type: ignore
         retrieved_rate_limit = await auth_code_repository.get_user_rate_limit(
-            "test_user"
+            "test_user"  # type: ignore
         )
         assert retrieved_rate_limit == 10
 

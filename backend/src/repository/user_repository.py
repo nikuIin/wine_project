@@ -41,23 +41,31 @@ class UserRepository(UserRepositoryABC):
         """
         self.__session = session
 
-    async def get_user_creds(self, login: str) -> UserCreds | None:
+    async def get_user_creds(
+        self,
+        login: str | None,
+        email: str | None,
+    ) -> UserCreds | None:
         """
         Retrieve user credentials by login.
 
         Args:
             login: The user's login string.
+            email: The user's email;
 
         Returns:
             UserCreds: A DTO containing user ID, login, password, and role ID
                 if found, otherwise None.
         """
+        if not email and not login:
+            raise ValueError("Either email or login must be provided")
+
         stmt = select(
             User.user_id,
             User.login,
             User.password,
             User.role_id,
-        ).where(User.login == login)
+        ).where(User.login == login if login else User.email == email)
 
         async with self.__session as session:
             result = await session.execute(stmt)
@@ -184,7 +192,7 @@ class UserRepository(UserRepositoryABC):
             logger.error(
                 "DBError while search mail from md_user table", exc_info=error
             )
-            raise EmailDBError from error
+            raise UserDBError from error
 
     async def register_user(self, user_id: UUID) -> int:
         """
