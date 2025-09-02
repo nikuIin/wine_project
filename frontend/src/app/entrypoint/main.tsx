@@ -9,13 +9,27 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
-import { ruBaseDictionary, enBaseDictionary, kzBaseDictionary, Languages } from "@shared/index";
-import { ruLoginDictionary, enLoginDictionary, kzLoginDictionary } from "@widgets/login";
+import {
+  ruBaseDictionary,
+  enBaseDictionary,
+  kzBaseDictionary,
+  Languages,
+} from "@shared/index";
+import {
+  ruLoginDictionary,
+  enLoginDictionary,
+  kzLoginDictionary,
+} from "@widgets/login";
 import {
   ruLanguageSwitcherDictionary,
   enLanguageSwitcherDictionary,
   kzLanguageSwitcherDictionary,
 } from "@widgets/languageSwitcher";
+import {
+  ruMainIntroductionDictionary,
+  enMainIntroductionDictionary,
+  kzMainIntroductionDictionary,
+} from "@widgets/mainIntroductionWidget";
 import { store, persistor } from "@app/store";
 import { PersistGate } from "redux-persist/integration/react";
 
@@ -26,13 +40,28 @@ i18n
   .init({
     resources: {
       [Languages.RUSSIAN]: {
-        translation: { ...ruBaseDictionary, ...ruLoginDictionary, ...ruLanguageSwitcherDictionary },
+        translation: {
+          ...ruBaseDictionary,
+          ...ruLoginDictionary,
+          ...ruLanguageSwitcherDictionary,
+          ...ruMainIntroductionDictionary,
+        },
       },
       [Languages.ENGLISH]: {
-        translation: { ...enBaseDictionary, ...enLoginDictionary, ...enLanguageSwitcherDictionary },
+        translation: {
+          ...enBaseDictionary,
+          ...enLoginDictionary,
+          ...enLanguageSwitcherDictionary,
+          ...enMainIntroductionDictionary,
+        },
       },
       [Languages.KAZAKHSTAN]: {
-        translation: { ...kzBaseDictionary, ...kzLoginDictionary, ...kzLanguageSwitcherDictionary },
+        translation: {
+          ...kzBaseDictionary,
+          ...kzLoginDictionary,
+          ...kzLanguageSwitcherDictionary,
+          ...kzMainIntroductionDictionary,
+        },
       },
     },
     fallbackLng: Languages.RUSSIAN,
@@ -41,7 +70,9 @@ i18n
     },
   });
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement,
+);
 root.render(
   <Provider store={store}>
     <PersistGate persistor={persistor}>

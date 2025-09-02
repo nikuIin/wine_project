@@ -5,6 +5,7 @@ import {
   type Toast,
 } from "@shared/ui/notifications";
 import { Header } from "@widgets/header";
+import { MainIntroductionWidget } from "@widgets/mainIntroductionWidget";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -28,6 +29,9 @@ export const FullScreenPage: React.FC = () => {
               />
             ))
           : null}
+      </div>
+      <div className="header-margin">
+        <MainIntroductionWidget />
       </div>
     </>
   );

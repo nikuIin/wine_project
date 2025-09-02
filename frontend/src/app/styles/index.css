@@ -41,11 +41,20 @@
 @theme {
     --color-base-dark: rgb(4, 7, 17);
     --color-base-light: white;
-    --color-main: #ff1d63;
+
+    --color-base-button-light: #e5d9f2;
+    --color-base-button-dark: #610c9f;
+
+    --color-main: #da0c81;
+    --color-main-hover: #b80a6b;
 }
 
 header {
     height: var(--header-height);
+}
+
+.header-margin {
+    margin-top: calc(var(--header-height) + 10px);
 }
 
 .content {
@@ -153,10 +162,10 @@ header {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
+    body {
+        @apply bg-background text-foreground;
     }
 }
