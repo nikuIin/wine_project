@@ -9,11 +9,19 @@ export const LanguageSwitcher: React.FC = () => {
   const [openLanguageList, setLanguageListOpen] = useState(false);
 
   return (
-    <div className="relative">
-      <RentangleBorderButton mainColor="light" onClick={() => setLanguageListOpen(true)}>
-        <LanguageIcon className={theme === "light" ? "text-base-dark" : "text-base-light"} />
+    <div className="flex items-center">
+      <RentangleBorderButton
+        mainColor="light"
+        onClick={() => setLanguageListOpen(true)}
+      >
+        <LanguageIcon
+          className={theme === "light" ? "text-base-dark" : "text-base-light"}
+        />
       </RentangleBorderButton>
-      <LanguageList open={openLanguageList} onClose={() => setLanguageListOpen(false)}></LanguageList>
+      <LanguageList
+        open={openLanguageList}
+        onClose={() => setLanguageListOpen(false)}
+      ></LanguageList>
     </div>
   );
 };
