@@ -1,1 +1,4 @@
-export { ThemeSwitcher } from "@widgets/theme/ui/ThemeSwitcher";
+export {
+  ThemeSwitcher,
+  MinimalThemeSwithcer,
+} from "@widgets/theme/ui/ThemeSwitcher";

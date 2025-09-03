@@ -1,6 +1,9 @@
 import { useTheme } from "@shared";
 import { styled } from "@mui/material/styles";
 import Switch from "@mui/material/Switch";
+import { MoonIcon, SunIcon } from "@shared/ui/icons";
+import { useState } from "react";
+import { RentangleBorderButton } from "@shared/ui/buttons";
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   width: 62,
@@ -64,8 +67,44 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   },
 }));
 
+const MoonOrSun = ({
+  style = "light",
+  onClick,
+}: {
+  style?: string;
+  onClick: () => void;
+}) => {
+  const [currentStyle, setCurrentStyle] = useState<string>(style);
+
+  const handleClick = () => {
+    setCurrentStyle(currentStyle === "light" ? "dark" : "light");
+    onClick();
+  };
+
+  return (
+    <RentangleBorderButton onClick={handleClick} mainColor="light">
+      {currentStyle === "light" ? (
+        <SunIcon width={22} height={22} className="text-base-dark" />
+      ) : (
+        <MoonIcon width={22} height={22} className="text-base-light" />
+      )}
+    </RentangleBorderButton>
+  );
+};
+
+export const MinimalThemeSwithcer: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+
+  return <MoonOrSun style={theme} onClick={toggleTheme} />;
+};
+
 export const ThemeSwitcher: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
-  return <MaterialUISwitch checked={theme === "dark"} onClick={toggleTheme}></MaterialUISwitch>;
+  return (
+    <MaterialUISwitch
+      checked={theme === "dark"}
+      onClick={toggleTheme}
+    ></MaterialUISwitch>
+  );
 };
