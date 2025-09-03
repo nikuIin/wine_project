@@ -61,19 +61,17 @@ header {
     margin-top: calc(var(--header-height) + 10px);
 }
 
-#root,
 ._container {
     width: 100%;
-    max-width: 1280px; /* Максимальная ширина контента */
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 16px; /* Минимальный отступ слева */
-    padding-right: 16px; /* Минимальный отступ справа */
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
 }
 
 /* Для маленьких экранов уменьшаем padding */
 @media (max-width: 640px) {
-    #root,
     ._container {
         padding-left: 12px;
         padding-right: 12px;
@@ -82,7 +80,6 @@ header {
 
 /* Для больших экранов увеличиваем padding */
 @media (min-width: 1280px) {
-    #root,
     ._container {
         padding-left: 24px;
         padding-right: 24px;

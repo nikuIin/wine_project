@@ -1,2 +1,2 @@
 export { RentangleBorderButton } from "@shared/ui/buttons/headersButton";
-export { BaseButton } from "./baseButtons";
+export { ColorButton, BaseButton } from "./baseButtons";

@@ -1,7 +1,12 @@
 import { useNavigate } from "react-router";
 import { type ButtonProps } from "@shared/ui/buttons/type";
 
-export const RentangleBorderButton: React.FC<ButtonProps> = ({ children, onClick, mainColor, to }) => {
+export const RentangleBorderButton: React.FC<ButtonProps> = ({
+  children,
+  onClick,
+  mainColor,
+  to,
+}) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -16,7 +21,7 @@ export const RentangleBorderButton: React.FC<ButtonProps> = ({ children, onClick
     <button
       className={`
         ${mainColor === "light" ? "bg-base-light dark:bg-base-dark" : "bg-base-dark dark:bg-base-light"}
-        w-9 h-9 rounded-xl
+        w-9 h-9 rounded-xl flex items-center justify-center
         transition-transform duration-300 cursor-pointer
         hover:scale-110
       `}

@@ -30,6 +30,8 @@ import {
   enMainIntroductionDictionary,
   kzMainIntroductionDictionary,
 } from "@widgets/mainIntroductionWidget";
+import { ruHeaderDict, enHeaderDict, kzHeaderDict } from "@widgets/header";
+
 import { store, persistor } from "@app/store";
 import { PersistGate } from "redux-persist/integration/react";
 
@@ -45,6 +47,7 @@ i18n
           ...ruLoginDictionary,
           ...ruLanguageSwitcherDictionary,
           ...ruMainIntroductionDictionary,
+          ...ruHeaderDict,
         },
       },
       [Languages.ENGLISH]: {
@@ -53,6 +56,7 @@ i18n
           ...enLoginDictionary,
           ...enLanguageSwitcherDictionary,
           ...enMainIntroductionDictionary,
+          ...enHeaderDict,
         },
       },
       [Languages.KAZAKHSTAN]: {
@@ -61,6 +65,7 @@ i18n
           ...kzLoginDictionary,
           ...kzLanguageSwitcherDictionary,
           ...kzMainIntroductionDictionary,
+          ...kzHeaderDict,
         },
       },
     },

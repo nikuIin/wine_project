@@ -1,14 +1,14 @@
 import { useNavigate } from "react-router";
 import React, { useState, useEffect } from "react";
 
-type Variant = "fill" | "outline" | "aurora" | "auroraOutline";
+type ColorVariants = "fill" | "outline" | "aurora" | "auroraOutline";
 
-interface BaseButtonStyles {
+interface BaseColorButtonStyle {
   children: React.ReactNode;
   onClick?: () => void;
   to?: string;
   anchor?: string;
-  variant?: Variant;
+  variant?: ColorVariants;
   className?: string;
 }
 
@@ -19,7 +19,7 @@ interface Ripple {
   id: number;
 }
 
-const variantStyles: Record<Variant, string> = {
+const colorVariantStyles: Record<ColorVariants, string> = {
   fill: "bg-main text-base-light dark:bg-main dark:text-base-dark hover:bg-main-hover",
   outline:
     "border-3 border-main text-main dark:border-main dark:text-main hover:bg-main dark:hover:text-base-dark hover:text-base-light",
@@ -28,7 +28,7 @@ const variantStyles: Record<Variant, string> = {
     "aurora-outline border-3 text-main dark:text-main dark:hover:text-base-dark hover:text-base-light",
 };
 
-export const BaseButton: React.FC<BaseButtonStyles> = ({
+export const ColorButton: React.FC<BaseColorButtonStyle> = ({
   children,
   onClick,
   to,
@@ -143,7 +143,7 @@ export const BaseButton: React.FC<BaseButtonStyles> = ({
   return (
     <button
       onClick={handleClick}
-      className={`${variantStyles[variant]} w-40 px-2 py-1 font-bold rounded-md cursor-pointer duration-300 relative overflow-visible ${className}`} // overflow-visible у кнопки
+      className={`${colorVariantStyles[variant]} w-40 px-2 py-1 font-bold rounded-md cursor-pointer duration-300 relative overflow-visible ${className}`} // overflow-visible у кнопки
     >
       <div
         className="ripple-container relative rounded-md overflow-hidden z-0"
@@ -166,6 +166,36 @@ export const BaseButton: React.FC<BaseButtonStyles> = ({
         </div>
       </div>
       <span className="relative z-10">{children}</span>
+    </button>
+  );
+};
+
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: "primary" | "secondary" | "outline";
+  className?: string;
+}
+
+export const BaseButton: React.FC<ButtonProps> = ({
+  children,
+  variant = "primary",
+  className = "",
+}) => {
+  const baseClasses =
+    "px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 transform hover:scale-105";
+
+  const variants = {
+    primary:
+      "bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 focus:ring-gray-900 dark:focus:ring-gray-300",
+    secondary:
+      "bg-white dark:bg-gray-900 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800 focus:ring-gray-300 dark:focus:ring-gray-600 shadow-sm border border-gray-200 dark:border-gray-700",
+    outline:
+      "bg-white dark:bg-black text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-900 focus:ring-gray-300 dark:focus:ring-gray-600",
+  };
+
+  return (
+    <button className={`${baseClasses} ${variants[variant]} ${className}`}>
+      {children}
     </button>
   );
 };
