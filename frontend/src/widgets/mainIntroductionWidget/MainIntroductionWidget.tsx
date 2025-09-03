@@ -1,7 +1,7 @@
 import { useTheme } from "@shared";
 import { AuroraText } from "@shared/ui/animations";
 import { RippleGrid } from "@shared/ui/backgrounds";
-import { BaseButton } from "@shared/ui/buttons";
+import { ColorButton } from "@shared/ui/buttons";
 import { useTranslation } from "react-i18next";
 
 export const MainIntroductionWidget: React.FC = () => {
@@ -39,7 +39,7 @@ export const MainIntroductionWidget: React.FC = () => {
           mouseInteractionRadius={1.2}
           opacity={theme === "dark" ? 0.8 : 0.35}
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
+        <div className="_container absolute inset-0 flex flex-col items-center justify-center text-center z-10">
           <h2 className="lg:text-6xl md:text-5xl text-3xl font-bold text-black dark:text-white mb-4">
             {t("mainIntroduction.firstSloganPart")}{" "}
             <AuroraText
@@ -53,12 +53,12 @@ export const MainIntroductionWidget: React.FC = () => {
             {t("mainIntroduction.description")}
           </p>
           <div className="relative flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-            <BaseButton variant="aurora">
+            <ColorButton variant="aurora">
               {t("mainIntroduction.buttons.getStarted")}
-            </BaseButton>
-            <BaseButton variant="auroraOutline">
+            </ColorButton>
+            <ColorButton variant="auroraOutline">
               {t("mainIntroduction.buttons.learnMore")}
-            </BaseButton>
+            </ColorButton>
           </div>
         </div>
       </div>
