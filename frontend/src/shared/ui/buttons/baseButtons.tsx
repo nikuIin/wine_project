@@ -182,7 +182,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
   className = "",
 }) => {
   const baseClasses =
-    "px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 transform hover:scale-105";
+    "px-5 py-2.5 rounded-lg font-semibold cursor-pointer text-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 transform hover:scale-105";
 
   const variants = {
     primary:

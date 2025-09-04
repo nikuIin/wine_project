@@ -39,28 +39,34 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, navItems }) => {
   const { t } = useTranslation();
 
   return (
-    <div
-      className={`
+    <>
+      <div
+        className={`
       md:hidden absolute top-full left-0 w-full bg-white/95 dark:bg-black/95 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 shadow-lg
       transition-all duration-300 ease-in-out
       ${isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"}
   `}
-    >
-      <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
-        {navItems.map((item, index) => (
-          <NavLink key={index} href={item.href} isActive={item.isActive}>
-            {item.children}
-          </NavLink>
-        ))}
-      </div>
-      <div className="pt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="px-5">
-          <BaseButton variant="outline" className="w-full">
-            {t("header.askQuestion")}
-          </BaseButton>
+      >
+        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
+          {navItems.map((item, index) => (
+            <NavLink key={index} href={item.href} isActive={item.isActive}>
+              {item.children}
+            </NavLink>
+          ))}
+        </div>
+        <div className="pt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="px-5">
+            <BaseButton variant="outline" className="w-full">
+              {t("header.askQuestion")}
+            </BaseButton>
+          </div>
         </div>
       </div>
-    </div>
+      <div className="md:hidden fixed bottom-4 right-5 transform bg-base-light dark:bg-base-dark rounded-full p-2 shadow-lg flex flex-col gap-2">
+        <LanguageSwitcher />
+        <MinimalThemeSwithcer />
+      </div>
+    </>
   );
 };
 
@@ -91,7 +97,7 @@ export const Header: React.FC<{ activeLink?: ActiveLink }> = ({
       <div className="max-w-9xl mx-auto _container">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="w-60 flex-shrink-0 flex items-center gap-2">
+          <div className="flex-shrink-0 w-[280px] flex items-center  gap-2">
             <LogoIcon />
             <h1
               onClick={() => {
@@ -104,14 +110,15 @@ export const Header: React.FC<{ activeLink?: ActiveLink }> = ({
           </div>
 
           {/* Nav */}
-
-          <nav className="hidden md:flex items-center space-x-1 bg-gray-100/50 dark:bg-gray-800/50 p-1 rounded-full">
-            {navItems.map((item, index) => (
-              <NavLink key={index} href={item.href} isActive={item.isActive}>
-                {item.children}
-              </NavLink>
-            ))}
-          </nav>
+          <div className="w-[300px] flex items-center justify-center">
+            <nav className="hidden md:flex w-1/2 justify-center items-center bg-gray-100/50 dark:bg-gray-800/50 p-1 space-x-1 rounded-full">
+              {navItems.map((item, index) => (
+                <NavLink key={index} href={item.href} isActive={item.isActive}>
+                  {item.children}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
 
           {/* Right buttons */}
           <div className="hidden md:flex gap-5 items-center justify-between">
