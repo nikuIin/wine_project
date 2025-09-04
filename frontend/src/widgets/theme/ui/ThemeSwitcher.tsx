@@ -67,23 +67,12 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   },
 }));
 
-const MoonOrSun = ({
-  style = "light",
-  onClick,
-}: {
-  style?: string;
-  onClick: () => void;
-}) => {
-  const [currentStyle, setCurrentStyle] = useState<string>(style);
-
-  const handleClick = () => {
-    setCurrentStyle(currentStyle === "light" ? "dark" : "light");
-    onClick();
-  };
+const MoonOrSun = ({ onClick }: { style?: string; onClick: () => void }) => {
+  const { theme } = useTheme();
 
   return (
-    <RentangleBorderButton onClick={handleClick} mainColor="light">
-      {currentStyle === "light" ? (
+    <RentangleBorderButton onClick={onClick} mainColor="light">
+      {theme === "light" ? (
         <SunIcon width={22} height={22} className="text-base-dark" />
       ) : (
         <MoonIcon width={22} height={22} className="text-base-light" />
@@ -93,9 +82,9 @@ const MoonOrSun = ({
 };
 
 export const MinimalThemeSwithcer: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
 
-  return <MoonOrSun style={theme} onClick={toggleTheme} />;
+  return <MoonOrSun onClick={toggleTheme} />;
 };
 
 export const ThemeSwitcher: React.FC = () => {

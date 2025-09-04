@@ -30,6 +30,18 @@ import {
   enMainIntroductionDictionary,
   kzMainIntroductionDictionary,
 } from "@widgets/mainIntroductionWidget";
+import {
+  ruConfidenceIndicatorDict,
+  enConfidenceIndicatorDict,
+  kzConfidenceIndicatorDict,
+} from "@widgets/confidenceIndicator";
+
+import {
+  ruAboutUsDict,
+  enAboutUsDict,
+  kzAboutUsDict,
+} from "@widgets/aboutUsWidget";
+
 import { ruHeaderDict, enHeaderDict, kzHeaderDict } from "@widgets/header";
 
 import { store, persistor } from "@app/store";
@@ -48,6 +60,8 @@ i18n
           ...ruLanguageSwitcherDictionary,
           ...ruMainIntroductionDictionary,
           ...ruHeaderDict,
+          ...ruConfidenceIndicatorDict,
+          ...ruAboutUsDict,
         },
       },
       [Languages.ENGLISH]: {
@@ -57,6 +71,8 @@ i18n
           ...enLanguageSwitcherDictionary,
           ...enMainIntroductionDictionary,
           ...enHeaderDict,
+          ...enConfidenceIndicatorDict,
+          ...enAboutUsDict,
         },
       },
       [Languages.KAZAKHSTAN]: {
@@ -66,6 +82,8 @@ i18n
           ...kzLanguageSwitcherDictionary,
           ...kzMainIntroductionDictionary,
           ...kzHeaderDict,
+          ...kzConfidenceIndicatorDict,
+          ...kzAboutUsDict,
         },
       },
     },

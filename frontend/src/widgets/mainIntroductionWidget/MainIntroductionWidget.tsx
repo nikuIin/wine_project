@@ -2,6 +2,7 @@ import { useTheme } from "@shared";
 import { AuroraText } from "@shared/ui/animations";
 import { RippleGrid } from "@shared/ui/backgrounds";
 import { ColorButton } from "@shared/ui/buttons";
+import { ConfidenceIndicator } from "@widgets/confidenceIndicator";
 import { useTranslation } from "react-i18next";
 
 export const MainIntroductionWidget: React.FC = () => {
@@ -28,7 +29,7 @@ export const MainIntroductionWidget: React.FC = () => {
             }
           `}
       </style>
-      <div className="relative w-full h-[90vh] min-h-[500px] overflow-hidden">
+      <div className="relative w-full h-[100vh] min-h-[500px] overflow-hidden">
         <RippleGrid
           enableRainbow={false}
           gridColor={theme === "dark" ? "#3f3f46" : "#ffffff"}

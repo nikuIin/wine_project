@@ -97,16 +97,18 @@ export const Header: React.FC<{ activeLink?: ActiveLink }> = ({
       <div className="max-w-9xl mx-auto _container">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-shrink-0 w-[280px] flex items-center  gap-2">
-            <LogoIcon />
-            <h1
-              onClick={() => {
-                navigate(PageLinks.MAIN_PAGE);
-              }}
-              className="text-xl font-bold text-gray-900 dark:text-white cursor-pointer"
-            >
-              {t("header.organizationName")}
-            </h1>
+          <div className="flex-shrink-0 w-[280px] flex items-center gap-2">
+            <div className="bg-base-light dark:bg-base-dark flex rounded items-center px-2">
+              <LogoIcon />
+              <h1
+                onClick={() => {
+                  navigate(PageLinks.MAIN_PAGE);
+                }}
+                className="text-xl font-bold text-gray-900 dark:text-white cursor-pointer"
+              >
+                {t("header.organizationName")}
+              </h1>
+            </div>
           </div>
 
           {/* Nav */}

@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+body,
+html {
+    overflow-x: hidden;
+}
+
 :root {
     --header-height: 70px;
     --radius: 0.625rem;
@@ -47,6 +52,8 @@
 
     --color-main: #da0c81;
     --color-main-hover: #b80a6b;
+
+    --color-dim: #707070;
 }
 
 header {
@@ -63,11 +70,12 @@ header {
 
 ._container {
     width: 100%;
-    max-width: 1400px;
+    max-width: 1300px;
     margin: 0 auto;
     padding-left: 16px;
     padding-right: 16px;
     box-sizing: border-box;
+    margin-bottom: 20px;
 }
 
 /* Для маленьких экранов уменьшаем padding */

@@ -4,6 +4,7 @@ export const PageLinks = {
   LOGIN_PAGE: "/login",
   REGISTER: "/sign-up",
   BLOG_PAGE: "/blog",
+  ABOUT_US_PAGE: "/about-us",
 };
 
 export type PageLink = (typeof PageLinks)[keyof typeof PageLinks];

@@ -4,6 +4,7 @@ import {
   removeNotification,
   type Toast,
 } from "@shared/ui/notifications";
+import { AboutUs } from "@widgets/aboutUsWidget";
 import { Header } from "@widgets/header";
 import { MainIntroductionWidget } from "@widgets/mainIntroductionWidget";
 import React from "react";
@@ -30,8 +31,9 @@ export const FullScreenPage: React.FC = () => {
             ))
           : null}
       </div>
-      <div className="header-margin">
+      <div className="text-color">
         <MainIntroductionWidget />
+        <AboutUs />
       </div>
     </>
   );
