@@ -25,7 +25,7 @@ class LostResponseSchema(BaseModel):
 
 class DealCreateSchema(BaseModel):
     sale_stage_id: int = Field(ge=1, le=MAX_DB_INT)
-    manager_id: UUID
+    manager_id: UUID | None = None
     lead_id: UUID
     fields: dict
     cost: float = Field(ge=0)

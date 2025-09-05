@@ -8,6 +8,7 @@ from dto.deal_dto import (
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
+    ManagerOpenDealsDTO,
 )
 from dto.message_dto import MessageCreateDTO
 
@@ -83,4 +84,10 @@ class AbstractDealRepository(ABC):
         self,
         message_data: MessageCreateDTO,
     ):
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_managers_with_quantity_of_open_deals(
+        self,
+    ) -> list[ManagerOpenDealsDTO]:
         raise NotImplementedError

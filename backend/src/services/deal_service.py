@@ -1,16 +1,20 @@
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import Depends, WebSocket
 from uuid_extensions import uuid7
 
 from core.general_constants import DEFAULT_LIMIT
+from core.logger.logger import get_configure_logger
 from domain.entities.deal import Deal
 from domain.entities.message import Message
+from domain.exceptions import ManagersDoesNotExistsError
 from dto.deal_dto import (
     DealCreateDTO,
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
+    ManagerOpenDealsDTO,
 )
 from dto.message_dto import MessageCreateDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
@@ -27,6 +31,8 @@ from services.connection_manager import (
     websocket_maganer_dependency,
 )
 
+logger = get_configure_logger(Path(__file__).stem)
+
 
 class DealService(AbstractDealService):
     def __init__(
@@ -37,12 +43,29 @@ class DealService(AbstractDealService):
         self.__deal_repository = deal_repository
         self.__websocket_manager = websocket_manager
 
+    async def select_manager_to_deal(self) -> UUID:
+        managers = await self.__deal_repository.get_managers_with_quantity_of_open_deals()
+        if not managers:
+            logger.error("There are no managers in the system")
+            raise ManagersDoesNotExistsError("There are no managers")
+
+        return min(
+            managers, key=lambda manager: manager.open_deals_count
+        ).manager_id
+
     async def create(self, deal_create_schema: DealCreateSchema) -> UUID:
+        # Data preparation
         deal_id = uuid7()
+        manager_id = (
+            await self.select_manager_to_deal()
+            if not deal_create_schema.manager_id
+            else deal_create_schema.manager_id
+        )
 
         await self.__deal_repository.create(
             deal_create=DealCreateDTO(
                 **deal_create_schema.model_dump(),
+                manager_id=manager_id,
                 deal_id=deal_id,
             )
         )

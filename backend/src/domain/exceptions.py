@@ -578,6 +578,11 @@ class ChatNotActiveError(Exception):
         super().__init__(message)
 
 
+class ManagersDoesNotExistsError(Exception):
+    def __init__(self, message="Managers does not exists"):
+        super().__init__(message)
+
+
 # ===================================== #
 #           Partner errors              #
 # ===================================== #

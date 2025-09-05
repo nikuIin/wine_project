@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import insert, select, text, update
+from sqlalchemy import func, insert, select, text, update
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +12,7 @@ from core.general_constants import DEFAULT_LIMIT
 from core.logger.logger import get_configure_logger
 from db.dependencies.postgres_helper import postgres_helper
 from db.models import Deal as DealModel
-from db.models import DealMessage, LostReason
+from db.models import DealMessage, LostReason, User
 from db.models import MdUser as MdUserModel
 from domain.entities.deal import Deal
 from domain.entities.message import Message
@@ -33,6 +33,7 @@ from dto.deal_dto import (
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
+    ManagerOpenDealsDTO,
 )
 from dto.message_dto import MessageCreateDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
@@ -380,6 +381,38 @@ class DealRepository(AbstractDealRepository):
         except DBAPIError as error:
             logger.error(
                 "DBAPIError when getting deals",
+                exc_info=error,
+            )
+            raise DealDBError from error
+
+    async def get_managers_with_quantity_of_open_deals(
+        self,
+    ) -> list[ManagerOpenDealsDTO]:
+        stmt = (
+            select(
+                User.user_id.label("manager_id"),
+                func.count(DealModel.deal_id).label("open_deals_count"),
+            )
+            .outerjoin(
+                DealModel,
+                (DealModel.manager_id == User.user_id)
+                & (DealModel.sale_stage_id not in (7,))
+                & (DealModel.close_at.is_(None)),
+            )
+            .group_by(User.user_id)
+        )
+
+        try:
+            async with self.__session as session:
+                result = await session.execute(stmt)
+            return [
+                ManagerOpenDealsDTO.model_validate(row)
+                for row in result.mappings().all()
+            ]
+
+        except DBAPIError as error:
+            logger.error(
+                "DBAPIError when getting managers with quantity of open deals",
                 exc_info=error,
             )
             raise DealDBError from error

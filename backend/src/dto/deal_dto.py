@@ -51,3 +51,8 @@ class DealShortDTO(BaseModel):
     lead_name: str | None = None
     lead_last_name: str | None = None
     profile_picture_link: str | None = None
+
+
+class ManagerOpenDealsDTO(BaseModel):
+    manager_id: UUID
+    open_deals_count: int
