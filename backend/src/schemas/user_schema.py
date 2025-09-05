@@ -1,7 +1,8 @@
+from string import ascii_letters, digits
 from typing import Self
 
 from pydantic import BaseModel, EmailStr, Field
-from pydantic.functional_validators import model_validator
+from pydantic.functional_validators import field_validator, model_validator
 
 from core.general_constants import (
     BASE_MAX_STR_LENGTH,
@@ -51,6 +52,16 @@ class UserCreateSchema(BaseModel):
     )
     email: EmailStr
     fingerprint: int = Field(examples=[1395809657])
+
+    @field_validator("login")
+    @classmethod
+    def is_characters_english(cls, value: str) -> str:
+        if not all(char in ascii_letters + digits + "_" for char in value):
+            raise ValueError(
+                "Login could only contains the english characters"
+                " or digits or symbol '_'."
+            )
+        return value
 
 
 class UserVerifyCode(BaseModel):

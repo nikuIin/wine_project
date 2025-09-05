@@ -576,3 +576,13 @@ class DealNotFoundError(Exception):
 class ChatNotActiveError(Exception):
     def __init__(self, message="Chat is not active"):
         super().__init__(message)
+
+
+# ===================================== #
+#           Partner errors              #
+# ===================================== #
+
+
+class PartnerDatabaseError(Exception):
+    def __init__(self, message="Partner database error"):
+        super().__init__(message)

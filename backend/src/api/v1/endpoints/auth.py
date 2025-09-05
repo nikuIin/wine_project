@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from pathlib import Path
+from string import ascii_letters, digits
 from uuid import UUID
 
 from fastapi import (
@@ -17,6 +18,7 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
     HTTP_409_CONFLICT,
+    HTTP_422_UNPROCESSABLE_ENTITY,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
@@ -247,6 +249,10 @@ async def register_user(
             detail="Internal server error with registration method.",
         )
 
+    except ValueError as error:
+        raise HTTPException(
+            status_code=HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)
+        ) from error
     except UserDoesNotExistsError as error:
         raise HTTPException(
             status_code=HTTP_409_CONFLICT, detail=str(error)
@@ -541,6 +547,13 @@ async def is_user_exists(
     login: str,
     user_service: UserService = Depends(user_service_dependency),
 ):
+    if not all(char in ascii_letters + digits + "_" for char in login):
+        raise HTTPException(
+            status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Login could contain only English symbols,"
+            + " digits, or the symbol '_'.",
+        )
+
     try:
         login_busy = await user_service.is_user_exists(login=login, email="")
 

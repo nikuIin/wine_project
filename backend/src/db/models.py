@@ -1,6 +1,6 @@
 import decimal
 import uuid
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime
 
 from pydantic.networks import EmailStr
 from sqlalchemy import (
@@ -30,7 +30,6 @@ from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy.types import DATE, SMALLINT
 from uuid_extensions import uuid7
 
-from core.config import auth_settings
 from db.base_models import Base, TimeStampMixin
 
 
@@ -2094,3 +2093,23 @@ class DealMessage(Base):
 
     deal = relationship("Deal", back_populates="deal_messages")
     user = relationship("User", back_populates="deal_messages")
+
+
+class Partner(Base):
+    __tablename__ = "partner"
+    __table_args__ = {
+        "comment": "Table for storing partner information",
+    }
+
+    partner_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    image_src: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True,
+    )

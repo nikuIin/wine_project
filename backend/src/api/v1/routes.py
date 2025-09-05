@@ -6,6 +6,7 @@ from api.v1.endpoints.content import router as content_router
 from api.v1.endpoints.country import router as country_router
 from api.v1.endpoints.deal import router as deal_router
 from api.v1.endpoints.grape import router as grape_router
+from api.v1.endpoints.partners import router as partners_router
 from api.v1.endpoints.region import router as region_router
 
 v1_router = APIRouter(prefix="/v1")
@@ -19,6 +20,7 @@ routers = [
     grape_router,
     content_router,
     deal_router,
+    partners_router,
 ]
 
 for router in routers:
