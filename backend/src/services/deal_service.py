@@ -64,7 +64,7 @@ class DealService(AbstractDealService):
 
         await self.__deal_repository.create(
             deal_create=DealCreateDTO(
-                **deal_create_schema.model_dump(),
+                **deal_create_schema.model_dump(exclude={"manager_id"}),
                 manager_id=manager_id,
                 deal_id=deal_id,
             )
