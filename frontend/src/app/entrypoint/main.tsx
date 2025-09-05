@@ -20,6 +20,11 @@ import {
   enLoginDictionary,
   kzLoginDictionary,
 } from "@widgets/login";
+export {
+  ruContactFormDict,
+  enContactFormDict,
+  kzContactFormDict,
+} from "@widgets/contactForm";
 import {
   ruLanguageSwitcherDictionary,
   enLanguageSwitcherDictionary,
@@ -46,6 +51,11 @@ import { ruHeaderDict, enHeaderDict, kzHeaderDict } from "@widgets/header";
 
 import { store, persistor } from "@app/store";
 import { PersistGate } from "redux-persist/integration/react";
+import {
+  enContactFormDict,
+  kzContactFormDict,
+  ruContactFormDict,
+} from "@widgets/contactForm";
 
 // Multingualism configuration
 i18n
@@ -62,6 +72,7 @@ i18n
           ...ruHeaderDict,
           ...ruConfidenceIndicatorDict,
           ...ruAboutUsDict,
+          ...ruContactFormDict,
         },
       },
       [Languages.ENGLISH]: {
@@ -73,6 +84,7 @@ i18n
           ...enHeaderDict,
           ...enConfidenceIndicatorDict,
           ...enAboutUsDict,
+          ...enContactFormDict,
         },
       },
       [Languages.KAZAKHSTAN]: {
@@ -84,6 +96,7 @@ i18n
           ...kzHeaderDict,
           ...kzConfidenceIndicatorDict,
           ...kzAboutUsDict,
+          ...kzContactFormDict,
         },
       },
     },
