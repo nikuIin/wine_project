@@ -100,13 +100,26 @@ BASE_STATEMENTS: tuple[Statement, ...] = (
         ),
     ),
     Statement(
+        description="Add sale stage 'Успешно завершен'",
+        statement=INSERT_SALE_STAGE,
+        data={
+            "sale_stage_id": 7,
+            "name": "Завершен",
+            "description": "Успешно завершенный заказ",
+            "next_sale_stage_id": None,
+        },
+        check_query=lambda session: session.query(SaleStage).filter_by(
+            sale_stage_id=7
+        ),
+    ),
+    Statement(
         description="Add sale stage 'Исполнение'",
         statement=INSERT_SALE_STAGE,
         data={
             "sale_stage_id": 6,
             "name": "Исполнение",
             "description": "Оплаченный заказ, ожидает или на этапе исполнения",
-            "next_sale_stage_id": None,
+            "next_sale_stage_id": 7,
         },
         check_query=lambda session: session.query(SaleStage).filter_by(
             sale_stage_id=6
