@@ -57,7 +57,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, navItems }) => {
         <div className="pt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
           <div className="px-5">
             <BaseButton variant="outline" className="w-full">
-              {t("header.askQuestion")}
+              {t("header.contactUs")}
             </BaseButton>
           </div>
         </div>
@@ -98,7 +98,7 @@ export const Header: React.FC<{ activeLink?: ActiveLink }> = ({
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0 w-[280px] flex items-center gap-2">
-            <div className="bg-base-light dark:bg-base-dark flex rounded items-center px-2">
+            <div className="bg-base-light dark:bg-base-dark flex rounded items-center py-1 px-2">
               <LogoIcon />
               <h1
                 onClick={() => {
@@ -124,7 +124,7 @@ export const Header: React.FC<{ activeLink?: ActiveLink }> = ({
 
           {/* Right buttons */}
           <div className="hidden md:flex gap-5 items-center justify-between">
-            <BaseButton variant="outline">{t("header.askQuestion")}</BaseButton>
+            <BaseButton variant="outline">{t("header.contactUs")}</BaseButton>
             <LanguageSwitcher />
             <MinimalThemeSwithcer />
           </div>
