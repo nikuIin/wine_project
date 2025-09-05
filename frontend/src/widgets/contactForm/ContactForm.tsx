@@ -11,27 +11,45 @@ export const ContactForm = () => {
   const [shake, setShake] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
+  const [phoneFormatError, setPhoneFormatError] = useState(false);
+  const [unsupportedSymbolError, setUnsupportedSymbolError] = useState(false);
   const { t } = useTranslation();
 
+  const sngPhonesRegex =
+    /^(\+7|8|\+380|\+375|\+77[0-9]|\+998|\+374|\+994|\+996|\+992|\+993|\+373)(\s|-)?\(?(\d{2,3})\)?(\s|-)?(\d{2,3})(\s|-)?(\d{2})(\s|-)?(\d{2,3})$|^(\+7|8|\+380|\+375|\+77[0-9]|\+998|\+374|\+994|\+996|\+992|\+993|\+373)(\d{7,10})$/;
+  const availablePhoneSymbols = "+0123456789()- ";
+
   useEffect(() => {
-    if (error || nameError || phoneError) {
+    if (
+      error ||
+      nameError ||
+      phoneError ||
+      phoneFormatError ||
+      unsupportedSymbolError
+    ) {
       setShake(true);
       const timer = setTimeout(() => setShake(false), 500);
       return () => clearTimeout(timer);
     }
-  }, [error, nameError, phoneError]);
+  }, [error, nameError, phoneError, phoneFormatError, unsupportedSymbolError]);
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
     setNameError(false);
     setPhoneError(false);
+    setPhoneFormatError(false);
 
     if (!name) {
       setNameError(true);
     }
     if (!phone) {
       setPhoneError(true);
+    }
+    console.log(sngPhonesRegex.test(phone));
+    if (!sngPhonesRegex.test(phone)) {
+      setPhoneFormatError(true);
     }
     if (!name || !phone) {
       setIsLoading(false);
@@ -41,8 +59,6 @@ export const ContactForm = () => {
     try {
       // Placeholder for form submission logic
       console.log("Form submitted:", { name, phone });
-      setName("");
-      setPhone("");
     } catch (err) {
       setError(t("baseErrors.internalError"));
     } finally {
@@ -165,7 +181,7 @@ export const ContactForm = () => {
               <div className="space-y-2 transition-all duration-300 ease-in-out">
                 <label
                   htmlFor="phone"
-                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${phoneError ? "blink" : ""}`}
+                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${phoneError || phoneFormatError ? "blink" : ""}`}
                 >
                   {t("contactForm.phone", "Phone Number")}
                 </label>
@@ -173,16 +189,42 @@ export const ContactForm = () => {
                   type="tel"
                   id="phone"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    const phone = e.target.value;
+                    if (availablePhoneSymbols.includes(phone.slice(-1))) {
+                      setPhone(e.target.value);
+                      setUnsupportedSymbolError(false);
+                    } else {
+                      setUnsupportedSymbolError(true);
+                    }
+                    setPhoneFormatError(false);
+                    setPhoneError(false);
+                  }}
                   placeholder={t(
                     "contactForm.phonePlaceholder",
                     "Enter your phone number",
                   )}
-                  className={`flex h-9 w-full rounded-md border ${phoneError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
+                  className={`flex h-9 w-full rounded-md border ${phoneError || phoneFormatError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
                 />
                 {phoneError && (
                   <p className="text-xs text-red-500 mt-1">
                     {t("contactForm.requiredField", "This field is required")}
+                  </p>
+                )}
+                {phoneFormatError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {t(
+                      "contactForm.phoneFormatError",
+                      "Формат телефона неверен",
+                    )}
+                  </p>
+                )}
+                {unsupportedSymbolError && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {t(
+                      "contactForm.unsupportedSymbolError",
+                      "Поддерживаются только символы: 0123456789+-() и пробел",
+                    )}
                   </p>
                 )}
               </div>
