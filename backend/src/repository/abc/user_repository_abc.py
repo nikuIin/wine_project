@@ -23,3 +23,6 @@ class UserRepositoryABC(ABC):
 
     @abstractmethod
     async def register_user(self, user_id: UUID) -> int: ...
+
+    @abstractmethod
+    async def create_user_light(self, user_id: UUID) -> None: ...

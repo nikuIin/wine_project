@@ -1,5 +1,6 @@
 from string import ascii_letters, digits
 from typing import Self
+from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 from pydantic.functional_validators import field_validator, model_validator
@@ -77,3 +78,7 @@ class IsUserLoginBusy(BaseModel):
 
 class IsEmailBusy(BaseModel):
     email_busy: bool
+
+
+class UserLightRegistrationResponse(BaseModel):
+    user_id: UUID

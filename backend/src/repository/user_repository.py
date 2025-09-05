@@ -73,6 +73,49 @@ class UserRepository(UserRepositoryABC):
 
         return UserCreds(**result) if result else None
 
+    async def create_user_light(self, user_id: UUID):
+        """
+        Create a lightweight user record in the database.
+
+        This method inserts a minimal user record with only the user_id field.
+        It's typically used for creating placeholder user records.
+
+        Args:
+            user_id: The UUID of the user to create.
+
+        Raises:
+            UserIntegrityError: For other integrity constraint violations.
+            UserDBError: For general database operational errors.
+        """
+        insert_light_stmt = insert(User).values(user_id=user_id)
+
+        try:
+            async with self.__session as session:
+                await session.execute(insert_light_stmt)
+                await session.commit()
+
+        # === errors handling ===
+        except IntegrityError as error:
+            logger.debug(
+                "IntegrityError while adding user with id %s",
+                user_id,
+                exc_info=error,
+            )
+            if "user_pkey" in str(error):
+                raise UserAlreadyExistsError(
+                    f"User with id {user_id} already exists"
+                ) from error
+
+            raise UserIntegrityError from error
+
+        except DBAPIError as error:
+            logger.error(
+                "DBError while adding user with id %s",
+                user_id,
+                exc_info=error,
+            )
+            raise UserDBError from error
+
     async def create_user(self, user: UserCreate) -> UserBase:
         """
         Create a new user and associated metadata in the database.

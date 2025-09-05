@@ -29,3 +29,6 @@ class AbstractUserService(ABC):
         validate_code: str,
     ) -> bool:
         raise NotImplementedError
+
+    @abstractmethod
+    async def create_user_light(self) -> UUID: ...

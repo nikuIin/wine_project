@@ -15,23 +15,19 @@ class AuthCodeRepositoryABC(ABC):
         self,
         email: str,
         ttl: int | timedelta = CODE_REQUEST_LOCK_TIME_IN_SECONDS,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    async def is_email_blocked(self, email: str) -> bool:
-        ...
+    async def is_email_blocked(self, email: str) -> bool: ...
 
     @abstractmethod
-    async def delete_rate_limit(self, key: str) -> None:
-        ...
+    async def delete_rate_limit(self, key: str) -> None: ...
 
     @abstractmethod
     async def get_user_rate_limit(
         self,
         user_id: UUID,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     @abstractmethod
     async def set_user_rate_limit(
@@ -39,15 +35,13 @@ class AuthCodeRepositoryABC(ABC):
         user_id: UUID,
         rate_limit: int,
         ttl: int | timedelta = FIFTEEN_MINUTES_IN_SECONDS,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     async def get_email_rate_limit(
         self,
         email: str,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     @abstractmethod
     async def set_email_rate_limit(
@@ -55,8 +49,7 @@ class AuthCodeRepositoryABC(ABC):
         email: str,
         rate_limit: int,
         ttl: int | timedelta = ONE_HOUR_IN_SECONDS,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     async def set_verification_code(
@@ -64,19 +57,16 @@ class AuthCodeRepositoryABC(ABC):
         verification_code: str,
         user_id: UUID,
         ttl: int = FIFTEEN_MINUTES_IN_SECONDS,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
     async def get_verification_code(
         self,
         user_id: UUID,
-    ) -> bytes:
-        ...
+    ) -> bytes: ...
 
     @abstractmethod
     async def delete_verification_code(
         self,
         user_id: UUID,
-    ) -> None:
-        ...
+    ) -> None: ...

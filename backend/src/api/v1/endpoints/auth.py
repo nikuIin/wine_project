@@ -51,8 +51,10 @@ from schemas.user_schema import (
     IsUserLoginBusy,
     UserCreateSchema,
     UserCredsRequest,
+    UserLightRegistrationResponse,
     UserVerifyCode,
 )
+from services.abc.auth_service_abc import AuthServicABC
 from services.auth_service import AuthService
 from services.classes.token import Token, TokenPayload
 from services.email_verification_service import (
@@ -195,6 +197,27 @@ async def get_tokens(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             detail="Error with creating JWT token",
         ) from RefreshTokenCreationError
+
+
+@router.post(
+    "/light-register",
+    status_code=HTTPStatus.CREATED,
+    response_model=UserLightRegistrationResponse,
+)
+async def register_user_lite(
+    user_service: UserService = Depends(user_service_dependency),
+):
+    try:
+        user_id: UUID = await user_service.create_user_light()
+        return UserLightRegistrationResponse(user_id=user_id)
+    except UserAlreadyExistsError as error:
+        raise HTTPException(
+            status_code=HTTP_409_CONFLICT, detail=str(error)
+        ) from error
+    except (UserIntegrityError, UserDBError) as error:
+        raise HTTPException(
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
+        ) from error
 
 
 @router.post(

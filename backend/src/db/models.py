@@ -144,7 +144,7 @@ class User(Base, TimeStampMixin):
     )
     login: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
         unique=True,
     )
     email: Mapped[str | None] = mapped_column(
@@ -153,12 +153,12 @@ class User(Base, TimeStampMixin):
     )
     password: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     role_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("role.role_id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
     is_registered: Mapped[bool] = mapped_column(
         Boolean,
