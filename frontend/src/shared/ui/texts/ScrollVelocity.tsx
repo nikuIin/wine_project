@@ -18,7 +18,6 @@ interface VelocityMapping {
 interface VelocityTextProps {
   children: React.ReactNode;
   baseVelocity: number;
-  scrollContainerRef?: React.RefObject<HTMLElement>;
   className?: string;
   damping?: number;
   stiffness?: number;
@@ -31,7 +30,6 @@ interface VelocityTextProps {
 }
 
 interface ScrollVelocityProps {
-  scrollContainerRef?: React.RefObject<HTMLElement>;
   texts: string[];
   velocity?: number;
   className?: string;
@@ -65,7 +63,6 @@ function useElementWidth<T extends HTMLElement>(
 }
 
 export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
-  scrollContainerRef,
   texts = [],
   velocity = 100,
   className = "",
@@ -81,7 +78,6 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
   function VelocityText({
     children,
     baseVelocity = velocity,
-    scrollContainerRef,
     className = "",
     damping,
     stiffness,
@@ -93,10 +89,7 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
     scrollerStyle,
   }: VelocityTextProps) {
     const baseX = useMotionValue(0);
-    const scrollOptions = scrollContainerRef
-      ? { container: scrollContainerRef }
-      : {};
-    const { scrollY } = useScroll(scrollOptions);
+    const { scrollY } = useScroll();
     const scrollVelocity = useVelocity(scrollY);
     const smoothVelocity = useSpring(scrollVelocity, {
       damping: damping ?? 50,
@@ -124,7 +117,7 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
     });
 
     const directionFactor = useRef<number>(1);
-    useAnimationFrame((t, delta) => {
+    useAnimationFrame((_t, delta) => {
       let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
 
       if (velocityFactor.get() < 0) {
@@ -165,7 +158,6 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
           key={index}
           className={className}
           baseVelocity={index % 2 !== 0 ? -velocity : velocity}
-          scrollContainerRef={scrollContainerRef}
           damping={damping}
           stiffness={stiffness}
           numCopies={numCopies}

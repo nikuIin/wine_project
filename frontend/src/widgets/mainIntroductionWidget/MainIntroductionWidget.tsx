@@ -2,7 +2,6 @@ import { useTheme } from "@shared";
 import { AuroraText } from "@shared/ui/animations";
 import { RippleGrid } from "@shared/ui/backgrounds";
 import { ColorButton } from "@shared/ui/buttons";
-import { ConfidenceIndicator } from "@widgets/confidenceIndicator";
 import { useTranslation } from "react-i18next";
 
 export const MainIntroductionWidget: React.FC = () => {

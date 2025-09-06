@@ -3,9 +3,12 @@ import { CloseIcon, LogoIcon, MenuIcon } from "@shared/ui/icons";
 import { LanguageSwitcher } from "@widgets/languageSwitcher";
 import { useTranslation } from "react-i18next";
 import { PageLinks } from "@shared/pagesLinks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { BaseButton } from "@shared/ui/buttons";
+import { useDispatch, useSelector } from "react-redux";
+import { type AppDispatch, type RootState } from "@shared/store";
+import { LightRegistration } from "@features/user";
 
 interface NavLinkProps {
   href: string;
@@ -78,6 +81,30 @@ export const Header: React.FC<{ activeLink?: ActiveLink }> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const userLight = useSelector((state: RootState) => {
+    return state.persistReducers.userLight;
+  });
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleUserRegister = async () => {
+    try {
+      await LightRegistration(dispatch);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const registerUser = async () => {
+      await handleUserRegister();
+    };
+    if (!userLight.userUUID) {
+      registerUser();
+    } else {
+      console.log(userLight.userUUID);
+    }
+  }, []);
 
   const navItems: NavLinkProps[] = [
     {

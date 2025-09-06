@@ -2,7 +2,6 @@ import { useTheme } from "@shared";
 import { styled } from "@mui/material/styles";
 import Switch from "@mui/material/Switch";
 import { MoonIcon, SunIcon } from "@shared/ui/icons";
-import { useState } from "react";
 import { RentangleBorderButton } from "@shared/ui/buttons";
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({

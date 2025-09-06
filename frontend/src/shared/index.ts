@@ -11,6 +11,8 @@ export { HTTPCode } from "@shared/enums/httpCodes";
 export { Languages, type Language } from "@shared/enums/languages";
 export {
   UnauthorizedError,
+  NotFoundError,
+  ConflictError,
   InternalServerError,
   UnprocessableContentError,
 } from "@shared/errors/htttpErrors";

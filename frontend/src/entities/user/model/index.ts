@@ -1,2 +1,2 @@
-export { setUser, clearUser } from "./slice";
-export { userReducer } from "./slice";
+export { setUser, clearUser, setUserUUID } from "./slice";
+export { userReducer, userUUIDReducer } from "./slice";

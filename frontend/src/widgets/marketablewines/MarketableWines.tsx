@@ -76,7 +76,7 @@ export const MarketableWines: React.FC = () => {
 
   return (
     <>
-      <div className="mt-20">
+      <div className="mt-20 text-base-dark dark:text-base-light">
         <ScrollVelocity
           texts={["Ходовые вина   ", "Ходовые вина   "]}
           velocity={140}

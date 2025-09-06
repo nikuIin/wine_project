@@ -1,22 +1,186 @@
-import { useState, useEffect, type FormEventHandler } from "react";
 import { useTranslation } from "react-i18next";
 import { DotsLoader } from "@shared/ui/loaders";
 import { Message } from "@shared/ui/messages";
+import { createOrder } from "@features/contactForm";
+import { useSelector } from "react-redux";
+import { useToast } from "@shared/ui/notifications";
+import { useEffect, useState } from "react";
+
+interface FormSwitcherProps {
+  setEmail: (email: string) => void;
+  setPhone: (phone: string) => void;
+  email: string;
+  phone: string;
+  emailError: boolean;
+  phoneError: boolean;
+  phoneFormatError: boolean;
+  unsupportedSymbolError: boolean;
+  availablePhoneSymbols: string;
+  setUnsupportedSymbolError: (value: boolean) => void;
+  setPhoneFormatError: (value: boolean) => void;
+  setPhoneError: (value: boolean) => void;
+}
+
+const FormSwitcher = ({
+  setEmail,
+  setPhone,
+  emailError,
+  phoneError,
+  email,
+  phone,
+  phoneFormatError,
+  unsupportedSymbolError,
+  availablePhoneSymbols,
+  setUnsupportedSymbolError,
+  setPhoneFormatError,
+  setPhoneError,
+}: FormSwitcherProps) => {
+  const [activeTab, setActiveTab] = useState("email");
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-2  text-left transition-all duration-300 ease-in-out">
+      <div className="flex justify-start space-x-2 mb-4">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("email");
+          }}
+          className={`
+            px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out cursor-pointer
+            ${
+              activeTab === "email"
+                ? "bg-zinc-900 text-white dark:bg-zinc-800 dark:text-zinc-100 shadow"
+                : "bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
+            }
+          `}
+        >
+          {t("contactForm.email", "Email")}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("phone");
+          }}
+          className={`
+            px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ease-in-out cursor-pointer
+            ${
+              activeTab === "phone"
+                ? "bg-zinc-900 text-white dark:bg-zinc-800 dark:text-zinc-100 shadow"
+                : "bg-white dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
+            }
+          `}
+        >
+          {t("contactForm.phone", "Phone")}
+        </button>
+      </div>
+
+      <div className="transition-all duration-300 ease-in-out">
+        {activeTab === "email" ? (
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${emailError ? "blink" : ""}`}
+            >
+              {t("contactForm.email", "Email")}
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t(
+                "contactForm.emailPlaceholder",
+                "Enter your email",
+              )}
+              className={`flex h-9 w-full rounded-md border ${emailError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
+            />
+            {emailError && (
+              <p className="text-xs text-red-500 mt-1">
+                {t("contactForm.requiredField", "This field is required")}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <label
+              htmlFor="phone"
+              className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${phoneError || phoneFormatError ? "blink" : ""}`}
+            >
+              {t("contactForm.phone", "Phone Number")}
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              value={phone}
+              onChange={(e) => {
+                const phone = e.target.value;
+                if (
+                  availablePhoneSymbols.includes(phone.slice(-1)) ||
+                  phone === ""
+                ) {
+                  setPhone(phone);
+                  setUnsupportedSymbolError(false);
+                } else {
+                  setUnsupportedSymbolError(true);
+                }
+                setPhoneFormatError(false);
+                setPhoneError(false);
+              }}
+              placeholder={t(
+                "contactForm.phonePlaceholder",
+                "Enter your phone number",
+              )}
+              className={`flex h-9 w-full rounded-md border ${phoneError || phoneFormatError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
+            />
+            {phoneError && (
+              <p className="text-xs text-red-500 mt-1">
+                {t("contactForm.requiredField", "This field is required")}
+              </p>
+            )}
+            {phoneFormatError && (
+              <p className="text-xs text-red-500 mt-1">
+                {t("contactForm.phoneFormatError", "Invalid phone format")}
+              </p>
+            )}
+            {unsupportedSymbolError && (
+              <p className="text-xs text-red-500 mt-1">
+                {t(
+                  "contactForm.unsupportedSymbolError",
+                  "Only 0123456789+-() and space are allowed",
+                )}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const ContactForm = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [shake, setShake] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
+  const [emailError, setEmailError] = useState(false);
   const [phoneFormatError, setPhoneFormatError] = useState(false);
   const [unsupportedSymbolError, setUnsupportedSymbolError] = useState(false);
+  const [dealCreated, setDealCreated] = useState(false);
   const { t } = useTranslation();
+  const { success } = useToast();
+
+  const userUUID = useSelector((state: any) => {
+    return state.persistReducers.userLight.userUUID;
+  });
 
   const sngPhonesRegex =
     /^(\+7|8|\+380|\+375|\+77[0-9]|\+998|\+374|\+994|\+996|\+992|\+993|\+373)(\s|-)?\(?(\d{2,3})\)?(\s|-)?(\d{2,3})(\s|-)?(\d{2})(\s|-)?(\d{2,3})$|^(\+7|8|\+380|\+375|\+77[0-9]|\+998|\+374|\+994|\+996|\+992|\+993|\+373)(\d{7,10})$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const availablePhoneSymbols = "+0123456789()- ";
 
   useEffect(() => {
@@ -24,6 +188,7 @@ export const ContactForm = () => {
       error ||
       nameError ||
       phoneError ||
+      emailError ||
       phoneFormatError ||
       unsupportedSymbolError
     ) {
@@ -31,34 +196,69 @@ export const ContactForm = () => {
       const timer = setTimeout(() => setShake(false), 500);
       return () => clearTimeout(timer);
     }
-  }, [error, nameError, phoneError, phoneFormatError, unsupportedSymbolError]);
+  }, [
+    error,
+    nameError,
+    phoneError,
+    emailError,
+    phoneFormatError,
+    unsupportedSymbolError,
+  ]);
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
     setNameError(false);
     setPhoneError(false);
+    setEmailError(false);
     setPhoneFormatError(false);
 
     if (!name) {
       setNameError(true);
     }
-    if (!phone) {
+    if (!phone && !email) {
       setPhoneError(true);
+      setEmailError(true);
     }
-    console.log(sngPhonesRegex.test(phone));
-    if (!sngPhonesRegex.test(phone)) {
+    if (phone && !sngPhonesRegex.test(phone)) {
       setPhoneFormatError(true);
     }
-    if (!name || !phone) {
+    if (email && !emailRegex.test(email)) {
+      setEmailError(true);
+    }
+    if (
+      !name ||
+      (!phone && !email) ||
+      (phone && !sngPhonesRegex.test(phone)) ||
+      (email && !emailRegex.test(email))
+    ) {
       setIsLoading(false);
       return;
     }
 
     try {
-      // Placeholder for form submission logic
-      console.log("Form submitted:", { name, phone });
+      if (userUUID !== null) {
+        const order = {
+          sale_stage_id: 1,
+          lead_id: userUUID,
+          phone: phone || undefined,
+          email: email || undefined,
+          name: name,
+          cost: 0,
+          probability: 0,
+          priority: 0,
+        };
+        await createOrder(order);
+        success(
+          t("contactForm.successCreateOrderNotificationTitle"),
+          t("contactForm.successCreateOrderNotificationBody"),
+        );
+        setDealCreated(true);
+      } else {
+        console.error("User id not defined");
+        setError(t("baseErrors.internalError"));
+      }
     } catch (err) {
       setError(t("baseErrors.internalError"));
     } finally {
@@ -149,12 +349,18 @@ export const ContactForm = () => {
               className={`animate-height lg:hidden ${error ? "error-visible" : "error-enter"}`}
             >
               {error && <Message message={error} styleType="error" />}
+              {dealCreated && (
+                <Message
+                  message={t("contactForm.dealCreatedSuccessfully")}
+                  styleType="info"
+                />
+              )}
             </div>
             <form
               className="space-y-4 text-zinc-600 dark:text-zinc-50 transition-all duration-300 ease-in-out"
               onSubmit={handleSubmit}
             >
-              <div className="space-y-2 transition-all duration-300 ease-in-out">
+              <div className="space-y-2 text-left transition-all duration-300 ease-in-out">
                 <label
                   htmlFor="name"
                   className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${nameError ? "blink" : ""}`}
@@ -178,56 +384,20 @@ export const ContactForm = () => {
                   </p>
                 )}
               </div>
-              <div className="space-y-2 transition-all duration-300 ease-in-out">
-                <label
-                  htmlFor="phone"
-                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${phoneError || phoneFormatError ? "blink" : ""}`}
-                >
-                  {t("contactForm.phone", "Phone Number")}
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => {
-                    const phone = e.target.value;
-                    if (availablePhoneSymbols.includes(phone.slice(-1))) {
-                      setPhone(e.target.value);
-                      setUnsupportedSymbolError(false);
-                    } else {
-                      setUnsupportedSymbolError(true);
-                    }
-                    setPhoneFormatError(false);
-                    setPhoneError(false);
-                  }}
-                  placeholder={t(
-                    "contactForm.phonePlaceholder",
-                    "Enter your phone number",
-                  )}
-                  className={`flex h-9 w-full rounded-md border ${phoneError || phoneFormatError ? "border-red-500" : "border-zinc-200 dark:border-zinc-800"} bg-white dark:bg-zinc-950 px-3 py-5 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 dark:placeholder:text-zinc-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-950 dark:focus-visible:ring-zinc-300 disabled:cursor-not-allowed disabled:opacity-50`}
-                />
-                {phoneError && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {t("contactForm.requiredField", "This field is required")}
-                  </p>
-                )}
-                {phoneFormatError && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {t(
-                      "contactForm.phoneFormatError",
-                      "Формат телефона неверен",
-                    )}
-                  </p>
-                )}
-                {unsupportedSymbolError && (
-                  <p className="text-xs text-red-500 mt-1">
-                    {t(
-                      "contactForm.unsupportedSymbolError",
-                      "Поддерживаются только символы: 0123456789+-() и пробел",
-                    )}
-                  </p>
-                )}
-              </div>
+              <FormSwitcher
+                setEmail={setEmail}
+                setPhone={setPhone}
+                email={email}
+                phone={phone}
+                emailError={emailError}
+                phoneError={phoneError}
+                phoneFormatError={phoneFormatError}
+                unsupportedSymbolError={unsupportedSymbolError}
+                availablePhoneSymbols={availablePhoneSymbols}
+                setUnsupportedSymbolError={setUnsupportedSymbolError}
+                setPhoneFormatError={setPhoneFormatError}
+                setPhoneError={setPhoneError}
+              />
               <button
                 type="submit"
                 disabled={isLoading}
@@ -260,3 +430,5 @@ export const ContactForm = () => {
     </div>
   );
 };
+
+export default ContactForm;
