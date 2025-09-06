@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
@@ -16,6 +17,7 @@ from db.models import DealMessage, LostReason, User
 from db.models import MdUser as MdUserModel
 from domain.entities.deal import Deal
 from domain.entities.message import Message
+from domain.enums import Roles
 from domain.exceptions import (
     DealAlreadyExistsError,
     DealDBError,
@@ -104,11 +106,40 @@ class DealRepository(AbstractDealRepository):
         return inner
 
     async def create(self, deal_create: DealCreateDTO):
-        deal_model = DealModel(**deal_create.model_dump())
+        # prepared data for right asyncpg working with the dict objects
+        deal_create.fields = json.dumps(deal_create.fields)
+
+        stmt = text(
+            """
+            insert into deal (
+                deal_id,
+                sale_stage_id,
+                lead_id,
+                cost,
+                probability,
+                fields,
+                priority,
+                manager_id
+            ) values (
+                :deal_id,
+                :sale_stage_id,
+                :lead_id,
+                :cost,
+                :probability,
+                :fields,
+                :priority,
+                :manager_id
+            ) on conflict (lead_id) do update
+            set fields = deal.fields || excluded.fields;
+            """
+        )
 
         try:
             async with self.__session as session:
-                session.add(deal_model)
+                await session.execute(
+                    stmt,
+                    params=deal_create.model_dump(),
+                )
                 await session.commit()
 
         except IntegrityError as error:
@@ -398,6 +429,13 @@ class DealRepository(AbstractDealRepository):
                 (DealModel.manager_id == User.user_id)
                 & (DealModel.sale_stage_id not in (7,))
                 & (DealModel.close_at.is_(None)),
+            )
+            .where(
+                User.role_id.in_(
+                    [
+                        Roles.ADMIN,
+                    ]
+                )
             )
             .group_by(User.user_id)
         )

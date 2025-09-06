@@ -2,6 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
+from sqlalchemy.dialects.postgresql.json import JSON
 from uuid_extensions import uuid7
 
 from core.general_constants import MAX_DB_INT
@@ -12,7 +13,7 @@ class DealDTO(BaseModel):
     sale_stage_id: int
     manager_id: UUID
     lead_id: UUID
-    fields: dict
+    fields: dict | str
     cost: float = Field(ge=0)
     probability: float = Field(ge=0, le=1)
     priority: int = Field(

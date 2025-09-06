@@ -14,7 +14,6 @@ from dto.deal_dto import (
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
-    ManagerOpenDealsDTO,
 )
 from dto.message_dto import MessageCreateDTO
 from repository.abc.deal_repository_abc import AbstractDealRepository
