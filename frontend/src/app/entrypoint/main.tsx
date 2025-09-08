@@ -15,6 +15,7 @@ import {
   kzBaseDictionary,
   Languages,
 } from "@shared/index";
+import { ruFaqDict, kzFaqDict, enFaqDict } from "@widgets/accordion";
 import {
   ruLoginDictionary,
   enLoginDictionary,
@@ -73,6 +74,7 @@ i18n
           ...ruConfidenceIndicatorDict,
           ...ruAboutUsDict,
           ...ruContactFormDict,
+          ...ruFaqDict,
         },
       },
       [Languages.ENGLISH]: {
@@ -85,6 +87,7 @@ i18n
           ...enConfidenceIndicatorDict,
           ...enAboutUsDict,
           ...enContactFormDict,
+          ...enFaqDict,
         },
       },
       [Languages.KAZAKHSTAN]: {
@@ -97,6 +100,7 @@ i18n
           ...kzConfidenceIndicatorDict,
           ...kzAboutUsDict,
           ...kzContactFormDict,
+          ...kzFaqDict,
         },
       },
     },
