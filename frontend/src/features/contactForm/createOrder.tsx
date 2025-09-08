@@ -2,6 +2,7 @@ import {
   apiFetch,
   ConflictError,
   HTTPCode,
+  InternalServerError,
   NotFoundError,
   ValidationError,
 } from "@shared/index";
@@ -10,8 +11,9 @@ import type { UUID } from "@shared/uuid";
 export interface CreateOrderParams {
   sale_stage_id: number;
   lead_id: UUID;
-  email: string | undefined;
-  phone: string | undefined;
+  email: string | null;
+  phone: string | null;
+  question: string | null;
   name: string;
   cost: number;
   probability: number;
@@ -26,6 +28,7 @@ export const createOrder = async (order: CreateOrderParams): Promise<void> => {
       name: order.name,
       email: order.email,
       phone: order.phone,
+      question: order.question,
     },
     cost: order.cost,
     probability: order.probability,
@@ -49,5 +52,11 @@ export const createOrder = async (order: CreateOrderParams): Promise<void> => {
     throw new ConflictError("The deal already exists.");
   } else if (response.status === HTTPCode.UNPROCESSABLE_CONTENT_422) {
     throw new ValidationError("Invalid request format");
+  } else if (
+    response.status === HTTPCode.INTERNAL_SERVER_ERROR_500 ||
+    response.status === HTTPCode.SERVICE_UNAVAILABLE_503
+  ) {
+    // TODO: may be sentry?
+    throw new InternalServerError("Internal server error.");
   }
 };
