@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
 
@@ -11,6 +12,7 @@ from domain.entities.message import Message
 from domain.exceptions import ManagersDoesNotExistsError
 from dto.deal_dto import (
     DealCreateDTO,
+    DealDTO,
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
@@ -29,6 +31,10 @@ from services.connection_manager import (
     WebSocketManager,
     websocket_maganer_dependency,
 )
+from telegram.notification_manager import (
+    TelegramNotificationManager,
+    telegram_notification_manager,
+)
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -38,9 +44,11 @@ class DealService(AbstractDealService):
         self,
         deal_repository: AbstractDealRepository,
         websocket_manager: WebSocketManager,
+        telegram_notification_manager: TelegramNotificationManager,
     ):
         self.__deal_repository = deal_repository
         self.__websocket_manager = websocket_manager
+        self.__telegram_notification_manager = telegram_notification_manager
 
     async def select_manager_to_deal(self) -> UUID:
         managers = await self.__deal_repository.get_managers_with_quantity_of_open_deals()
@@ -61,13 +69,15 @@ class DealService(AbstractDealService):
             else deal_create_schema.manager_id
         )
 
-        await self.__deal_repository.create(
+        deal: DealDTO = await self.__deal_repository.create(
             deal_create=DealCreateDTO(
                 **deal_create_schema.model_dump(exclude={"manager_id"}),
                 manager_id=manager_id,
                 deal_id=deal_id,
             )
         )
+
+        await self.__telegram_notification_manager.send_deal_data(deal)
 
         return deal_id
 
@@ -152,7 +162,7 @@ class DealService(AbstractDealService):
         user_id: UUID,
         message: MessageCreateSchema,
     ):
-        # TODO: check is user hass access to the deal.
+        # TODO: check is user has access to the deal.
         # (the user_role must be higher or equal than manager
         # or user_id=lead_id)
         await self.__websocket_manager.broadcast(
@@ -179,4 +189,5 @@ def deal_service_dependency(
     return DealService(
         deal_repository=deal_repository,
         websocket_manager=websocket_manager,
+        telegram_notification_manager=telegram_notification_manager,
     )

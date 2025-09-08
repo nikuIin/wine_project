@@ -4,7 +4,8 @@ from pathlib import Path
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import func, insert, select, text, update
+from sqlalchemy import func, select, text, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,7 +32,9 @@ from domain.exceptions import (
     UserNotFoundError,
 )
 from dto.deal_dto import (
+    DealBaseDTO,
     DealCreateDTO,
+    DealDTO,
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
@@ -105,42 +108,66 @@ class DealRepository(AbstractDealRepository):
 
         return inner
 
-    async def create(self, deal_create: DealCreateDTO):
+    async def create(self, deal_create: DealCreateDTO) -> DealDTO:
         # prepared data for right asyncpg working with the dict objects
-        deal_create.fields = json.dumps(deal_create.fields)
+        fields = json.dumps(deal_create.fields)
 
-        stmt = text(
-            """
-            insert into deal (
-                deal_id,
-                sale_stage_id,
-                lead_id,
-                cost,
-                probability,
-                fields,
-                priority,
-                manager_id
-            ) values (
-                :deal_id,
-                :sale_stage_id,
-                :lead_id,
-                :cost,
-                :probability,
-                :fields,
-                :priority,
-                :manager_id
-            ) on conflict (lead_id) do update
-            set fields = deal.fields || excluded.fields;
-            """
+        stmt = (
+            insert(DealModel)
+            .values(
+                deal_id=deal_create.deal_id,
+                sale_stage_id=deal_create.sale_stage_id,
+                lead_id=deal_create.lead_id,
+                cost=deal_create.cost,
+                probability=deal_create.probability,
+                fields=deal_create.fields,
+                priority=deal_create.priority,
+                manager_id=deal_create.manager_id,
+            )
+            .on_conflict_do_update(
+                index_elements=["lead_id"],
+                set_={"fields": DealModel.fields.op("||")(deal_create.fields)},
+            )
+            .returning(
+                DealModel.deal_id,
+                DealModel.sale_stage_id,
+                DealModel.lead_id,
+                DealModel.cost,
+                DealModel.probability,
+                DealModel.fields,
+                DealModel.priority,
+                DealModel.manager_id,
+                DealModel.created_at,
+                DealModel.updated_at,
+            )
         )
 
         try:
             async with self.__session as session:
-                await session.execute(
+                result = await session.execute(
                     stmt,
-                    params=deal_create.model_dump(),
+                    params={
+                        **deal_create.model_dump(exclude={"fields"}),
+                        "fields": fields,
+                    },
                 )
                 await session.commit()
+
+            deal_row = result.mappings().one_or_none()
+
+            if not deal_row:
+                logger.error(
+                    "The UPSERT operation of deal doesn't return"
+                    " the data of the deal %s",
+                    deal_create,
+                )
+                raise DealDBError(
+                    "The UPSERT operation of deal doesn't return"
+                    f" the data of the deal {deal_create}",
+                )
+
+            logger.info("Deal when UPSERT deal_info: %s", deal_row)
+            return DealDTO.model_validate(deal_row)
 
         except IntegrityError as error:
             self._validate_integrity_errors(error)
@@ -485,7 +512,7 @@ class DealRepository(AbstractDealRepository):
             self._validate_integrity_errors(error)
         except DBAPIError as error:
             logger.error(
-                "DBAPIError when getting message of deal whith id %s",
+                "DBAPIError when getting message of deal with id %s",
                 deal_id,
                 exc_info=error,
             )
@@ -531,7 +558,7 @@ class DealRepository(AbstractDealRepository):
             self._validate_integrity_errors(error)
         except DBAPIError as error:
             logger.error(
-                "DBAPIError when writing message of deal whith id %s",
+                "DBAPIError when writing message of deal with id %s",
                 message_data.deal_id,
                 exc_info=error,
             )

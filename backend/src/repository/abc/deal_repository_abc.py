@@ -5,6 +5,7 @@ from domain.entities.deal import Deal
 from domain.entities.message import Message
 from dto.deal_dto import (
     DealCreateDTO,
+    DealDTO,
     DealShortDTO,
     DealUpdateDTO,
     LostReasonDTO,
@@ -17,7 +18,7 @@ class AbstractDealRepository(ABC):
     """Repository layer, those works with deals in the CRM system."""
 
     @abstractmethod
-    async def create(self, deal_create: DealCreateDTO):
+    async def create(self, deal_create: DealCreateDTO) -> DealDTO:
         raise NotImplementedError
 
     @abstractmethod
