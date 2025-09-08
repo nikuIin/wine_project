@@ -6,18 +6,12 @@ import React from "react";
 interface WineCard {
   imageUrl: string;
   title: string;
-  description: string;
 }
 
 // Factory function to create wine card data
-const createWineCard = (
-  imageUrl: string,
-  title: string,
-  description: string,
-): WineCard => ({
+const createWineCard = (imageUrl: string, title: string): WineCard => ({
   imageUrl,
   title,
-  description,
 });
 
 // Wine card component
@@ -30,25 +24,20 @@ const WineCardComponent: React.FC<{ card: WineCard }> = ({ card }) => {
 
   return (
     <div
-      className={`group ${bgColor} rounded-xl shadow-lg hover:shadow-xl p-5 flex flex-col items-center text-center transition-all duration-300 ease-in-out hover:h-[480px] h-[400px] w-full max-w-xs relative overflow-hidden`}
+      className={`group ${bgColor} cursor-pointer rounded-xl p-5 flex flex-col items-center text-center transition-all duration-300 ease-in-out w-full max-w-xs relative overflow-hidden`}
     >
+      <div className="relative flex flex-col items-center w-full h-full">
+        <img
+          src={card.imageUrl}
+          alt={card.title.replace(/<br>/g, " ")}
+          className="w-full h-60 object-contain rounded-md transition-all duration-300 ease-in-out z-0 hover:rotate-2"
+        />
+      </div>
       <h3
         className={`text-lg font-semibold ${textColor} mb-3 h-14 flex items-center justify-center text-center z-10 leading-tight`}
       >
         <span dangerouslySetInnerHTML={{ __html: card.title }} />
       </h3>
-      <p
-        className={`text-xs ${textColor} mb-4 absolute top-20 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out transform group-hover:translate-y-0 translate-y-4 w-full px-5`}
-      >
-        {card.description}
-      </p>
-      <div className="relative flex flex-col items-center w-full h-full">
-        <img
-          src={card.imageUrl}
-          alt={card.title.replace(/<br>/g, " ")}
-          className="w-full h-60 object-contain rounded-md transition-all duration-300 ease-in-out group-hover:translate-y-28 z-0"
-        />
-      </div>
     </div>
   );
 };
@@ -60,17 +49,14 @@ export const MarketableWines: React.FC = () => {
     createWineCard(
       "https://levgolitsin.ru/upload/iblock/deb/qoh7vy911sgfyz3p3wq3ticcfqhdwldw/about-5block-1.png",
       "Наследие мастера<br>«Левъ Голицынъ»",
-      "«Лев Голицын» станет прекрасным сопровождением любого праздника. Изысканные вина от экстра брют до полусладкого подчеркнут вкус самых разных блюд и закусок.",
     ),
     createWineCard(
       "https://levgolitsin.ru/upload/iblock/8e6/ini2d04v69iz6okaogr5tqg71zhf744j/about-5block-2.png",
       "Левъ Голицынъ.<br>Коронационное",
-      "Коллекция игристых вин для особого случая. Элегантные вина с завораживающим утончённым вкусом и устойчивым мелким перляжем.",
     ),
     createWineCard(
       "https://levgolitsin.ru/upload/iblock/173/1kf0m008awabqosjt1iyjiu3o47sbyt6/about-5block-3.png",
       "Левъ Голицынъ<br>Брют Зеро Метод Классик",
-      "Сложное и изысканное игристое вино. Оно произведено методом вторичного брожения в бутылках с выдержкой на осадке не менее девяти месяцев.",
     ),
   ];
 
