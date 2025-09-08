@@ -26,7 +26,6 @@ const springValues: SpringOptions = {
 
 export default function TiltedCard({
   imageSrc,
-  altText = "Tilted card image",
   captionText = "",
   containerHeight = "300px",
   containerWidth = "100%",
@@ -116,9 +115,12 @@ export default function TiltedCard({
           scale,
         }}
       >
-        <motion.img
+        <motion.video
           src={imageSrc}
-          alt={altText}
+          autoPlay
+          muted
+          loop
+          playsInline
           className="cursor-default absolute top-0 left-0 object-cover rounded-[15px] will-change-transform [transform:translateZ(0)]"
           style={{
             width: imageWidth,
