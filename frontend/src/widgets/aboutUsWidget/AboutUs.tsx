@@ -6,6 +6,41 @@ import { H2, P, TextPressure } from "@shared/ui/texts";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 
+interface CircularGalaryItem {
+  image: string;
+  text: string;
+}
+const circularGalaryItems: CircularGalaryItem[] = [
+  {
+    image: "/src/assets/circularGalary/card1.jpeg",
+    text: "Изысканное белое вино",
+  },
+  {
+    image: "/src/assets/circularGalary/card2.jpeg",
+    text: "Насыщенное красное вино",
+  },
+  {
+    image: "/src/assets/circularGalary/card3.jpeg",
+    text: "Незабываемый вкус",
+  },
+  {
+    image: "/src/assets/circularGalary/card4.jpeg",
+    text: "Стиль",
+  },
+  {
+    image: "/src/assets/circularGalary/card5.jpeg",
+    text: "Гармония вкуса",
+  },
+  {
+    image: "/src/assets/circularGalary/card6.jpeg",
+    text: "Эстетичность",
+  },
+  {
+    image: "/src/assets/circularGalary/card7.jpeg",
+    text: "Прагматичность",
+  },
+];
+
 export const AboutUs: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -56,8 +91,9 @@ export const AboutUs: React.FC = () => {
       </div>
       <div className="relative h-[450px] mb-12">
         <CircularGallery
+          items={circularGalaryItems}
           bend={-2}
-          textColor="black"
+          textColor={theme === "light" ? "black" : "white"}
           borderRadius={0.05}
           scrollEase={0.02}
         />
@@ -65,9 +101,9 @@ export const AboutUs: React.FC = () => {
       <div className="_container text-left w-full flex lg:flex-row flex-col items-center lg:items-between lg:justify-between mb-12 gap-5">
         <div className="items-center justify-left flex flex-col">
           <TiltedCard
-            imageSrc="https://i.scdn.co/image/ab67616d0000b273d9985092cd88bffd97653b58"
-            altText="Kendrick Lamar - GNX Album Cover"
-            captionText="Kendrick Lamar - GNX"
+            imageSrc="/src/assets/circularGalary/wine-video.mp4"
+            altText="Вина хотите?"
+            captionText="Вина хотите?"
             containerHeight="300px"
             containerWidth="300px"
             imageHeight="300px"
