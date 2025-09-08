@@ -2,80 +2,58 @@
 
 import React, { useState } from "react";
 import {
-  Briefcase,
-  Shuffle,
-  AlertCircle,
-  BookOpen,
-  Wallet,
-  Mail,
-  ShieldCheck,
-  MonitorPlay,
-  ChevronDown,
+  GlassWater,
+  Grape,
+  Barrel,
+  ThermometerSun,
+  Sprout,
+  Truck,
+  Beaker,
+  Award,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-// Data for the FAQ section, including icons
 const faqData = [
   {
-    icon: <Briefcase size={20} className="text-gray-500 dark:text-gray-400" />,
-    question: "How do I create an account?",
-    answer:
-      'To create an account, simply click the "Sign Up" button at the top-right corner of the page and fill in your details. It only takes a minute!',
+    icon: <GlassWater size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "wineTypes",
   },
   {
-    icon: <Shuffle size={20} className="text-gray-500 dark:text-gray-400" />,
-    question: "Can I change my subscription plan?",
-    answer:
-      "Yes, you can upgrade or downgrade your subscription plan at any time from your account settings. Changes will be prorated.",
+    icon: <Grape size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "grapeVarieties",
   },
   {
-    icon: (
-      <AlertCircle size={20} className="text-gray-500 dark:text-gray-400" />
-    ),
-    question: "What happens if I forget my password?",
-    answer:
-      "Don't worry! You can easily reset your password by clicking the 'Forgot Password' link on the login page. We'll send a reset link to your email.",
-  },
-  {
-    icon: <BookOpen size={20} className="text-gray-500 dark:text-gray-400" />,
-    question: "Where can I find the user guides?",
-    answer:
-      'All our user guides and documentation are available in the "Help" section of our website. You can also search for specific topics.',
-  },
-  {
-    icon: <Wallet size={20} className="text-gray-500 dark:text-gray-400" />,
-    question: "What payment methods do you accept?",
-    answer:
-      "We accept all major credit cards, including Visa, MasterCard, and American Express. We also support payments via PayPal.",
-  },
-  {
-    icon: <Mail size={20} className="text-gray-500 dark:text-gray-400" />,
-    question: "How can I contact customer support?",
-    answer:
-      "Our support team is available 24/7. You can reach us via the contact form on our website, by email at support@example.com, or through live chat.",
+    icon: <Barrel size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "wineAging",
   },
   {
     icon: (
-      <ShieldCheck size={20} className="text-gray-500 dark:text-gray-400" />
+      <ThermometerSun size={20} className="text-gray-500 dark:text-gray-400" />
     ),
-    question: "Is my personal data secure?",
-    answer:
-      "Absolutely. We prioritize your privacy and security. We use state-of-the-art encryption and security protocols to protect all your data.",
+    key: "climateImpact",
   },
   {
-    icon: (
-      <MonitorPlay size={20} className="text-gray-500 dark:text-gray-400" />
-    ),
-    question: "Do you have video tutorials?",
-    answer:
-      'Yes, we have a library of video tutorials that cover all the main features of our platform. You can find them on our YouTube channel and in the "Tutorials" section.',
+    icon: <Sprout size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "organicWine",
+  },
+  {
+    icon: <Truck size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "wineTransport",
+  },
+  {
+    icon: <Beaker size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "wineTesting",
+  },
+  {
+    icon: <Award size={20} className="text-gray-500 dark:text-gray-400" />,
+    key: "wineAwards",
   },
 ];
 
 interface AccordionItemProps {
   item: {
     icon: React.ReactNode;
-    question: string;
-    answer: string;
+    key: string;
   };
   isOpen: boolean;
   onToggle: () => void;
@@ -86,22 +64,36 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   isOpen,
   onToggle,
 }) => {
+  const { t } = useTranslation();
+
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+    <div className="border-b border-zinc-200 dark:border-zinc-700 last:border-b-0">
       <button
-        className="flex items-center justify-between w-full p-4 text-left focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        className="flex cursor-pointer items-center justify-between w-full p-6 text-left focus:outline-none hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors duration-700"
         onClick={onToggle}
       >
         <div className="flex items-center space-x-4">
           {item.icon}
           <span className="text-base font-medium text-gray-800 dark:text-gray-200">
-            {item.question}
+            {t(`questions.${item.key}`)}
           </span>
         </div>
-        <ChevronDown
-          size={20}
+        <svg
           className={`transform transition-transform duration-300 text-gray-500 dark:text-gray-400 ${isOpen ? "rotate-180" : ""}`}
-        />
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M5 7.5L10 12.5L15 7.5"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -109,7 +101,9 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
         }`}
       >
         <div className="p-4 pl-12">
-          <p className="text-gray-600 dark:text-gray-300">{item.answer}</p>
+          <p className="text-gray-600 dark:text-gray-300">
+            {t(`questions.${item.key}Answer`)}
+          </p>
         </div>
       </div>
     </div>
@@ -126,17 +120,15 @@ export default function AccordionSection() {
   return (
     <div className="flex w-full items-center justify-center">
       <div className="w-full max-w-4xl">
-        <div className="p-4">
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
-            {faqData.map((item, index) => (
-              <AccordionItem
-                key={index}
-                item={item}
-                isOpen={openIndex === index}
-                onToggle={() => handleToggle(index)}
-              />
-            ))}
-          </div>
+        <div className="border border-b-zinc-100 dark:border-zinc-700 rounded-lg">
+          {faqData.map((item, index) => (
+            <AccordionItem
+              key={index}
+              item={item}
+              isOpen={openIndex === index}
+              onToggle={() => handleToggle(index)}
+            />
+          ))}
         </div>
       </div>
     </div>
