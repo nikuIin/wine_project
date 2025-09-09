@@ -1,0 +1,69 @@
+[project]
+name = "base-fastapi-application"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.16.2",
+    "asyncpg>=0.30.0",
+    "cst-lsp>=0.1.3",
+    "fastapi-mail>=1.5.0",
+    "fastapi>=0.115.12",
+    "greenlet>=3.2.3",
+    "hypothesis>=6.135.26",
+    "markdown>=3.8.2",
+    "passlib[bcrypt]>=1.7.4",
+    "pydantic-settings>=2.9.1",
+    "pyjwt>=2.10.1",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
+    "pytest-dotenv>=0.5.2",
+    "pytest>=8.4.0",
+    "python-multipart>=0.0.20",
+    "redis>=6.2.0",
+    "ruff>=0.12.0",
+    "schemathesis>=4.0.5",
+    "sentry-sdk>=2.27.0",
+    "sqlalchemy>=2.0.40",
+    "uuid7>=0.1.0",
+    "uvicorn>=0.34.2",
+    "websockets>=15.0.1",
+]
+
+[tool.ruff]
+line-length = 79
+src = ["backend/src"]
+lint.select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "UP",   # pyupgrade
+    "N",    # pep8-naming
+    "ERA",  # found commented-out code
+    "D401", # check docstring format
+]
+lint.unfixable = ["F401"] # Prevent Ruff from auto-fixing unused imports
+lint.ignore = [
+    "B008", # Ignore depends in function calls
+    "E731", # Allow to use the lambda functions
+]
+
+
+exclude = [".venv", ".git", "__pycache__", "build", "dist"]
+
+[tool.uv.workspace]
+members = ["venv"]
+
+[tool.pyright]
+# Delete if you dont have mistakes
+executionEnvironments = [{ root = "backend" }]
+include = ["backend/src", "backend/tests"]
+typeCheckingMode = "standard"
+venv = ".venv"
+venvPath = "backend"
+extraPaths = ["backend/src"]

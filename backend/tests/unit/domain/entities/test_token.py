@@ -5,15 +5,15 @@ Module of testing Token class.
 # import project settings
 from contextlib import AbstractAsyncContextManager
 from contextlib import nullcontext as dont_raise
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from jwt import encode as jwt_encode
 from pytest import fixture, raises
 
 from core.config import auth_settings
-from domain.entities.token import RefreshTokenPayload, Token, TokenPayload
-from domain.entities.user import UserBase
 from domain.exceptions import InvalidTokenDataError, TokenSessionExpiredError
+from dto.user_dto import UserBase
+from services.classes.token import RefreshTokenPayload, Token, TokenPayload
 
 # ============================
 # Fixtures
@@ -60,8 +60,9 @@ def access_token(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=TokenPayload(
+            token_id=str(uuid4()),
+            fingerprint=123,
             user_id=str(user_base.user_id),
-            login=user_base.login,
             role_id=1,
         ).model_dump(),
         key=auth_settings.access_secret_key,
@@ -75,6 +76,8 @@ def refresh_token(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=RefreshTokenPayload(
+            token_id=str(uuid4()),
+            fingerprint=123,
             user_id=str(user_base.user_id),
             login=user_base.login,
             role_id=1,
@@ -90,8 +93,9 @@ def access_token_with_expired_date(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=TokenPayload(
+            token_id=str(uuid4()),
+            fingerprint=345,
             user_id=str(user_base.user_id),
-            login=user_base.login,
             role_id=1,
             exp=0,
         ).model_dump(),
@@ -106,6 +110,8 @@ def refresh_token_with_expired_date(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=RefreshTokenPayload(
+            token_id=str(uuid4()),
+            fingerprint=345,
             user_id=str(user_base.user_id),
             login=user_base.login,
             role_id=1,
@@ -122,8 +128,9 @@ def wrong_access_token_data(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=TokenPayload(
+            fingerprint=345,
+            token_id=str(uuid4()),
             user_id=str(user_base.user_id),
-            login=user_base.login,
             role_id=1,
             exp=0,
         ).model_dump(),
@@ -141,6 +148,8 @@ def wrong_refresh_token_data(user_base) -> Token:
     user_base = user_base["user"]
     token = jwt_encode(
         payload=RefreshTokenPayload(
+            token_id=str(uuid4()),
+            fingerprint=345,
             user_id=str(user_base.user_id),
             login=user_base.login,
             role_id=1,

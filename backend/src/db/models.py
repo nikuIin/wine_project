@@ -1,7 +1,8 @@
 import decimal
 import uuid
-from datetime import UTC, date, datetime, timedelta
+from datetime import date, datetime
 
+from pydantic.networks import EmailStr
 from sqlalchemy import (
     TEXT,
     UUID,
@@ -12,6 +13,7 @@ from sqlalchemy import (
     ForeignKey,
     Identity,
     Integer,
+    Numeric,
     String,
     Text,
     func,
@@ -28,7 +30,6 @@ from sqlalchemy.sql.schema import UniqueConstraint
 from sqlalchemy.types import DATE, SMALLINT
 from uuid_extensions import uuid7
 
-from core.config import auth_settings
 from db.base_models import Base, TimeStampMixin
 
 
@@ -143,7 +144,7 @@ class User(Base, TimeStampMixin):
     )
     login: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
         unique=True,
     )
     email: Mapped[str | None] = mapped_column(
@@ -152,12 +153,12 @@ class User(Base, TimeStampMixin):
     )
     password: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     role_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("role.role_id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
     is_registered: Mapped[bool] = mapped_column(
         Boolean,
@@ -182,8 +183,14 @@ class User(Base, TimeStampMixin):
     )
     articles = relationship("Article", back_populates="author")
 
-    leads = relationship("Lead", back_populates="user")
-    managed_deals = relationship("Deal", back_populates="manager")
+    lead_link = relationship(
+        "Deal", back_populates="lead", foreign_keys=lambda: [Deal.lead_id]
+    )
+    managed_deals = relationship(
+        "Deal",
+        back_populates="manager",
+        foreign_keys=lambda: [Deal.manager_id],
+    )
     deal_histories = relationship("DealHistory", back_populates="manager")
     deal_messages = relationship("DealMessage", back_populates="user")
 
@@ -645,47 +652,31 @@ class RefreshToken(Base, TimeStampMixin):
     refresh_token_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid7,
-        nullable=False,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("user.user_id", ondelete="CASCADE"),
         nullable=False,
     )
-    expire_at: Mapped[datetime] = mapped_column(
+    fingerprint: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False,
+    )
+    ip: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    is_blocked: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    expire_at: Mapped[float] = mapped_column(
         TIMESTAMP(timezone=True),
         nullable=False,
-        default=lambda: (
-            datetime.now()
-            + timedelta(minutes=auth_settings.refresh_token_expire_minutes)
-        ),
     )
 
     user = relationship("User", back_populates="refresh_tokens")
-    blacklisted = relationship(
-        "BlackRefreshTokenList",
-        back_populates="refresh_token",
-        uselist=False,
-    )
-
-
-class BlackRefreshTokenList(Base):
-    __tablename__ = "black_refresh_token_list"
-
-    refresh_token_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("refresh_token.refresh_token_id", ondelete="CASCADE"),
-        primary_key=True,
-        nullable=False,
-    )
-    ban_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True),
-        nullable=False,
-        default=datetime.now,
-    )
-
-    refresh_token = relationship("RefreshToken", back_populates="blacklisted")
 
 
 class PresentationType(Base):
@@ -1581,6 +1572,10 @@ class UserDeleted(Base):
         String(255),
         nullable=False,
     )
+    email: Mapped[EmailStr] = mapped_column(
+        String(400),
+        nullable=False,
+    )
     password: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
@@ -1609,15 +1604,15 @@ class MdUserDeleted(Base):
     )
     first_name: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     last_name: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     middle_name: Mapped[str] = mapped_column(
         String(255),
-        nullable=False,
+        nullable=True,
     )
     profile_picture_link: Mapped[str | None] = mapped_column(
         VARCHAR(255),
@@ -1881,7 +1876,6 @@ class Source(Base, TimeStampMixin):
         nullable=True,
     )
 
-    leads = relationship("Lead", back_populates="source")
     source_to_sale_stages = relationship(
         "SourceToSaleStage", back_populates="source"
     )
@@ -1907,25 +1901,6 @@ class SourceToSaleStage(Base):
     )
 
 
-class Lead(Base, TimeStampMixin):
-    __tablename__ = "lead"
-
-    lead_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("user.user_id", ondelete="CASCADE"),
-        primary_key=True,
-    )
-    source_id: Mapped[int] = mapped_column(
-        BigInteger,
-        ForeignKey("source.source_id", ondelete="CASCADE"),
-        nullable=False,
-    )
-
-    source = relationship("Source", back_populates="leads")
-    user = relationship("User", back_populates="leads")
-    deals = relationship("Deal", back_populates="lead")
-
-
 class LostReason(Base):
     __tablename__ = "lost_reason"
     __table_args__ = (
@@ -1949,9 +1924,7 @@ class LostReason(Base):
 class Deal(Base, TimeStampMixin):
     __tablename__ = "deal"
     __table_args__ = (
-        CheckConstraint(
-            "deal_value::numeric >= 0", name="deal_value_positive"
-        ),
+        CheckConstraint("cost::numeric >= 0", name="deal_cost_positive"),
         CheckConstraint(
             "probability between 0 and 1", name="deal_probability_range"
         ),
@@ -1960,10 +1933,9 @@ class Deal(Base, TimeStampMixin):
         ),
     )
 
-    deal_id: Mapped[int] = mapped_column(
-        BigInteger,
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        server_default=Identity(always=True),
     )
     sale_stage_id: Mapped[int] = mapped_column(
         Integer,
@@ -1972,19 +1944,20 @@ class Deal(Base, TimeStampMixin):
     )
     lead_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("lead.lead_id", ondelete="CASCADE"),
+        ForeignKey("user.user_id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+    )
+    cost: Mapped[Numeric] = mapped_column(
+        NUMERIC,
         nullable=False,
     )
-    deal_value: Mapped[decimal.Decimal] = mapped_column(
-        MONEY,
-        nullable=False,
-    )
-    probability: Mapped[decimal.Decimal] = mapped_column(
+    probability: Mapped[Numeric] = mapped_column(
         NUMERIC(3, 2),
         nullable=False,
         default=0,
     )
-    deal_fields: Mapped[dict | None] = mapped_column(
+    fields: Mapped[dict | None] = mapped_column(
         JSONB,
         nullable=True,
     )
@@ -1997,7 +1970,7 @@ class Deal(Base, TimeStampMixin):
         ForeignKey("lost_reason.lost_reason_id", ondelete="SET NULL"),
         nullable=True,
     )
-    lost_reason: Mapped[str | None] = mapped_column(
+    lost_reason_additional_text: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
     )
@@ -2012,10 +1985,14 @@ class Deal(Base, TimeStampMixin):
     )
 
     sale_stage = relationship("SaleStage", back_populates="deals")
-    lead = relationship("Lead", back_populates="deals")
     lost_reason = relationship("LostReason", back_populates="deals")
-    manager = relationship("User", back_populates="managed_deals")
+    manager = relationship(
+        "User", back_populates="managed_deals", foreign_keys=[manager_id]
+    )
     deal_histories = relationship("DealHistory", back_populates="deal")
+    lead = relationship(
+        "User", back_populates="lead_link", foreign_keys=[lead_id]
+    )
     deal_messages = relationship("DealMessage", back_populates="deal")
 
 
@@ -2033,8 +2010,8 @@ class DealHistory(Base):
         primary_key=True,
         server_default=Identity(always=True),
     )
-    deal_id: Mapped[int] = mapped_column(
-        BigInteger,
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("deal.deal_id", ondelete="CASCADE"),
         nullable=False,
     )
@@ -2053,7 +2030,7 @@ class DealHistory(Base):
         ForeignKey("lost_reason.lost_reason_id", ondelete="SET NULL"),
         nullable=True,
     )
-    lost_reason: Mapped[str | None] = mapped_column(
+    lost_reason_additional_text: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
     )
@@ -2085,8 +2062,8 @@ class DealMessage(Base):
         primary_key=True,
         server_default=Identity(always=True),
     )
-    deal_id: Mapped[int] = mapped_column(
-        BigInteger,
+    deal_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("deal.deal_id", ondelete="CASCADE"),
         nullable=False,
     )
@@ -2116,3 +2093,23 @@ class DealMessage(Base):
 
     deal = relationship("Deal", back_populates="deal_messages")
     user = relationship("User", back_populates="deal_messages")
+
+
+class Partner(Base):
+    __tablename__ = "partner"
+    __table_args__ = {
+        "comment": "Table for storing partner information",
+    }
+
+    partner_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+    )
+    name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    image_src: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True,
+    )

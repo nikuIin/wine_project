@@ -279,7 +279,7 @@ class ArticleService:
         except ArticleDatabaseError as error:
             raise error
 
-    def _get_seached_words(self, input_text: str) -> set[str]:
+    def _get_searched_words(self, input_text: str) -> set[str]:
         """Prepare text to ts_query method with AND rule.
 
         Examples:
@@ -288,7 +288,7 @@ class ArticleService:
             search_text (str): The text to be prepared for ts_query search.
         Returns:
             set: The set of searched words without specified symbols
-                 and mutiply spaces.
+                 and multiply spaces.
         """
         input_text = "".join(
             char.lower()
@@ -315,7 +315,7 @@ class ArticleService:
         Returns:
             str: The prepared text for ts_query search.
         """
-        searched_words = self._get_seached_words(input_text=input_text)
+        searched_words = self._get_searched_words(input_text=input_text)
 
         if excluded:
             searched_words = {"!" + word for word in searched_words}

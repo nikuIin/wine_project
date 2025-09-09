@@ -18,7 +18,7 @@ from core.logger.logger import get_configure_logger
 from db.models import *  # noqa
 from db.base_models import Base
 from db.statement import Statement
-from db.trigers import TRIGGERS
+from db.triggers import TRIGGERS
 
 logger = get_configure_logger(Path(__file__).stem)
 
@@ -105,6 +105,10 @@ class DatabaseHelper:
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.commit()
+
+    async def close_connection(self) -> None:
+        if self.engine:
+            await self.engine.dispose()
 
 
 # Create a global instance of the DatabaseHelper using settings from core.config

@@ -34,3 +34,13 @@ class TSQUERYRules(StrEnum):
     AND = "&"
     OR = "|"
     NOT = "!"
+
+
+class Priority(IntEnum):
+    NO_PRIORITY = -1
+    HIGHEST_PRIORIRY = 10
+
+
+class Roles(IntEnum):
+    LEAD = 1
+    ADMIN = 2

@@ -799,7 +799,7 @@ class ArticleRepository:
                 ) from error
 
             logger.error(
-                "Unproccessed integrity error when add translate"
+                "Unprocessed integrity error when add translate"
                 + " tag with id %s in english %s",
                 tag_id,
                 language,
@@ -873,7 +873,7 @@ class ArticleRepository:
                 ) from error
 
             logger.error(
-                "Unproccessed integrity error when update translate of"
+                "Unprocessed integrity error when update translate of"
                 + " tag with id %s in english %s",
                 tag_id,
                 language,

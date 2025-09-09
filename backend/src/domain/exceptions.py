@@ -31,6 +31,13 @@ class InvalidTokenDataError(Exception):
         )
 
 
+class TokenDatabaseError(Exception):
+    """The error occurs, while the refresh token is in the black list"""
+
+    def __init__(self, message="The database error during token operations"):
+        super().__init__(message)
+
+
 class AccessTokenAbsenceError(Exception):
     """The error occurs, while the access token wasn't finds in the cookies"""
 
@@ -321,10 +328,10 @@ class DeleteVerificationKeyError(Exception):
 
 
 class RateLimitingError(Exception):
-    """The error occurs with a lot of attepts of auth with the same data
+    """The error occurs with a lot of attempts of auth with the same data
     in the one time period"""
 
-    def __init__(self, message="A lot of attemts to auth."):
+    def __init__(self, message="A lot of attempts to auth."):
         super().__init__(message)
 
 
@@ -342,7 +349,7 @@ class NextCodeAttemptNotPassedError(Exception):
 
     def __init__(
         self,
-        message="Attemt to get new code not allowed yet."
+        message="Attempt to get new code not allowed yet."
         + " Please wait a bit more",
     ):
         super().__init__(message)
@@ -482,9 +489,7 @@ class ContentDBError(Exception):
 
 
 class ContentAlreadyExistsError(Exception):
-    """The error occurs when the content already exists."""
-
-    def __init__(self, message="The content already exists."):
+    def __init__(self, message="Content already exists with this fields."):
         super().__init__(message)
 
 
@@ -506,8 +511,83 @@ class ContentIntegrityError(Exception):
 
 
 class ContentDoesNotExistsError(Exception):
-    """Ther error occurs when database return None
+    """The error occurs when database return None
     of get content request"""
 
     def __init__(self, message="The content doesn't exists"):
+        super().__init__(message)
+
+
+# ===================================== #
+#             Deal errors               #
+# ===================================== #
+
+
+class DealError(Exception):
+    def __init__(self, message="Undefined error with deal"):
+        super().__init__(message)
+
+
+class DealAlreadyExistsError(Exception):
+    def __init__(self, message="Deal already exists"):
+        super().__init__(message)
+
+
+class DealLeadNotFoundError(Exception):
+    def __init__(self, message="Deal lead not found"):
+        super().__init__(message)
+
+
+class DealManagerNotFoundError(Exception):
+    def __init__(self, message="Deal manager not found"):
+        super().__init__(message)
+
+
+class UserNotFoundError(Exception):
+    def __init__(self, message="User has'n been founded."):
+        super().__init__(message)
+
+
+class DealSaleStageNotFoundError(Exception):
+    def __init__(self, message="Deal sale stage not found"):
+        super().__init__(message)
+
+
+class DealLostReasonNotFoundError(Exception):
+    def __init__(self, message="Deal lost reason not found"):
+        super().__init__(message)
+
+
+class DealDBError(Exception):
+    def __init__(self, message="Internal server error"):
+        super().__init__(message)
+
+
+class MessageAlreadyExistsError(Exception):
+    def __init__(self, message="Message with this id already exists"):
+        super().__init__(message)
+
+
+class DealNotFoundError(Exception):
+    def __init__(self, message="The deal has't been founded."):
+        super().__init__(message)
+
+
+class ChatNotActiveError(Exception):
+    def __init__(self, message="Chat is not active"):
+        super().__init__(message)
+
+
+class ManagersDoesNotExistsError(Exception):
+    def __init__(self, message="Managers does not exists"):
+        super().__init__(message)
+
+
+# ===================================== #
+#           Partner errors              #
+# ===================================== #
+
+
+class PartnerDatabaseError(Exception):
+    def __init__(self, message="Partner database error"):
         super().__init__(message)

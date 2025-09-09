@@ -173,6 +173,20 @@ class RedisSettings(ModelConfig):
         return f"redis://{self.host}:{self.port}/{self.db}"
 
 
+class CRMSettings(ModelConfig):
+    max_deal_saves: int = Field(default=5, validation_alias="MAX_DEAL_SAVES")
+
+
+class TelegramSettings(ModelConfig):
+    telegram_bot_token: str = Field(
+        default="MY_COOL_TELEGRAM_TOKEN",
+        validation_alias="TELEGRAM_BOT_API_TOKEN",
+    )
+    deals_chat_id: int = Field(
+        default=123456789, validation_alias="DEALS_TELEGRAM_CHAT_ID"
+    )
+
+
 # create config instances
 host_settings = HostSettings()
 auth_settings = AuthSettings()
@@ -181,3 +195,5 @@ log_settings = LoggingSettings()
 app_settings = AppSettings()
 mail_settings = MailSettings()
 redis_settings = RedisSettings()
+crm_settings = CRMSettings()
+telegram_settings = TelegramSettings()

@@ -53,6 +53,7 @@ class TestContentRepository:
             md_title="my_cute_title",
             md_description="my_cute_description",
             content={"a": 123},
+            language=LanguageEnum.ENGLISH,
         )
 
         assert content is not None
